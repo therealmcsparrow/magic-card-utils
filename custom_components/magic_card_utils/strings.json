@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Magic Card Utils",
+        "description": "This integration provides shared template storage for Magic Card. Press Submit to install."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Magic Card Utils is already configured."
+    }
+  }
+}
