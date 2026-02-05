@@ -44,10 +44,6 @@ class MagicCardUtilsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class MagicCardUtilsOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle the options flow for Magic Card Utils."""
 
-    def __init__(self, config_entry):
-        """Initialize the options flow."""
-        self.config_entry = config_entry
-
     async def async_step_init(self, user_input=None):
         """Handle the initial step."""
         if user_input is not None:
