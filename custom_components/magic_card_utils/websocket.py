@@ -48,6 +48,10 @@ async def ws_save_template(hass: HomeAssistant, connection: websocket_api.Active
     templates = hass.data[DOMAIN]["templates"]
     templates[msg["name"]] = msg["template"]
     await hass.data[DOMAIN]["store"].async_save({"templates": templates})
+    hass.bus.async_fire("magic_card_utils_template_updated", {
+        "name": msg["name"],
+        "template": msg["template"],
+    })
     connection.send_result(msg["id"], {"success": True})
 
 
