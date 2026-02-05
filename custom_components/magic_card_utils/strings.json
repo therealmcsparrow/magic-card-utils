@@ -3,11 +3,24 @@
     "step": {
       "user": {
         "title": "Magic Card Utils",
-        "description": "This integration provides shared template storage for the Magic Card frontend. Press Submit to install."
+        "description": "This integration provides shared template storage for the Magic Card frontend. Press Submit to install.",
+        "data": {
+          "show_side_panel": "Show side panel"
+        }
       }
     },
     "abort": {
       "single_instance_allowed": "Magic Card Utils is already configured."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "show_side_panel": "Show side panel"
+        }
+      }
+    }
   }
 }
+
