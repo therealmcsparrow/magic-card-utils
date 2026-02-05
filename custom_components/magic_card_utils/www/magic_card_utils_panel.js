@@ -86,9 +86,12 @@ class MagicCardUtilsPanel extends LitElement {
         `,
       },
       linked_cards: {
-        title: "Linked Cards",
+        title: "Total Cards Linked",
         sortable: true,
         width: "15%",
+        template: (linkedCards) => {
+          return Array.isArray(linkedCards) ? linkedCards.length : 0;
+        },
       },
       created_at: {
         title: "Created",
