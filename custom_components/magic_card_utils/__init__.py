@@ -20,8 +20,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         cache_headers=False,
     )
 
-    # Register the panel
-    if entry.options.get("show_side_panel", False):
+    # Register the panel (check options first, then data, default to True)
+    show_panel = entry.options.get("show_side_panel", entry.data.get("show_side_panel", True))
+    if show_panel:
         hass.components.frontend.async_register_panel(
             webcomponent_name="magic-card-utils-panel",
             frontend_url_path=f"/{PANEL_URL}/magic_card_utils_panel.js",
@@ -48,8 +49,9 @@ async def options_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> No
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
 
-    # Unregister the panel
-    if entry.options.get("show_side_panel", False):
+    # Unregister the panel (check options first, then data, default to True)
+    show_panel = entry.options.get("show_side_panel", entry.data.get("show_side_panel", True))
+    if show_panel:
         hass.components.frontend.async_remove_panel(PANEL_URL)
 
     # Pop data

@@ -26,8 +26,7 @@ class MagicCardUtilsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             return self.async_create_entry(
                 title="Magic Card Utils",
-                data={},
-                options=user_input
+                data=user_input
             )
 
         return self.async_show_form(
@@ -57,13 +56,19 @@ class MagicCardUtilsOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
+        # Get current value from options, falling back to data, then default to True
+        current_value = self.config_entry.options.get(
+            "show_side_panel",
+            self.config_entry.data.get("show_side_panel", True)
+        )
+
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
                     vol.Optional(
                         "show_side_panel",
-                        default=self.config_entry.options.get("show_side_panel", True),
+                        default=current_value,
                     ): cv.boolean,
                 }
             ),
