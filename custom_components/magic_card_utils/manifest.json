@@ -1,7 +1,7 @@
 {
   "domain": "magic_card_utils",
   "name": "Magic Card Utils",
-  "version": "0.0.99-beta24",
+  "version": "0.0.99-beta25",
   "documentation": "https://github.com/your-repo/magic-card-utils",
   "dependencies": [],
   "codeowners": [],

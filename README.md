@@ -14,7 +14,6 @@ Welcome to Magic Card Utils! This integration for Home Assistant provides a shar
 
 - **Shared Template Storage:** Store and manage your Magic Card templates in a centralized location.
 - **Websocket API:** Provides a websocket API for creating, reading, updating, and deleting templates.
-- **Side Panel:** An optional side panel in Home Assistant to view all your saved templates in a convenient table.
 - **Easy Configuration:** Configure the integration through the Home Assistant UI.
 
 ## Installation
@@ -41,7 +40,6 @@ Welcome to Magic Card Utils! This integration for Home Assistant provides a shar
 2.  Click the "+ ADD INTEGRATION" button.
 3.  Search for "Magic Card Utils" and click on it.
 4.  Follow the on-screen instructions to complete the setup.
-    - **Show side panel:** If you want to have a side panel to view all your templates, make sure to check this option.
 
 ## Usage
 
