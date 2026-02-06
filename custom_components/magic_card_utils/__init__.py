@@ -14,7 +14,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Magic Card Utils from a config entry."""
 
     # Register the static path for the panel
-    hass.http.register_static_path(
+    await hass.http.async_register_static_path(
         f"/{PANEL_URL}",
         hass.config.path("custom_components/magic_card_utils/www"),
         cache_headers=False,
