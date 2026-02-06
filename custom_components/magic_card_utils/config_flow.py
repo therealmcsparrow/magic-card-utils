@@ -4,7 +4,6 @@ from homeassistant import config_entries
 from .const import DOMAIN
 
 
-@config_entries.HANDLERS.register(DOMAIN)
 class MagicCardUtilsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Magic Card Utils."""
 

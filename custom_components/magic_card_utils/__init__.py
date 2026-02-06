@@ -7,6 +7,11 @@ from .const import DOMAIN
 from .websocket import async_register_websocket
 
 
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Set up the Magic Card Utils component."""
+    return True
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Magic Card Utils from a config entry."""
     await async_register_websocket(hass)
