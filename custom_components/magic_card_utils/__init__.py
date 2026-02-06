@@ -4,6 +4,7 @@ import os
 from typing import Optional
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.components.frontend import async_register_panel, async_remove_panel
 
 from .const import DOMAIN, PANEL_ICON, PANEL_TITLE, PANEL_URL
 from .websocket import async_register_websocket
@@ -21,7 +22,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Register the panel
     if entry.data.get("show_side_panel", True):
-        hass.components.frontend.async_register_panel(
+        async_register_panel(
+            hass,
             webcomponent_name="magic-card-utils-panel",
             frontend_url_path=f"/{PANEL_URL}/magic_card_utils_panel.js",
             sidebar_title=PANEL_TITLE,
@@ -41,7 +43,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Unregister the panel
     if entry.data.get("show_side_panel", True):
-        hass.components.frontend.async_remove_panel(PANEL_URL)
+        async_remove_panel(hass, PANEL_URL)
 
     # Pop data
     hass.data.pop(DOMAIN, None)
