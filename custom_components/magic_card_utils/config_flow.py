@@ -1,8 +1,5 @@
 """Config flow for Magic Card Utils."""
-import voluptuous as vol
-
 from homeassistant import config_entries
-from homeassistant.helpers import config_validation as cv
 
 from .const import DOMAIN
 
@@ -12,11 +9,6 @@ class MagicCardUtilsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Magic Card Utils."""
 
     VERSION = 1
-    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
-
-    def __init__(self):
-        """Initialize the config flow."""
-        self._errors = {}
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
@@ -24,13 +16,6 @@ class MagicCardUtilsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_abort(reason="single_instance_allowed")
 
         if user_input is not None:
-            return self.async_create_entry(title="Magic Card Utils", data=user_input)
+            return self.async_create_entry(title="Magic Card Utils", data={})
 
-        return self.async_show_form(
-            step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional("show_side_panel", default=True): cv.boolean,
-                }
-            ),
-        )
+        return self.async_show_form(step_id="user")

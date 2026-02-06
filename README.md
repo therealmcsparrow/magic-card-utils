@@ -8,7 +8,7 @@
 
 ## Introduction
 
-Welcome to Magic Card Utils! This integration for Home Assistant provides a shared template storage for the [Magic Card](https://github.com/your-repo/magic-card) frontend. It allows you to create, manage, and reuse templates for your Magic Cards directly within Home Assistant.
+Welcome to Magic Card Utils! This integration for Home Assistant provides a shared template storage for the [Magic Card](https://github.com/your-repo/magic-card) frontend. It allows you to create, manage, and reuse templates for your Magic Cards directly within Home Assistant. Beta version.
 
 ## Features
 
