@@ -12,14 +12,5 @@
     "abort": {
       "single_instance_allowed": "Magic Card Utils is already configured."
     }
-  },
-  "options": {
-    "step": {
-      "init": {
-        "data": {
-          "show_side_panel": "Show side panel"
-        }
-      }
-    }
   }
 }

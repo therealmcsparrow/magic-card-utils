@@ -20,7 +20,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     # Register the panel
-    if entry.options.get("show_side_panel", entry.data.get("show_side_panel", True)):
+    if entry.data.get("show_side_panel", True):
         hass.components.frontend.async_register_panel(
             webcomponent_name="magic-card-utils-panel",
             frontend_url_path=f"/{PANEL_URL}/magic_card_utils_panel.js",
@@ -30,34 +30,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             require_admin=True,
         )
 
-    # Add an options update listener
-    entry.add_update_listener(options_update_listener)
-
     # Register the websocket
     await async_register_websocket(hass)
 
     return True
 
 
-async def options_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Handle options update."""
-    await hass.config_entries.async_reload(entry.entry_id)
-
-
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
 
     # Unregister the panel
-    if entry.options.get("show_side_panel", entry.data.get("show_side_panel", True)):
+    if entry.data.get("show_side_panel", True):
         hass.components.frontend.async_remove_panel(PANEL_URL)
 
     # Pop data
     hass.data.pop(DOMAIN, None)
 
     return True
-
-
-async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload the config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
