@@ -16,6 +16,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Register the websocket
     await async_register_websocket(hass)
 
+    if not hass.data.get(f"{DOMAIN}_static_path_registered", False):
+        # Register static path for the panel files
+        panel_path = os.path.join(os.path.dirname(__file__), "www")
+        await hass.http.async_register_static_paths([
+            StaticPathConfig(f"/{PANEL_URL}", panel_path, cache_headers=False)
+        ])
+        hass.data[f"{DOMAIN}_static_path_registered"] = True
+
     # Register sidebar panel
     if entry.data.get("show_side_panel", True):
         await async_register_panel(hass)
@@ -27,12 +35,6 @@ async def async_register_panel(hass: HomeAssistant) -> None:
     """Register the sidebar panel."""
     if DOMAIN in hass.data.get("frontend_panels", {}):
         return
-
-    # Register static path for the panel files
-    panel_path = os.path.join(os.path.dirname(__file__), "www")
-    await hass.http.async_register_static_paths([
-        StaticPathConfig(f"/{PANEL_URL}", panel_path, cache_headers=False)
-    ])
 
     # Register the custom panel
     await panel_custom.async_register_panel(
