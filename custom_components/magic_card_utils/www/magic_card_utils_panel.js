@@ -126,5 +126,5 @@ class MagicCardUtilsPanel extends LitElement {
     `;
   }
 }
-
+ 
 customElements.define("magic-card-utils-panel", MagicCardUtilsPanel);
