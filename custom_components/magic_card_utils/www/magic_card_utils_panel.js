@@ -37,7 +37,7 @@ class MagicCardUtilsPanel extends LitElement {
 
     this.hass.connection
       .sendMessage({
-        type: "magic_card_utils/templates/get",
+        type: "magic_card_utils/get_templates",
       })
       .then((message) => {
         this._templates = this._processTemplates(message.templates);
