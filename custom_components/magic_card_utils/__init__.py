@@ -1,7 +1,6 @@
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.components import panel_custom
-from homeassistant.components.http.static import StaticPathConfig
 
 from .const import DOMAIN, PANEL_ICON, PANEL_TITLE, PANEL_URL
 from .websocket import async_register_websocket
@@ -14,9 +13,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if not hass.data.get(f"{DOMAIN}_static_path_registered", False):
         # Register static path for the panel files
-        await hass.http.async_register_static_paths([
-            StaticPathConfig(f"/{PANEL_URL}", hass.config.path("custom_components/magic_card_utils/www"))
-        ])
+        hass.http.app.router.add_static(
+            f"/{PANEL_URL}",
+            hass.config.path("custom_components/magic_card_utils/www"),
+            name="magic_card_utils_static"
+        )
         hass.data[f"{DOMAIN}_static_path_registered"] = True
 
     # Register sidebar panel
