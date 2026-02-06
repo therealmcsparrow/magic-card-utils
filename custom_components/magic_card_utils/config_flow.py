@@ -56,7 +56,7 @@ class MagicCardUtilsOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        # Get current value from options, falling back to data, then default to True
+        # Get current value from options, falling back to data, then default to True 
         current_value = self.config_entry.options.get(
             "show_side_panel",
             self.config_entry.data.get("show_side_panel", True)

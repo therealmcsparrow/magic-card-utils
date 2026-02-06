@@ -1,4 +1,4 @@
-"""Magic Card Utils integration – shared template storage for Magic Card."""
+"""Magic Card Utils integration – shared template storage for Magic Card. """
 
 import os
 from typing import Optional

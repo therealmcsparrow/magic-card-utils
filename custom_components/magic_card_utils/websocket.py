@@ -1,4 +1,4 @@
-"""WebSocket API for shared Magic Card template storage."""
+"""WebSocket API for shared Magic Card template storage ."""
 
 import voluptuous as vol
 
