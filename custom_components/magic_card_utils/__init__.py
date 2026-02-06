@@ -6,6 +6,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
+from homeassistant.components.http.static import StaticPath
+
 from .websocket import async_register_websocket
 from .const import DOMAIN, PANEL_ICON, PANEL_TITLE, PANEL_URL
 
@@ -14,11 +16,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Magic Card Utils from a config entry."""
 
     # Register the static path for the panel
-    await hass.http.async_register_static_paths(
-        f"/{PANEL_URL}",
-        hass.config.path("custom_components/magic_card_utils/www"),
-        cache_headers=False,
-    )
+    await hass.http.async_register_static_paths([
+        StaticPath(
+            f"/{PANEL_URL}",
+            hass.config.path("custom_components/magic_card_utils/www"),
+        )
+    ])
 
     # Register the panel
     if entry.options.get("show_side_panel", entry.data.get("show_side_panel", True)):
