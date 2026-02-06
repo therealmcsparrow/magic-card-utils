@@ -1,9 +1,9 @@
 {
   "domain": "magic_card_utils",
   "name": "Magic Card Utils",
-  "version": "0.0.99-beta36",
+  "version": "0.0.99-beta37",
   "documentation": "https://github.com/your-repo/magic-card-utils",
-  "dependencies": [],
+  "dependencies": ["frontend"],
   "codeowners": [],
   "config_flow": true,
   "iot_class": "local_push"
