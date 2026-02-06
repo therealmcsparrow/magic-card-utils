@@ -74,7 +74,7 @@ async def async_send_templates_update(hass: HomeAssistant) -> None:
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "magic_card_utils/templates/get"}
+    {vol.Required("type"): "magic_card_utils/get_templates"}
 )
 @callback
 def ws_subscribe_templates(
@@ -128,6 +128,7 @@ async def ws_save_template(hass: HomeAssistant, connection: websocket_api.Active
         vol.Required("name"): str,
     }
 )
+
 @websocket_api.async_response
 async def ws_delete_template(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict) -> None:
     """Delete a template by name."""
