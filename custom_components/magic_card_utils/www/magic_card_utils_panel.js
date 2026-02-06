@@ -28,11 +28,11 @@ class MagicCardUtilsPanel extends LitElement {
   }
 
   firstUpdated() {
-    this.hass.connection.subscribeMessage(
+    this.hass.connection.subscribeEvents(
       (message) => {
         this._templates = this._processTemplates(message.templates);
       },
-      { type: "magic_card_utils/templates" }
+      "magic_card_utils/templates"
     );
 
     this.hass.connection
