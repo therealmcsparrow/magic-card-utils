@@ -5,7 +5,7 @@ import os
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.components import panel_custom
-from homeassistant.components.http.view import StaticPathConfig
+from homeassistant.components.http.static import StaticPathConfig
 
 from .const import DOMAIN, PANEL_ICON, PANEL_TITLE, PANEL_URL
 from .websocket import async_register_websocket
