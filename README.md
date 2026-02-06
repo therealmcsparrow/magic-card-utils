@@ -1,10 +1,10 @@
 # Magic Card Utils
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
-[![GitHub Release](https://img.shields.io/github/v/release/McSparrow/magic-card-utils)](https://github.com/McSparrow/magic-card-utils/releases)
-[![GitHub last commit](httpshttps://img.shields.io/github/last-commit/McSparrow/magic-card-utils)](https://github.com/McSparrow/magic-card-utils/commits/main)
-[![GitHub issues](https://img.shields.io/github/issues/McSparrow/magic-card-utils)](https://github.com/McSparrow/magic-card-utils/issues)
-[![License](https://img.shields.io/github/license/McSparrow/magic-card-utils)](https://github.com/McSparrow/magic-card-utils/blob/main/LICENSE)
+[![HACS][hacs-badge]][hacs-url]
+[![GitHub Version][version-badge]][version-url]
+[![GitHub License][license-badge]][license-url]
+[![GitHub Last Commit][last-commit-badge]][last-commit-url]
+[![GitHub Issues][issues-badge]][issues-url]
 
 ## Introduction
 
@@ -63,3 +63,15 @@ Contributions are welcome! If you would like to contribute to this project, plea
 ## License
 
 This project is licensed under the Apache 2.0 License - see the [LICENSE](https://github.com/McSparrow/magic-card-utils/blob/main/LICENSE) file for details.
+
+
+[hacs-badge]: https://img.shields.io/badge/HACS-Custom-41BDF5.svg
+[hacs-url]: https://hacs.xyz/
+[version-badge]: https://img.shields.io/github/package-json/v/therealmcsparrow/magic-card-utils
+[version-url]: https://github.com/therealmcsparrow/magic-card-utils/releases
+[license-badge]: https://img.shields.io/github/license/therealmcsparrow/magic-card-utils
+[license-url]: https://github.com/therealmcsparrow/magic-card-utils/blob/main/LICENSE
+[last-commit-badge]: https://img.shields.io/github/last-commit/therealmcsparrow/magic-card-utils
+[last-commit-url]: https://github.com/therealmcsparrow/magic-card-utils/commits/main
+[issues-badge]: https://img.shields.io/github/issues/therealmcsparrow/magic-card-utils
+[issues-url]: https://github.com/therealmcsparrow/magic-card-utils/issues
