@@ -29,9 +29,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_register_panel(hass: HomeAssistant) -> None:
     """Register the sidebar panel."""
-    if DOMAIN in hass.data.get("frontend_panels", {}):
-        return
-
     # Register the custom panel
     await panel_custom.async_register_panel(
         hass,
@@ -48,8 +45,8 @@ async def async_register_panel(hass: HomeAssistant) -> None:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     # Unregister the panel
-    if DOMAIN in hass.data.get("frontend_panels", {}):
-        panel_custom.async_remove_panel(hass, DOMAIN)
+    if entry.data.get("show_side_panel", True):
+        await panel_custom.async_remove_panel(hass, PANEL_URL)
 
     # Pop data
     hass.data.pop(DOMAIN, None)
