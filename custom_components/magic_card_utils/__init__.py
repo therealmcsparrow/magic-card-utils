@@ -3,9 +3,8 @@
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
+from .const import DOMAIN
 from .websocket import async_register_websocket
-
-DOMAIN = "magic_card_utils"
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
