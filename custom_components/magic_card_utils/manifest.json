@@ -3,7 +3,7 @@
   "name": "Magic Card Utils",
   "version": "0.0.99-beta52",
   "documentation": "https://github.com/your-repo/magic-card-utils",
-  "dependencies": ["frontend", "panel_custom"],
+  "dependencies": ["http", "frontend", "panel_custom"],
   "load_after": ["frontend", "panel_custom"],
   "codeowners": [],
   "config_flow": true,
