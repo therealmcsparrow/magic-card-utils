@@ -1,11 +1,6 @@
-"""Magic Card Utils integration – shared template storage for Magic Card."""
-from __future__ import annotations
-import os
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.components import panel_custom
-from homeassistant.components.http.static import StaticPathConfig
 
 from .const import DOMAIN, PANEL_ICON, PANEL_TITLE, PANEL_URL
 from .websocket import async_register_websocket
@@ -18,9 +13,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if not hass.data.get(f"{DOMAIN}_static_path_registered", False):
         # Register static path for the panel files
-        panel_path = os.path.join(os.path.dirname(__file__), "www")
         await hass.http.async_register_static_paths([
-            StaticPathConfig(f"/{PANEL_URL}", panel_path, cache_headers=False)
+            (f"/{PANEL_URL}", hass.config.path("custom_components/magic_card_utils/www"))
         ])
         hass.data[f"{DOMAIN}_static_path_registered"] = True
 
