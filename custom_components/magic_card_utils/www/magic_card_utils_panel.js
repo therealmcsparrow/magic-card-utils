@@ -52,7 +52,7 @@ class MagicCardUtilsPanel extends LitElement {
     return html`
       <ha-app-layout>
         <app-header slot="header" fixed>
-          <app-toolbar>
+          <app-toolbar> 
             <ha-menu-button
               .hass=${this.hass}
               .narrow=${this.narrow}
