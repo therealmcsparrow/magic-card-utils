@@ -1,7 +1,7 @@
 {
   "domain": "magic_card_utils",
   "name": "Magic Card Utils",
-  "version": "0.0.1-beta",
+  "version": "0.0.2-beta",
   "documentation": "https://github.com/therealmcsparrow/magic-card-utils",
   "dependencies": ["http", "frontend", "panel_custom"],
   "load_after": ["frontend", "panel_custom"],
