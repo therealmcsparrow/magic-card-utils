@@ -337,20 +337,19 @@ class MagicCardUtilsPanel extends LitElement {
         }
       }
     } else {
-        // Append to first available column in first row
-        const rows = cfg.rows || [];
-        if (rows.length === 0) {
-          cfg.rows = [{ columns: [{ modules: [] }] }];
-        }
-        const cols = rows[0].columns || [];
-        if (cols.length === 0) {
-          cols.push({ modules: [] });
-        }
-        cols[0].modules = cols[0].modules || [];
-        cols[0].modules.push({ type: moduleDef.type, ...moduleDef.defaults });
-        rows[0].columns = cols;
-        cfg.rows = rows;
+      // Append to first available column in first row
+      const rows = cfg.rows || [];
+      if (rows.length === 0) {
+        cfg.rows = [{ columns: [{ modules: [] }] }];
       }
+      const cols = rows[0].columns || [];
+      if (cols.length === 0) {
+        cols.push({ modules: [] });
+      }
+      cols[0].modules = cols[0].modules || [];
+      cols[0].modules.push({ type: moduleDef.type, ...moduleDef.defaults });
+      rows[0].columns = cols;
+      cfg.rows = rows;
     }
     this._editConfig = { ...cfg };
     this._paletteOpen = false;
