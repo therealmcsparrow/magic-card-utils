@@ -224,10 +224,21 @@ class MagicCardUtilsPanel extends LitElement {
       description: row.description || "",
       card_type: row.card_type || "",
     };
-    this._selectedSection = null;
     this._paletteOpen = false;
     this._previewError = "";
     this._previewEl = null;
+  }
+
+  _getEditorConfig() {
+    const cardType = this._viewRow?.card_type || this._editMeta.card_type;
+    return {
+      type: cardType || "custom:magic-card",
+      ...(this._editConfig || {}),
+    };
+  }
+
+  _onEditorConfigChanged(e) {
+    this._editConfig = { ...e.detail.config };
   }
 
   async _buildPreview() {
@@ -236,12 +247,15 @@ class MagicCardUtilsPanel extends LitElement {
     host.innerHTML = "";
     this._previewEl = null;
 
-    const config = this._viewMode === "edit" ? this._editConfig : (this._viewRow && this._viewRow.raw && this._viewRow.raw.config);
+    // In edit mode, the preview is the magic-card-editor itself
+    if (this._viewMode === "edit") return;
+
+    const config = this._viewRow?.raw?.config || this._viewRow?.raw || null;
     if (!config || typeof config !== "object") {
       this._previewError = "No config to preview.";
       return;
     }
-    const card_type = this._viewRow && this._viewRow.card_type || "";
+    const card_type = this._viewRow?.card_type || "";
     const renderConfig =
       config.type
         ? config
@@ -276,9 +290,41 @@ class MagicCardUtilsPanel extends LitElement {
     if (changedProps.has("hass") && this._previewEl && this.hass) {
       this._previewEl.hass = this.hass;
     }
-    if ((changedProps.has("_editConfig") || changedProps.has("_viewMode")) && this._viewRow) {
-      this.updateComplete.then(() => this._buildPreview());
+    if (changedProps.has("_viewMode") || changedProps.has("_editConfig") || changedProps.has("_viewRow")) {
+      if (this._viewMode === "edit") {
+        this.updateComplete.then(() => this._mountEditor());
+      } else {
+        this._unmountEditor();
+        if (this._viewRow) {
+          this.updateComplete.then(() => this._buildPreview());
+        }
+      }
     }
+  }
+
+  _mountEditor() {
+    const host = this.shadowRoot.querySelector(".editor-host");
+    if (!host) return;
+    if (!customElements.get("magic-card-editor")) {
+      return;
+    }
+    const el = document.createElement("magic-card-editor");
+    el.setAttribute("hass", JSON.stringify(this.hass));
+    el.hass = this.hass;
+    const config = this._getEditorConfig();
+    el.setConfig(config);
+    el.addEventListener("config-changed", (e) => {
+      this._onEditorConfigChanged(e);
+    });
+    host.innerHTML = "";
+    host.appendChild(el);
+    this._previewEl = el;
+  }
+
+  _unmountEditor() {
+    const host = this.shadowRoot.querySelector(".editor-host");
+    if (host) host.innerHTML = "";
+    this._previewEl = null;
   }
 
   _closeOverlay() {
@@ -783,23 +829,46 @@ class MagicCardUtilsPanel extends LitElement {
                   </div>
                 </div>
                 <div class="dialog-body">
-                  <div class="pane editor-pane">
-                    ${this._viewMode === "yaml"
-                      ? html`
+                  ${this._viewMode === "edit"
+                    ? html`
+                        <div class="pane metadata-pane">
+                          <div class="pane-header">Template</div>
+                          <div class="meta-body">
+                            <label class="field">
+                              <span class="field-label">Name</span>
+                              <input class="field-input" type="text" .value=${this._editMeta.name}
+                                @input=${(e) => (this._editMeta = { ...this._editMeta, name: e.target.value })} />
+                            </label>
+                            <label class="field">
+                              <span class="field-label">Description</span>
+                              <input class="field-input" type="text" .value=${this._editMeta.description}
+                                @input=${(e) => (this._editMeta = { ...this._editMeta, description: e.target.value })} />
+                            </label>
+                            <label class="field">
+                              <span class="field-label">Card Type</span>
+                              <input class="field-input mono" type="text" placeholder="custom:magic-card" .value=${this._editMeta.card_type}
+                                @input=${(e) => (this._editMeta = { ...this._editMeta, card_type: e.target.value })} />
+                            </label>
+                            <div class="meta-hint">Edit the card using the editor on the right. Its changes are captured live.</div>
+                          </div>
+                        </div>
+                      `
+                    : html`
+                        <div class="pane yaml-pane">
                           <div class="pane-header">YAML</div>
                           <pre class="yaml-body">${dumpYaml(this._viewRow.raw && this._viewRow.raw.config ? this._viewRow.raw.config : this._viewRow.raw || {})}</pre>
-                        `
-                      : this._renderEditPane()}
-                  </div>
-                  <div class="pane preview-pane">
-                    <div class="pane-header">
-                      Preview
-                      ${this._viewMode === "edit" ? html`<button class="pane-header-btn" @click=${() => this._paletteOpen = !this._paletteOpen} title="Toggle module palette">${this._paletteOpen ? "Hide" : "Show"} palette</button>` : ""}
-                    </div>
-                    <div class="preview-wrap">
-                      ${this._previewError ? html`<div class="preview-error">${this._previewError}</div>` : ""}
-                      <div class="preview-host"></div>
-                    </div>
+                        </div>
+                      `}
+                  <div class="pane editor-pane">
+                    <div class="pane-header">${this._viewMode === "edit" ? "Editor" : "Preview"}</div>
+                    ${this._viewMode === "edit"
+                      ? html`<div class="editor-host" @config-changed=${this._onEditorConfigChanged}></div>`
+                      : html`
+                          <div class="preview-wrap">
+                            ${this._previewError ? html`<div class="preview-error">${this._previewError}</div>` : ""}
+                            <div class="preview-host"></div>
+                          </div>
+                        `}
                   </div>
                 </div>
                 ${this._viewMode === "edit" ? html`
@@ -1340,6 +1409,32 @@ class MagicCardUtilsPanel extends LitElement {
         color: #fff;
         border-radius: 4px;
         font-size: 13px;
+      }
+      .editor-host {
+        flex: 1;
+        overflow: auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .editor-host > * {
+        flex: 1;
+        align-self: stretch;
+      }
+      .metadata-pane {
+        flex: 0 0 220px;
+        border-right: 1px solid var(--divider-color);
+      }
+      .meta-body {
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .meta-hint {
+        font-size: 12px;
+        color: var(--secondary-text-color);
+        line-height: 1.4;
       }
       @media (max-width: 720px) {
         .dialog-body {
