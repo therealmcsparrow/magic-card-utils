@@ -2,7 +2,29 @@ import {
   LitElement,
   html,
   css,
-} from "https://unpkg.com/lit-element@2.4.0/lit-element.js?module";
+} from "https://unpkg.com/lit@3.3.3/index.js?module";
+
+const _MODULE_PALETTE = [
+  { type: "header", label: "Header", defaults: { text: "" } },
+  { type: "entities", label: "Entities", defaults: { entities: [] } },
+  { type: "sensor", label: "Sensor", defaults: { entity: "" } },
+  { type: "climate", label: "Climate", defaults: { entity: "" } },
+  { type: "light", label: "Light", defaults: { entity: "" } },
+  { type: "switch", label: "Switch", defaults: { entity: "" } },
+  { type: "input_boolean", label: "Input Boolean", defaults: { entity: "" } },
+  { type: "script", label: "Script", defaults: { entity: "" } },
+  { type: "automation", label: "Automation", defaults: { entity: "" } },
+  { type: "group", label: "Group", defaults: { entities: [] } },
+  { type: "humidity", label: "Humidity", defaults: { entity: "" } },
+  { type: "temperature", label: "Temperature", defaults: { entity: "" } },
+  { type: "weather", label: "Weather", defaults: { entity: "" } },
+  { type: "camera", label: "Camera", defaults: { entity: "" } },
+  { type: "picture", label: "Picture", defaults: { entity: "" } },
+  { type: "iframe", label: "iFrame", defaults: { url: "" } },
+  { type: "markdown", label: "Markdown", defaults: { content: "" } },
+  { type: "divider", label: "Divider", defaults: {} },
+  { type: "spacer", label: "Spacer", defaults: {} },
+];
 
 function _padStr(n) {
   return " ".repeat(n);
@@ -96,10 +118,16 @@ class MagicCardUtilsPanel extends LitElement {
       panel: { type: Object },
       _templates: { type: Array, state: true },
       _error: { type: String, state: true },
-      _selectedName: { type: String, state: true },
-      _selectedYaml: { type: String, state: true },
-      _selectedCardType: { type: String, state: true },
+      // template detail overlay
+      _viewRow: { type: Object, state: true },
+      _viewMode: { type: String, state: true }, // 'yaml' | 'edit'
       _previewError: { type: String, state: true },
+      // edit mode state
+      _editConfig: { type: Object, state: true },
+      _editMeta: { type: Object, state: true }, // { name, description, card_type }
+      _paletteOpen: { type: Boolean, state: true },
+      _selectedSection: { type: Object, state: true }, // { row, col } for module placement
+      // action dialog (edit/duplicate/delete)
       _actionMode: { type: String, state: true },
       _actionRow: { type: Object, state: true },
       _editName: { type: String, state: true },
@@ -115,12 +143,16 @@ class MagicCardUtilsPanel extends LitElement {
     super();
     this._templates = [];
     this._error = "";
-    this._selectedName = "";
-    this._selectedYaml = "";
-    this._selectedCardType = "";
-    this._selectedConfig = null;
+    this._viewRow = null;
+    this._viewMode = "yaml";
     this._previewEl = null;
     this._previewError = "";
+    // edit mode
+    this._editConfig = null;
+    this._editMeta = { name: "", description: "", card_type: "" };
+    this._paletteOpen = false;
+    this._selectedSection = null;
+    // action dialog
     this._actionMode = "";
     this._actionRow = null;
     this._editName = "";
@@ -164,64 +196,107 @@ class MagicCardUtilsPanel extends LitElement {
     });
   }
 
-  async _openTemplate(row) {
+  _openTemplate(row) {
+    // updated() builds the preview once the overlay has rendered.
+    this._viewRow = row;
+    this._viewMode = "yaml";
+    this._previewError = "";
+    this._previewEl = null;
+  }
+
+  _openEditTemplate(row) {
     const source =
       row.raw && typeof row.raw === "object" && row.raw.config &&
       typeof row.raw.config === "object"
-        ? row.raw.config
-        : row.raw || {};
-    let yaml;
-    try {
-      yaml = dumpYaml(source);
-    } catch (err) {
-      console.error("[magic_card_utils] yaml dump failed", err);
-      yaml = JSON.stringify(source, null, 2);
-    }
-    this._selectedName = row.name;
-    this._selectedYaml = yaml;
-    this._selectedCardType = row.card_type || "";
-    this._selectedConfig = source;
+        ? JSON.parse(JSON.stringify(row.raw.config))
+        : JSON.parse(JSON.stringify(row.raw || {}));
+    this._viewRow = row;
+    this._viewMode = "edit";
+    this._editConfig = source;
+    this._editMeta = {
+      name: row.name,
+      description: row.description || "",
+      card_type: row.card_type || "",
+    };
+    this._paletteOpen = false;
     this._previewError = "";
     this._previewEl = null;
-    await this.updateComplete;
-    this._buildPreview();
+  }
+
+  _openStudio(row) {
+    this._openEditTemplate(row);
+    this._studioOnMount = true;
+  }
+
+  _getEditorConfig() {
+    const cardType = this._viewRow?.card_type || this._editMeta.card_type;
+    return {
+      type: cardType || "custom:magic-card",
+      ...(this._editConfig || {}),
+    };
+  }
+
+  _onEditorConfigChanged(e) {
+    // The editor already holds this config; don't remount it (that would close the studio).
+    this._configFromEditor = true;
+    this._editConfig = { ...e.detail.config };
   }
 
   async _buildPreview() {
     const host = this.shadowRoot.querySelector(".preview-host");
     if (!host) return;
+    // A newer build may start while this one awaits the card; only the latest may render.
+    const build = (this._previewBuild = (this._previewBuild || 0) + 1);
     host.innerHTML = "";
     this._previewEl = null;
 
-    const config = this._selectedConfig;
+    // In edit mode, the preview is the magic-card-editor itself
+    if (this._viewMode === "edit") return;
+
+    const config = this._viewRow?.raw?.config || this._viewRow?.raw || null;
     if (!config || typeof config !== "object") {
       this._previewError = "No config to preview.";
       return;
     }
+    const card_type = this._viewRow?.card_type || "";
     const renderConfig =
       config.type
         ? config
-        : this._selectedCardType
-        ? { type: this._selectedCardType, ...config }
+        : card_type
+        ? { type: card_type, ...config }
         : null;
     if (!renderConfig) {
       this._previewError =
         "No card type available — neither the config nor the template carries a `type`.";
       return;
     }
-    if (typeof window.loadCardHelpers !== "function") {
+    // Card helpers only exist once a dashboard has loaded; magic-card can be built directly.
+    const isMagicCard = renderConfig.type === "custom:magic-card";
+    if (!isMagicCard && typeof window.loadCardHelpers !== "function") {
       this._previewError =
-        "Lovelace card helpers are unavailable in this build of Home Assistant.";
+        "Lovelace card helpers are unavailable until a dashboard has been opened.";
       return;
     }
     try {
-      const helpers = await window.loadCardHelpers();
-      const el = helpers.createCardElement(renderConfig);
+      let el;
+      if (isMagicCard) {
+        await this._ensureMagicCardEditor();
+        if (!customElements.get("magic-card")) {
+          throw new Error("The Magic Card could not be loaded.");
+        }
+        el = document.createElement("magic-card");
+        el.setConfig(renderConfig);
+      } else {
+        const helpers = await window.loadCardHelpers();
+        el = helpers.createCardElement(renderConfig);
+      }
+      if (build !== this._previewBuild) return;
       el.hass = this.hass;
       host.appendChild(el);
       this._previewEl = el;
       this._previewError = "";
     } catch (err) {
+      if (build !== this._previewBuild) return;
       console.error("[magic_card_utils] preview failed", err);
       this._previewError =
         (err && (err.message || String(err))) || "Failed to render preview.";
@@ -232,19 +307,250 @@ class MagicCardUtilsPanel extends LitElement {
     if (changedProps.has("hass") && this._previewEl && this.hass) {
       this._previewEl.hass = this.hass;
     }
+    if (changedProps.has("_viewMode") || changedProps.has("_editConfig") || changedProps.has("_viewRow")) {
+      const fromEditor =
+        this._configFromEditor && !changedProps.has("_viewMode") && !changedProps.has("_viewRow");
+      this._configFromEditor = false;
+      if (this._viewMode === "edit") {
+        if (!fromEditor) this.updateComplete.then(() => this._mountEditor());
+      } else {
+        this._unmountEditor();
+        if (this._viewRow) {
+          this.updateComplete.then(() => this._buildPreview());
+        }
+      }
+    }
+  }
+
+  async _ensureMagicCardEditor() {
+    if (customElements.get("magic-card-editor")) return true;
+    if (!this._editorLoad) this._editorLoad = this._loadMagicCard();
+    await this._editorLoad;
+    return !!customElements.get("magic-card-editor");
+  }
+
+  async _loadMagicCard() {
+    // Dashboard resources aren't loaded on custom panels. Prefer the dashboard's own
+    // magic-card URL so the module is shared (a second copy would collide on
+    // customElements.define); fall back to the bundled copy.
+    let url = "/magic_card_utils_static/magic-card.js";
+    try {
+      const resources = await this.hass.callWS({ type: "lovelace/resources" });
+      const res = (resources || []).find((r) => /\/magic-card\.js(\?|$)/.test(r.url));
+      if (res) url = res.url;
+    } catch (_err) {
+      // Resources unavailable: use the bundled copy.
+    }
+    try {
+      await import(url);
+    } catch (err) {
+      console.error("[magic_card_utils] failed to load magic-card", url, err);
+    }
+  }
+
+  async _mountEditor() {
+    if (!this.shadowRoot.querySelector(".editor-host")) return;
+    const loaded = await this._ensureMagicCardEditor();
+    const host = this.shadowRoot.querySelector(".editor-host");
+    if (!host || this._viewMode !== "edit") return;
+    if (!loaded) {
+      host.textContent = "The Magic Card editor could not be loaded.";
+      return;
+    }
+    const el = document.createElement("magic-card-editor");
+    el.hass = this.hass;
+    const config = this._getEditorConfig();
+    el.setConfig(config);
+    el.addEventListener("config-changed", (e) => {
+      this._onEditorConfigChanged(e);
+    });
+    host.innerHTML = "";
+    host.appendChild(el);
+    this._previewEl = el;
+    if (this._studioOnMount) {
+      this._studioOnMount = false;
+      await el.updateComplete;
+      if (typeof el.openStudio === "function") el.openStudio();
+    }
+  }
+
+  _unmountEditor() {
+    const host = this.shadowRoot.querySelector(".editor-host");
+    if (host) host.innerHTML = "";
+    this._previewEl = null;
   }
 
   _closeOverlay() {
-    this._selectedName = "";
-    this._selectedYaml = "";
-    this._selectedCardType = "";
-    this._selectedConfig = null;
+    this._studioOnMount = false;
+    this._viewRow = null;
+    this._viewMode = "yaml";
+    this._editConfig = null;
+    this._editMeta = { name: "", description: "", card_type: "" };
+    this._selectedSection = null;
+    this._paletteOpen = false;
     this._previewEl = null;
     this._previewError = "";
   }
 
   _onOverlayKeydown(e) {
     if (e.key === "Escape") this._closeOverlay();
+  }
+
+  async _saveEditedTemplate() {
+    if (this._submitting) return;
+    const meta = this._editMeta;
+    const name = (meta.name || "").trim();
+    if (!name) return;
+    const payload = {
+      type: "magic_card_utils/save_template",
+      name,
+      template: {
+        config: this._editConfig,
+        description: meta.description || "",
+      },
+    };
+    if (meta.card_type) payload.card_type = meta.card_type;
+    if (this._viewRow && name !== this._viewRow.name) payload.old_name = this._viewRow.name;
+    this._submitting = true;
+    try {
+      await this.hass.callWS(payload);
+      this._closeOverlay();
+    } catch (err) {
+      console.error("[magic_card_utils] save failed", err);
+      this._actionError = (err && (err.message || err.code)) || "Save failed";
+      this._submitting = false;
+    }
+  }
+
+  _addModule(moduleDef) {
+    const cfg = this._editConfig;
+    const sel = this._selectedSection;
+    if (sel && sel.col != null && sel.row != null) {
+      const rows = cfg.rows || [];
+      if (sel.row < rows.length) {
+        const cols = rows[sel.row].columns || [];
+        if (sel.col < cols.length) {
+          cols[sel.col].modules = cols[sel.col].modules || [];
+          cols[sel.col].modules.push({ type: moduleDef.type, ...moduleDef.defaults });
+          rows[sel.row].columns = cols;
+          cfg.rows = rows;
+        }
+      }
+    } else {
+      // Append to first available column in first row
+      const rows = cfg.rows || [];
+      if (rows.length === 0) {
+        cfg.rows = [{ columns: [{ modules: [] }] }];
+      }
+      const cols = rows[0].columns || [];
+      if (cols.length === 0) {
+        cols.push({ modules: [] });
+      }
+      cols[0].modules = cols[0].modules || [];
+      cols[0].modules.push({ type: moduleDef.type, ...moduleDef.defaults });
+      rows[0].columns = cols;
+      cfg.rows = rows;
+    }
+    this._editConfig = { ...cfg };
+    this._paletteOpen = false;
+  }
+
+  _removeModule(rowIdx, colIdx, modIdx) {
+    const cfg = this._editConfig;
+    const rows = cfg.rows || [];
+    if (rowIdx < rows.length) {
+      const cols = rows[rowIdx].columns || [];
+      if (colIdx < cols.length) {
+        cols[colIdx].modules = (cols[colIdx].modules || []).filter((_, i) => i !== modIdx);
+        rows[rowIdx].columns = cols;
+        cfg.rows = rows;
+        this._editConfig = { ...cfg };
+      }
+    }
+  }
+
+  _moveModule(rowIdx, colIdx, modIdx, dir) {
+    const cfg = this._editConfig;
+    const rows = cfg.rows || [];
+    if (rowIdx < rows.length) {
+      const cols = rows[rowIdx].columns || [];
+      if (colIdx < cols.length) {
+        const mods = cols[colIdx].modules || [];
+        const newIdx = modIdx + dir;
+        if (newIdx >= 0 && newIdx < mods.length) {
+          [mods[modIdx], mods[newIdx]] = [mods[newIdx], mods[modIdx]];
+          cols[colIdx].modules = mods;
+          rows[rowIdx].columns = cols;
+          cfg.rows = rows;
+          this._editConfig = { ...cfg };
+        }
+      }
+    }
+  }
+
+  _addRow() {
+    const cfg = this._editConfig;
+    cfg.rows = cfg.rows || [];
+    cfg.rows.push({ columns: [{ modules: [] }] });
+    this._editConfig = { ...cfg };
+  }
+
+  _removeRow(rowIdx) {
+    const cfg = this._editConfig;
+    if ((cfg.rows || []).length > 1) {
+      cfg.rows = cfg.rows.filter((_, i) => i !== rowIdx);
+      this._editConfig = { ...cfg };
+    }
+  }
+
+  _moveRow(rowIdx, dir) {
+    const cfg = this._editConfig;
+    const rows = cfg.rows || [];
+    const newIdx = rowIdx + dir;
+    if (newIdx >= 0 && newIdx < rows.length) {
+      [rows[rowIdx], rows[newIdx]] = [rows[newIdx], rows[rowIdx]];
+      cfg.rows = [...rows];
+      this._editConfig = { ...cfg };
+    }
+  }
+
+  _addColumn(rowIdx) {
+    const cfg = this._editConfig;
+    const rows = cfg.rows || [];
+    if (rowIdx < rows.length) {
+      rows[rowIdx].columns = rows[rowIdx].columns || [];
+      rows[rowIdx].columns.push({ modules: [] });
+      cfg.rows = [...rows];
+      this._editConfig = { ...cfg };
+    }
+  }
+
+  _removeColumn(rowIdx, colIdx) {
+    const cfg = this._editConfig;
+    const rows = cfg.rows || [];
+    if (rowIdx < rows.length) {
+      const cols = rows[rowIdx].columns || [];
+      if (cols.length > 1) {
+        rows[rowIdx].columns = cols.filter((_, i) => i !== colIdx);
+        cfg.rows = [...rows];
+        this._editConfig = { ...cfg };
+      }
+    }
+  }
+
+  _moveColumn(rowIdx, colIdx, dir) {
+    const cfg = this._editConfig;
+    const rows = cfg.rows || [];
+    if (rowIdx < rows.length) {
+      const cols = rows[rowIdx].columns || [];
+      const newIdx = colIdx + dir;
+      if (newIdx >= 0 && newIdx < cols.length) {
+        [cols[colIdx], cols[newIdx]] = [cols[newIdx], cols[colIdx]];
+        rows[rowIdx].columns = [...cols];
+        cfg.rows = [...rows];
+        this._editConfig = { ...cfg };
+      }
+    }
   }
 
   _openEdit(row) {
@@ -465,6 +771,7 @@ class MagicCardUtilsPanel extends LitElement {
                 <thead>
                   <tr>
                     <th class="col-name">Name</th>
+                    <th class="col-type">Card Type</th>
                     <th class="col-linked">Linked Cards</th>
                     <th class="col-date">Created</th>
                     <th class="col-date">Last Updated</th>
@@ -483,22 +790,29 @@ class MagicCardUtilsPanel extends LitElement {
                           >
                             ${row.name}
                           </button>
-                          ${row.card_type
-                            ? html`<div class="type-badge">
-                                ${row.card_type}
-                              </div>`
-                            : ""}
                           ${row.description
                             ? html`<div class="secondary">
                                 ${row.description}
                               </div>`
                             : ""}
                         </td>
+                        <td class="col-type">${row.card_type || ""}</td>
                         <td>${row.linked_cards}</td>
                         <td>${this._formatDate(row.created_at)}</td>
                         <td>${this._formatDate(row.last_updated)}</td>
                         <td class="col-actions">
                           <div class="action-buttons">
+                            <button
+                              class="action-btn studio"
+                              title="Open in studio"
+                              @click=${() => this._openStudio(row)}
+                            >
+                              <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path
+                                  d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z"
+                                />
+                              </svg>
+                            </button>
                             <button
                               class="action-btn edit"
                               title="Edit"
@@ -546,7 +860,7 @@ class MagicCardUtilsPanel extends LitElement {
 
       </div>
 
-      ${this._selectedName
+      ${this._viewRow
         ? html`
             <div
               class="overlay"
@@ -557,45 +871,74 @@ class MagicCardUtilsPanel extends LitElement {
               <div
                 class="dialog"
                 role="dialog"
-                aria-label="Template YAML"
+                aria-label=${this._viewMode === "edit" ? "Edit Template" : "Template Preview"}
                 @click=${(e) => e.stopPropagation()}
               >
                 <div class="dialog-header">
                   <div class="dialog-title">
-                    <span class="dialog-title-name"
-                      >${this._selectedName}</span
-                    >
-                    ${this._selectedCardType
-                      ? html`<span class="dialog-title-type"
-                          >${this._selectedCardType}</span
-                        >`
+                    <span class="dialog-title-name">${this._viewRow.name}</span>
+                    ${this._viewRow.card_type
+                      ? html`<span class="dialog-title-type">${this._viewRow.card_type}</span>`
                       : ""}
                   </div>
-                  <button
-                    class="close-btn"
-                    @click=${this._closeOverlay}
-                    title="Close"
-                  >
-                    &times;
-                  </button>
+                  <div class="dialog-header-actions">
+                    ${this._viewMode === "yaml"
+                      ? html`<button class="action-btn" title="Edit" @click=${() => this._openEditTemplate(this._viewRow)}>
+                          <svg viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"/></svg>
+                        </button>`
+                      : ""}
+                    <button class="close-btn" @click=${this._closeOverlay} title="Close">&times;</button>
+                  </div>
                 </div>
                 <div class="dialog-body">
-                  <div class="pane yaml-pane">
-                    <div class="pane-header">YAML</div>
-                    <pre class="yaml-body">${this._selectedYaml}</pre>
-                  </div>
-                  <div class="pane preview-pane">
-                    <div class="pane-header">Preview</div>
-                    <div class="preview-wrap">
-                      ${this._previewError
-                        ? html`<div class="preview-error">
-                            ${this._previewError}
-                          </div>`
-                        : ""}
-                      <div class="preview-host"></div>
-                    </div>
+                  ${this._viewMode === "edit"
+                    ? html`
+                        <div class="pane metadata-pane">
+                          <div class="pane-header">Template</div>
+                          <div class="meta-body">
+                            <label class="field">
+                              <span class="field-label">Name</span>
+                              <input class="field-input" type="text" .value=${this._editMeta.name}
+                                @input=${(e) => (this._editMeta = { ...this._editMeta, name: e.target.value })} />
+                            </label>
+                            <label class="field">
+                              <span class="field-label">Description</span>
+                              <input class="field-input" type="text" .value=${this._editMeta.description}
+                                @input=${(e) => (this._editMeta = { ...this._editMeta, description: e.target.value })} />
+                            </label>
+                            <label class="field">
+                              <span class="field-label">Card Type</span>
+                              <input class="field-input mono" type="text" placeholder="custom:magic-card" .value=${this._editMeta.card_type}
+                                @input=${(e) => (this._editMeta = { ...this._editMeta, card_type: e.target.value })} />
+                            </label>
+                            <div class="meta-hint">Edit the card using the editor on the right. Its changes are captured live.</div>
+                          </div>
+                        </div>
+                      `
+                    : html`
+                        <div class="pane yaml-pane">
+                          <div class="pane-header">YAML</div>
+                          <pre class="yaml-body">${dumpYaml(this._viewRow.raw && this._viewRow.raw.config ? this._viewRow.raw.config : this._viewRow.raw || {})}</pre>
+                        </div>
+                      `}
+                  <div class="pane editor-pane">
+                    <div class="pane-header">${this._viewMode === "edit" ? "Editor" : "Preview"}</div>
+                    ${this._viewMode === "edit"
+                      ? html`<div class="editor-host" @config-changed=${this._onEditorConfigChanged}></div>`
+                      : html`
+                          <div class="preview-wrap">
+                            ${this._previewError ? html`<div class="preview-error">${this._previewError}</div>` : ""}
+                            <div class="preview-host"></div>
+                          </div>
+                        `}
                   </div>
                 </div>
+                ${this._viewMode === "edit" ? html`
+                  <div class="dialog-footer">
+                    <button class="btn" @click=${this._closeOverlay}>Cancel</button>
+                    <button class="btn primary" @click=${this._saveEditedTemplate} ?disabled=${this._submitting}>${this._submitting ? "Saving…" : "Save"}</button>
+                  </div>
+                ` : ""}
               </div>
             </div>
           `
@@ -783,13 +1126,123 @@ class MagicCardUtilsPanel extends LitElement {
     });
   }
 
+  _renderEditPane() {
+    const meta = this._editMeta;
+    const cfg = this._editConfig;
+    return html`
+      <div class="pane-header">Editor</div>
+      <div class="editor-body">
+        <div class="editor-meta">
+          <label class="field">
+            <span class="field-label">Template Name</span>
+            <input class="field-input" type="text" .value=${meta.name} @input=${(e) => (meta.name = e.target.value)} />
+          </label>
+          <label class="field">
+            <span class="field-label">Description</span>
+            <input class="field-input" type="text" .value=${meta.description} @input=${(e) => (meta.description = e.target.value)} />
+          </label>
+          <label class="field">
+            <span class="field-label">Card Type</span>
+            <input class="field-input mono" type="text" placeholder="e.g. custom:magic-card" .value=${meta.card_type} @input=${(e) => (meta.card_type = e.target.value)} />
+          </label>
+        </div>
+        <div class="editor-structure">
+          <div class="structure-header">
+            <span>Rows</span>
+            <button class="btn" @click=${this._addRow}>+ Row</button>
+          </div>
+          ${(cfg.rows || []).map((row, ri) => html`
+            <div class="structure-row">
+              <div class="structure-row-header">
+                <span class="row-label">Row ${ri + 1}</span>
+                <div class="row-controls">
+                  <button class="ctrl-btn" title="Move up" ?disabled=${ri === 0} @click=${() => this._moveRow(ri, -1)}>↑</button>
+                  <button class="ctrl-btn" title="Move down" ?disabled=${ri === cfg.rows.length - 1} @click=${() => this._moveRow(ri, 1)}>↓</button>
+                  <button class="ctrl-btn danger" title="Remove row" ?disabled=${cfg.rows.length <= 1} @click=${() => this._removeRow(ri)}>✕</button>
+                </div>
+              </div>
+              <div class="structure-cols">
+                ${(row.columns || []).map((col, ci) => html`
+                  <div class="structure-col ${this._selectedSection && this._selectedSection.row === ri && this._selectedSection.col === ci ? 'selected' : ''}"
+                       @click=${() => (this._selectedSection = { row: ri, col: ci })}>
+                    <div class="col-header">
+                      <span>Col ${ci + 1}</span>
+                      <div class="col-controls">
+                        <button class="ctrl-btn" title="Move left" ?disabled=${ci === 0} @click=${() => this._moveColumn(ri, ci, -1)}>←</button>
+                        <button class="ctrl-btn" title="Move right" ?disabled=${ci === (row.columns || []).length - 1} @click=${() => this._moveColumn(ri, ci, 1)}>→</button>
+                        <button class="ctrl-btn danger" title="Remove column" ?disabled=${(row.columns || []).length <= 1} @click=${() => this._removeColumn(ri, ci)}>✕</button>
+                      </div>
+                    </div>
+                    <div class="col-modules">
+                      ${(col.modules || []).map((mod, mi) => html`
+                        <div class="module-item" draggable="true"
+                             @dragstart=${(e) => this._onModuleDragStart(e, ri, ci, mi)}
+                             @dragover=${(e) => e.preventDefault()}
+                             @drop=${(e) => this._onModuleDrop(e, ri, ci, mi)}>
+                          <span class="module-type">${mod.type || "(unknown)"}</span>
+                          <div class="module-controls">
+                            <button class="ctrl-btn" title="Move up" ?disabled=${mi === 0} @click=${() => this._moveModule(ri, ci, mi, -1)}>↑</button>
+                            <button class="ctrl-btn" title="Move down" ?disabled=${mi === (col.modules || []).length - 1} @click=${() => this._moveModule(ri, ci, mi, 1)}>↓</button>
+                            <button class="ctrl-btn danger" title="Remove" @click=${() => this._removeModule(ri, ci, mi)}>✕</button>
+                          </div>
+                        </div>
+                      `)}
+                      ${(col.modules || []).length === 0 ? html`<div class="col-empty">Click to select, then add modules</div>` : ""}
+                    </div>
+                  </div>
+                `)}
+                <button class="btn add-col-btn" @click=${() => this._addColumn(ri)}>+ Column</button>
+              </div>
+            </div>
+          `)}
+          ${this._paletteOpen ? this._renderPalette() : ""}
+        </div>
+      </div>
+    `;
+  }
+
+  _renderPalette() {
+    return html`
+      <div class="palette">
+        <div class="palette-header">Module Palette</div>
+        <div class="palette-items">
+          ${_MODULE_PALETTE.map((mod) => html`
+            <button class="palette-item" @click=${() => this._addModule(mod)} title=${mod.type}>
+              <span class="palette-label">${mod.label}</span>
+              <span class="palette-type">${mod.type}</span>
+            </button>
+          `)}
+        </div>
+      </div>
+    `;
+  }
+
+  _onModuleDragStart(e, rowIdx, colIdx, modIdx) {
+    e.dataTransfer.setData("text/plain", JSON.stringify({ rowIdx, colIdx, modIdx }));
+  }
+
+  _onModuleDrop(e, targetRow, targetCol, targetModIdx) {
+    e.preventDefault();
+    const raw = e.dataTransfer.getData("text/plain");
+    if (!raw) return;
+    try {
+      const { rowIdx, colIdx, modIdx } = JSON.parse(raw);
+      if (rowIdx === targetRow && colIdx === targetCol && modIdx === targetModIdx) return;
+      const cfg = this._editConfig;
+      const rows = cfg.rows || [];
+      const srcMod = (rows[rowIdx].columns[colIdx].modules || [])[modIdx];
+      if (!srcMod) return;
+      rows[rowIdx].columns[colIdx].modules.splice(modIdx, 1);
+      rows[targetRow].columns[targetCol].modules.splice(targetModIdx, 0, srcMod);
+      cfg.rows = [...rows];
+      this._editConfig = { ...cfg };
+    } catch (_) {}
+  }
+
   static get styles() {
     return css`
       :host {
         display: block;
-        color: var(--primary-text-color);
-        background: var(--primary-background-color);
-        min-height: 100vh;
       }
       .header {
         display: flex;
@@ -864,6 +1317,7 @@ class MagicCardUtilsPanel extends LitElement {
         white-space: nowrap;
         max-width: 280px;
       }
+      .col-type,
       .col-linked,
       .col-date,
       .col-actions {
@@ -901,6 +1355,9 @@ class MagicCardUtilsPanel extends LitElement {
         opacity: 0.35;
         cursor: not-allowed;
       }
+      .action-btn.studio {
+        color: var(--primary-color);
+      }
       .action-btn.edit {
         color: var(--info-color, #2196f3);
       }
@@ -910,6 +1367,7 @@ class MagicCardUtilsPanel extends LitElement {
       .action-btn.danger {
         color: var(--error-color, #db4437);
       }
+      .action-btn.studio:hover:not([disabled]),
       .action-btn.edit:hover:not([disabled]),
       .action-btn.duplicate:hover:not([disabled]),
       .action-btn.danger:hover:not([disabled]) {
@@ -944,20 +1402,6 @@ class MagicCardUtilsPanel extends LitElement {
         color: var(--secondary-text-color);
         margin-top: 2px;
         white-space: normal;
-      }
-      .type-badge {
-        display: inline-block;
-        margin-top: 4px;
-        padding: 1px 6px;
-        font-family: var(--code-font-family, monospace);
-        font-size: 11px;
-        color: var(--secondary-text-color);
-        background: var(--divider-color);
-        border-radius: 4px;
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
       }
       .overlay {
         position: fixed;
@@ -1021,6 +1465,32 @@ class MagicCardUtilsPanel extends LitElement {
         color: #fff;
         border-radius: 4px;
         font-size: 13px;
+      }
+      .editor-host {
+        flex: 1;
+        overflow: auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .editor-host > * {
+        flex: 1;
+        align-self: stretch;
+      }
+      .metadata-pane {
+        flex: 0 0 220px;
+        border-right: 1px solid var(--divider-color);
+      }
+      .meta-body {
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .meta-hint {
+        font-size: 12px;
+        color: var(--secondary-text-color);
+        line-height: 1.4;
       }
       @media (max-width: 720px) {
         .dialog-body {
@@ -1174,6 +1644,257 @@ class MagicCardUtilsPanel extends LitElement {
       .close-btn:hover {
         background: var(--divider-color);
         color: var(--primary-text-color);
+      }
+      .dialog-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .dialog-header-actions .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        background: none;
+        border: 0;
+        border-radius: 4px;
+        color: var(--secondary-text-color);
+        cursor: pointer;
+      }
+      .dialog-header-actions .action-btn svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+      }
+      .dialog-header-actions .action-btn:hover {
+        background: var(--divider-color);
+      }
+      .dialog-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 12px 16px;
+        border-top: 1px solid var(--divider-color);
+      }
+      .pane-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 16px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--secondary-text-color);
+        border-bottom: 1px solid var(--divider-color);
+        background: var(--table-header-background-color, transparent);
+      }
+      .pane-header-btn {
+        font: inherit;
+        font-size: 11px;
+        padding: 2px 8px;
+        background: none;
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+        border-radius: 4px;
+        cursor: pointer;
+        text-transform: none;
+        letter-spacing: 0;
+      }
+      .pane-header-btn:hover {
+        background: var(--primary-color);
+        color: var(--text-primary-color, #fff);
+      }
+      .editor-body {
+        flex: 1;
+        overflow: auto;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .editor-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--divider-color);
+      }
+      .editor-structure {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .structure-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--secondary-text-color);
+        font-weight: 500;
+      }
+      .structure-row {
+        border: 1px solid var(--divider-color);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .structure-row-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 10px;
+        background: var(--table-header-background-color, var(--divider-color));
+      }
+      .row-label, .col-header > span {
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .row-controls, .col-controls {
+        display: flex;
+        gap: 2px;
+        align-items: center;
+      }
+      .ctrl-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 24px;
+        height: 24px;
+        padding: 0 4px;
+        font-size: 12px;
+        background: none;
+        color: var(--secondary-text-color);
+        border: 0;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      .ctrl-btn:hover:not([disabled]) {
+        background: var(--divider-color);
+        color: var(--primary-text-color);
+      }
+      .ctrl-btn[disabled] {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+      .ctrl-btn.danger:hover:not([disabled]) {
+        color: var(--error-color, #db4437);
+      }
+      .structure-cols {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px;
+        align-items: flex-start;
+      }
+      .structure-col {
+        flex: 1;
+        min-width: 120px;
+        border: 1px solid var(--divider-color);
+        border-radius: 4px;
+        cursor: pointer;
+        transition: border-color 120ms ease;
+      }
+      .structure-col:hover {
+        border-color: var(--primary-color);
+      }
+      .structure-col.selected {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 1px var(--primary-color);
+      }
+      .col-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 8px;
+        font-size: 11px;
+        color: var(--secondary-text-color);
+        background: var(--table-header-background-color, transparent);
+        border-bottom: 1px solid var(--divider-color);
+      }
+      .col-modules {
+        padding: 6px 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-height: 48px;
+      }
+      .module-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 6px;
+        background: var(--primary-background-color);
+        border-radius: 4px;
+        border: 1px solid var(--divider-color);
+      }
+      .module-type {
+        font-size: 11px;
+        font-family: var(--code-font-family, monospace);
+        color: var(--primary-text-color);
+      }
+      .module-controls {
+        display: flex;
+        gap: 2px;
+      }
+      .col-empty {
+        font-size: 11px;
+        color: var(--secondary-text-color);
+        text-align: center;
+        padding: 8px 0;
+        font-style: italic;
+      }
+      .add-col-btn {
+        align-self: flex-start;
+        font-size: 11px;
+        padding: 4px 8px;
+      }
+      .palette {
+        border: 1px solid var(--divider-color);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .palette-header {
+        padding: 6px 10px;
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--secondary-text-color);
+        background: var(--table-header-background-color, transparent);
+        border-bottom: 1px solid var(--divider-color);
+      }
+      .palette-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 8px;
+      }
+      .palette-item {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        padding: 6px 8px;
+        background: var(--primary-background-color);
+        border: 1px solid var(--divider-color);
+        border-radius: 4px;
+        cursor: pointer;
+        min-width: 80px;
+      }
+      .palette-item:hover {
+        border-color: var(--primary-color);
+        background: var(--divider-color);
+      }
+      .palette-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--primary-text-color);
+      }
+      .palette-type {
+        font-size: 10px;
+        font-family: var(--code-font-family, monospace);
+        color: var(--secondary-text-color);
       }
       .yaml-body {
         margin: 0;

@@ -5,6 +5,7 @@ from pathlib import Path
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.components import panel_custom
+from homeassistant.components.http import StaticPathConfig
 
 from .const import DOMAIN, PANEL_ICON, PANEL_TITLE, PANEL_URL, STATIC_URL
 from .websocket import async_register_websocket
@@ -20,20 +21,20 @@ def _load_manifest_version() -> str:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up from a config entry."""
-    # Register the websocket
     await async_register_websocket(hass)
 
     if not hass.data.get(f"{DOMAIN}_static_path_registered", False):
-        # Static path is kept distinct from PANEL_URL so it doesn't shadow the
-        # panel route on direct HTTP requests (otherwise refresh returns 403).
-        hass.http.app.router.add_static(
-            f"/{STATIC_URL}",
-            hass.config.path("custom_components/magic_card_utils/www"),
-            name="magic_card_utils_static"
+        await hass.http.async_register_static_paths(
+            [
+                StaticPathConfig(
+                    f"/{STATIC_URL}",
+                    str(Path(__file__).parent / "www"),
+                    False,
+                )
+            ]
         )
         hass.data[f"{DOMAIN}_static_path_registered"] = True
 
-    # Register sidebar panel
     if entry.data.get("show_side_panel", True):
         await async_register_panel(hass)
 
@@ -43,13 +44,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_register_panel(hass: HomeAssistant) -> None:
     """Register the sidebar panel."""
     version = await hass.async_add_executor_job(_load_manifest_version)
+
+    panel_url = f"/{STATIC_URL}/magic_card_utils_panel.js?v={version}&t={int(time.time())}"
+
     await panel_custom.async_register_panel(
         hass,
         webcomponent_name="magic-card-utils-panel",
         frontend_url_path=PANEL_URL,
         sidebar_title=PANEL_TITLE,
         sidebar_icon=PANEL_ICON,
-        module_url=f"/{STATIC_URL}/magic_card_utils_panel.js?v={version}&t={int(time.time())}",
+        module_url=panel_url,
         embed_iframe=False,
         require_admin=True,
     )
