@@ -4,10 +4,11 @@ All notable changes to Magic Card Utils are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use calendar versioning (`YYYY.MM.NN`).
 
-## [2026.10.05] - Unreleased
+## [2026.10.05] - 2026-10-16
 
 ### Changed
 
+- Needs Magic Card 0.0.32-beta or newer for the animation studio (`magic-card-animation-studio.js` is attached to that Magic Card release and installed by HACS).
 - The panel uses only the installed Magic Card (your dashboard resource) for the editor, studio, preview and animation studio. The editor is created with the card's `getConfigElement()`, ready for Magic Card loading its editor on demand.
 - The panel checks the Magic Card version through `window.MagicCard.apiVersion` and asks you to update Magic Card when it's too old. Magic Card versions without `window.MagicCard` still work.
 
