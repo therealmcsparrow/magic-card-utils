@@ -4,6 +4,17 @@ All notable changes to Magic Card Utils are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use calendar versioning (`YYYY.MM.NN`).
 
+## [2026.10.02] - 2026-10-15
+
+### Changed
+
+- The **Edit** action now opens the template's YAML and live preview, from where you can edit it with the Magic Card editor.
+- Template names in the table are plain text instead of a link.
+
+### Removed
+
+- The separate edit dialog for name, description and card type. These are now edited together with the card in the template editor.
+
 ## [2026.10.01] - 2026-10-15
 
 First stable release.
@@ -41,4 +52,5 @@ First stable release.
 - Templates side panel with YAML view and preview, plus rename, duplicate and delete actions.
 - Config flow with an option to show or hide the side panel.
 
+[2026.10.02]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.02
 [2026.10.01]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.01

@@ -55,7 +55,7 @@ When the side panel is enabled, **Magic Card Templates** appears in the sidebar 
 
 | Column | Shows |
 |---|---|
-| **Name** | The template name and description. Click the name to view the template's YAML next to a live preview. |
+| **Name** | The template name and description. |
 | **Card Type** | The card type the template is for, for example `custom:magic-card`. |
 | **Linked Cards** | How many dashboard cards currently use this template. |
 | **Created** | When the template was first saved. |
@@ -65,11 +65,9 @@ When the side panel is enabled, **Magic Card Templates** appears in the sidebar 
 ### Actions
 
 - **Open in studio:** opens the template in the Magic Card editor and goes straight into the full-screen studio. Close the studio and click **Save** to store your changes.
-- **Edit:** change the template's name, description or card type.
+- **Edit:** view the template's YAML next to a live preview. Click the pencil icon there to edit the card with the Magic Card editor and change the template's name, description or card type, then click **Save**.
 - **Duplicate:** save a copy of the template under a new name.
 - **Delete:** remove the template. This is disabled while any card still links to it.
-
-From the YAML view you can also click the pencil icon to edit the card configuration with the Magic Card editor.
 
 ## Integrating from a third-party card
 

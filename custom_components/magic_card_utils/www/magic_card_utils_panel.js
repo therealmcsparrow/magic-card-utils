@@ -130,9 +130,6 @@ class MagicCardUtilsPanel extends LitElement {
       // action dialog (edit/duplicate/delete)
       _actionMode: { type: String, state: true },
       _actionRow: { type: Object, state: true },
-      _editName: { type: String, state: true },
-      _editDescription: { type: String, state: true },
-      _editCardType: { type: String, state: true },
       _duplicateName: { type: String, state: true },
       _actionError: { type: String, state: true },
       _submitting: { type: Boolean, state: true },
@@ -155,9 +152,6 @@ class MagicCardUtilsPanel extends LitElement {
     // action dialog
     this._actionMode = "";
     this._actionRow = null;
-    this._editName = "";
-    this._editDescription = "";
-    this._editCardType = "";
     this._duplicateName = "";
     this._actionError = "";
     this._submitting = false;
@@ -553,15 +547,6 @@ class MagicCardUtilsPanel extends LitElement {
     }
   }
 
-  _openEdit(row) {
-    this._actionRow = row;
-    this._editName = row.name;
-    this._editDescription = row.description || "";
-    this._editCardType = row.card_type || "";
-    this._actionError = "";
-    this._actionMode = "edit";
-  }
-
   _openDuplicate(row) {
     this._actionRow = row;
     this._duplicateName = this._uniqueCopyName(row.name);
@@ -578,9 +563,6 @@ class MagicCardUtilsPanel extends LitElement {
   _closeAction() {
     this._actionMode = "";
     this._actionRow = null;
-    this._editName = "";
-    this._editDescription = "";
-    this._editCardType = "";
     this._duplicateName = "";
     this._actionError = "";
     this._submitting = false;
@@ -599,46 +581,6 @@ class MagicCardUtilsPanel extends LitElement {
 
   _onActionOverlayKeydown(e) {
     if (e.key === "Escape" && !this._submitting) this._closeAction();
-  }
-
-  async _submitEdit() {
-    if (this._submitting) return;
-    const row = this._actionRow;
-    if (!row) return;
-    const newName = (this._editName || "").trim();
-    if (!newName) {
-      this._actionError = "Name is required.";
-      return;
-    }
-    if (
-      newName !== row.name &&
-      this._templates.some((t) => t.name === newName)
-    ) {
-      this._actionError = `A template named '${newName}' already exists.`;
-      return;
-    }
-    const payload = {
-      type: "magic_card_utils/save_template",
-      name: newName,
-      template: {
-        ...(row.raw && typeof row.raw === "object" ? row.raw : {}),
-        description: this._editDescription || "",
-      },
-    };
-    if (this._editCardType) payload.card_type = this._editCardType;
-    if (newName !== row.name) payload.old_name = row.name;
-
-    this._submitting = true;
-    this._actionError = "";
-    try {
-      await this.hass.callWS(payload);
-      this._closeAction();
-    } catch (err) {
-      console.error("[magic_card_utils] edit failed", err);
-      this._actionError =
-        (err && (err.message || err.code)) || "Save failed";
-      this._submitting = false;
-    }
   }
 
   async _submitDuplicate() {
@@ -783,13 +725,7 @@ class MagicCardUtilsPanel extends LitElement {
                     (row) => html`
                       <tr>
                         <td class="col-name">
-                          <button
-                            class="name-link"
-                            @click=${() => this._openTemplate(row)}
-                            title="View YAML"
-                          >
-                            ${row.name}
-                          </button>
+                          <span class="template-name">${row.name}</span>
                           ${row.description
                             ? html`<div class="secondary">
                                 ${row.description}
@@ -816,7 +752,7 @@ class MagicCardUtilsPanel extends LitElement {
                             <button
                               class="action-btn edit"
                               title="Edit"
-                              @click=${() => this._openEdit(row)}
+                              @click=${() => this._openTemplate(row)}
                             >
                               <svg viewBox="0 0 24 24" aria-hidden="true">
                                 <path
@@ -968,9 +904,7 @@ class MagicCardUtilsPanel extends LitElement {
           <div class="dialog-header">
             <div class="dialog-title">
               <span class="dialog-title-name">
-                ${this._actionMode === "edit"
-                  ? "Edit template"
-                  : this._actionMode === "duplicate"
+                ${this._actionMode === "duplicate"
                   ? "Duplicate template"
                   : "Delete template"}
               </span>
@@ -986,7 +920,6 @@ class MagicCardUtilsPanel extends LitElement {
             </button>
           </div>
           <div class="action-body">
-            ${this._actionMode === "edit" ? this._renderEditForm() : ""}
             ${this._actionMode === "duplicate"
               ? this._renderDuplicateForm()
               : ""}
@@ -1005,15 +938,6 @@ class MagicCardUtilsPanel extends LitElement {
             >
               Cancel
             </button>
-            ${this._actionMode === "edit"
-              ? html`<button
-                  class="btn primary"
-                  @click=${this._submitEdit}
-                  ?disabled=${this._submitting}
-                >
-                  ${this._submitting ? "Saving…" : "Save"}
-                </button>`
-              : ""}
             ${this._actionMode === "duplicate"
               ? html`<button
                   class="btn primary"
@@ -1034,46 +958,6 @@ class MagicCardUtilsPanel extends LitElement {
               : ""}
           </div>
         </div>
-      </div>
-    `;
-  }
-
-  _renderEditForm() {
-    return html`
-      <label class="field">
-        <span class="field-label">Name</span>
-        <input
-          class="field-input"
-          type="text"
-          .value=${this._editName}
-          @input=${(e) => (this._editName = e.target.value)}
-          ?disabled=${this._submitting}
-        />
-      </label>
-      <label class="field">
-        <span class="field-label">Description</span>
-        <textarea
-          class="field-input"
-          rows="3"
-          .value=${this._editDescription}
-          @input=${(e) => (this._editDescription = e.target.value)}
-          ?disabled=${this._submitting}
-        ></textarea>
-      </label>
-      <label class="field">
-        <span class="field-label">Card type</span>
-        <input
-          class="field-input mono"
-          type="text"
-          placeholder="e.g. custom:magic-card"
-          .value=${this._editCardType}
-          @input=${(e) => (this._editCardType = e.target.value)}
-          ?disabled=${this._submitting}
-        />
-      </label>
-      <div class="field-hint">
-        The YAML config itself is edited in your magic-card editor; re-save the
-        card from there to update this template's body.
       </div>
     `;
   }
@@ -1378,24 +1262,13 @@ class MagicCardUtilsPanel extends LitElement {
         height: 18px;
         fill: currentColor;
       }
-      .name-link {
-        font: inherit;
+      .template-name {
         font-weight: 500;
-        color: var(--primary-color);
-        background: none;
-        border: 0;
-        padding: 0;
-        margin: 0;
-        cursor: pointer;
-        text-align: left;
         max-width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
         display: inline-block;
-      }
-      .name-link:hover {
-        text-decoration: underline;
       }
       .secondary {
         font-size: 12px;
