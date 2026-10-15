@@ -4,6 +4,12 @@ All notable changes to Magic Card Utils are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use calendar versioning (`YYYY.MM.NN`).
 
+## [2026.10.03] - 2026-10-15
+
+### Fixed
+
+- Text and action buttons in the templates table are now vertically centred in each row.
+
 ## [2026.10.02] - 2026-10-15
 
 ### Changed
@@ -52,5 +58,6 @@ First stable release.
 - Templates side panel with YAML view and preview, plus rename, duplicate and delete actions.
 - Config flow with an option to show or hide the side panel.
 
+[2026.10.03]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.03
 [2026.10.02]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.02
 [2026.10.01]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.01

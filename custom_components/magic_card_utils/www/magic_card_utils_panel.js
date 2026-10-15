@@ -1186,7 +1186,7 @@ class MagicCardUtilsPanel extends LitElement {
         text-align: left;
         padding: 12px 16px;
         border-bottom: 1px solid var(--divider-color);
-        vertical-align: top;
+        vertical-align: middle;
       }
       .templates-table tbody tr:last-child td {
         border-bottom: none;
