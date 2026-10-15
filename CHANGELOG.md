@@ -4,6 +4,15 @@ All notable changes to Magic Card Utils are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use calendar versioning (`YYYY.MM.NN`).
 
+## [2026.10.04] - Unreleased
+
+### Added
+
+- Animation library: a shared store for the custom animations made in the Magic Card animation studio. Every card can use them as `preset: custom:<id>`.
+- WebSocket commands `get_animations`, `subscribe_animations`, `save_animation` and `delete_animation`. Any signed-in user can read the library; saving and deleting need an admin.
+- The library holds at most 200 animations of at most 64 KB each. Animations with an invalid id, name, kind or version are refused with `invalid_format` and a list of field errors.
+- **Animations** tab in the side panel. It loads the animation studio (`magic-card-animation-studio.js`) from the same folder as your dashboard's Magic Card resource, or from the copy bundled with this integration. Open `?animation=<id>` to go straight to one animation.
+
 ## [2026.10.03] - 2026-10-15
 
 ### Fixed
@@ -58,6 +67,7 @@ First stable release.
 - Templates side panel with YAML view and preview, plus rename, duplicate and delete actions.
 - Config flow with an option to show or hide the side panel.
 
+[2026.10.04]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.04
 [2026.10.03]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.03
 [2026.10.02]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.02
 [2026.10.01]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.01

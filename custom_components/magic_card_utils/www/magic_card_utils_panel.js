@@ -109,6 +109,28 @@ function dumpYaml(value, indent = 0) {
     .join("\n");
 }
 
+const STATIC_BASE = "/magic_card_utils_static";
+const STUDIO_FILE = "magic-card-animation-studio.js";
+const STUDIO_TAG = "magic-card-animation-studio";
+const ANIMATION_ID_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
+
+/** The deep-linked animation (`?animation=<id>`), if the id is well formed. */
+function _animationFromUrl() {
+  try {
+    const id = new URLSearchParams(window.location.search).get("animation");
+    return id && ANIMATION_ID_RE.test(id) ? id : null;
+  } catch (_err) {
+    return null;
+  }
+}
+
+/** The studio next to a magic-card.js URL (same directory and query), or null. */
+function _studioUrlFor(cardUrl) {
+  if (!cardUrl) return null;
+  const m = /^(.*\/)magic-card\.js(\?.*)?$/.exec(cardUrl);
+  return m ? `${m[1]}${STUDIO_FILE}${m[2] || ""}` : null;
+}
+
 class MagicCardUtilsPanel extends LitElement {
   static get properties() {
     return {
@@ -133,6 +155,11 @@ class MagicCardUtilsPanel extends LitElement {
       _duplicateName: { type: String, state: true },
       _actionError: { type: String, state: true },
       _submitting: { type: Boolean, state: true },
+      // animations tab
+      _tab: { type: String, state: true }, // 'templates' | 'animations'
+      _animStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
+      _animMessage: { type: String, state: true },
+      _animError: { type: String, state: true },
     };
   }
 
@@ -155,6 +182,14 @@ class MagicCardUtilsPanel extends LitElement {
     this._duplicateName = "";
     this._actionError = "";
     this._submitting = false;
+    // animations tab
+    this._selectedAnimation = _animationFromUrl();
+    this._tab = this._selectedAnimation ? "animations" : "templates";
+    this._animations = {};
+    this._animStatus = "";
+    this._animMessage = "";
+    this._animError = "";
+    this._studioEl = null;
   }
 
   _processTemplates(templates) {
@@ -301,6 +336,12 @@ class MagicCardUtilsPanel extends LitElement {
     if (changedProps.has("hass") && this._previewEl && this.hass) {
       this._previewEl.hass = this.hass;
     }
+    if (changedProps.has("hass") && this._studioEl && this.hass) {
+      this._studioEl.hass = this.hass;
+    }
+    if (this._tab === "animations" && this.hass && !this._studioEl && this._animStatus === "") {
+      this._mountAnimationStudio();
+    }
     if (changedProps.has("_viewMode") || changedProps.has("_editConfig") || changedProps.has("_viewRow")) {
       const fromEditor =
         this._configFromEditor && !changedProps.has("_viewMode") && !changedProps.has("_viewRow");
@@ -327,7 +368,7 @@ class MagicCardUtilsPanel extends LitElement {
     // Dashboard resources aren't loaded on custom panels. Prefer the dashboard's own
     // magic-card URL so the module is shared (a second copy would collide on
     // customElements.define); fall back to the bundled copy.
-    let url = "/magic_card_utils_static/magic-card.js";
+    let url = `${STATIC_BASE}/magic-card.js`;
     try {
       const resources = await this.hass.callWS({ type: "lovelace/resources" });
       const res = (resources || []).find((r) => /\/magic-card\.js(\?|$)/.test(r.url));
@@ -335,6 +376,7 @@ class MagicCardUtilsPanel extends LitElement {
     } catch (_err) {
       // Resources unavailable: use the bundled copy.
     }
+    this._magicCardUrl = url;
     try {
       await import(url);
     } catch (err) {
@@ -648,6 +690,234 @@ class MagicCardUtilsPanel extends LitElement {
     this._subscribe();
   }
 
+  // ---- Animations tab ----------------------------------------------------
+
+  _setTab(tab) {
+    if (this._tab === tab) return;
+    this._tab = tab;
+  }
+
+  _onTabKeydown(e) {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    const next = this._tab === "templates" ? "animations" : "templates";
+    this._setTab(next);
+    this.updateComplete.then(() => {
+      const btn = this.shadowRoot.querySelector(`.tab[data-tab="${next}"]`);
+      if (btn) btn.focus();
+    });
+  }
+
+  /** Load magic-card (for the live preview), then the studio next to it. */
+  async _ensureAnimationStudio() {
+    if (customElements.get(STUDIO_TAG)) return true;
+    if (!this._studioLoad) {
+      this._studioLoad = (async () => {
+        if (!this._editorLoad) this._editorLoad = this._loadMagicCard();
+        await this._editorLoad;
+        if (customElements.get(STUDIO_TAG)) return;
+        const fallback = `${STATIC_BASE}/${STUDIO_FILE}`;
+        const urls = [_studioUrlFor(this._magicCardUrl), fallback].filter(
+          (u, i, all) => u && all.indexOf(u) === i
+        );
+        for (const url of urls) {
+          try {
+            await import(url);
+            if (customElements.get(STUDIO_TAG)) return;
+          } catch (err) {
+            console.warn("[magic_card_utils] animation studio not loaded from", url, err);
+          }
+        }
+      })();
+    }
+    await this._studioLoad;
+    if (!customElements.get(STUDIO_TAG)) {
+      this._studioLoad = undefined; // allow a retry
+      return false;
+    }
+    return true;
+  }
+
+  async _mountAnimationStudio() {
+    if (this._studioEl || this._animStatus === "loading") return;
+    this._animStatus = "loading";
+    this._animMessage = "";
+    try {
+      await this._subscribeAnimations();
+    } catch (err) {
+      console.error("[magic_card_utils] animation library unavailable", err);
+      this._animStatus = "error";
+      this._animMessage = "The animation library could not be loaded.";
+      return;
+    }
+    const loaded = await this._ensureAnimationStudio();
+    if (!loaded) {
+      this._animStatus = "error";
+      this._animMessage =
+        "The animation studio could not be loaded. It ships with Magic Card " +
+        `as ${STUDIO_FILE}: install a Magic Card version that includes it, ` +
+        "or update Magic Card Utils.";
+      return;
+    }
+    const el = document.createElement(STUDIO_TAG);
+    el.hass = this.hass;
+    el.library = { ...this._animations };
+    el.selectedId = this._selectedAnimation;
+    el.addEventListener("mc-anim-save", (e) => this._onStudioSave(e));
+    el.addEventListener("mc-anim-duplicate", (e) => this._onStudioSave(e));
+    el.addEventListener("mc-anim-delete", (e) => this._onStudioDelete(e));
+    el.addEventListener("mc-anim-select", (e) => this._onStudioSelect(e));
+    this._studioEl = el;
+    this._animStatus = "ready";
+    await this.updateComplete;
+    this._attachStudio();
+  }
+
+  /** The studio element is kept across tab switches; put it (back) into the tab's host. */
+  _attachStudio() {
+    const host = this.shadowRoot.querySelector(".studio-host");
+    if (!host || !this._studioEl || this._studioEl.parentNode === host) return;
+    host.innerHTML = "";
+    host.appendChild(this._studioEl);
+  }
+
+  /** Subscribe first, then fetch; changes that arrive during the fetch are applied after it. */
+  _subscribeAnimations() {
+    if (this._animReady) return this._animReady;
+    let pending = [];
+    const unsubPromise = this.hass.connection.subscribeMessage(
+      (m) => (pending ? pending.push(m) : this._applyAnimationChange(m)),
+      { type: "magic_card_utils/subscribe_animations" }
+    );
+    this._animUnsubPromise = unsubPromise;
+    this._animReady = (async () => {
+      try {
+        await unsubPromise;
+        const res = await this.hass.callWS({ type: "magic_card_utils/get_animations" });
+        this._animations = (res && res.animations) || {};
+        const queued = pending;
+        pending = null;
+        queued.forEach((m) => this._applyAnimationChange(m, false));
+        this._pushLibrary();
+      } catch (err) {
+        pending = null;
+        this._animUnsubPromise = undefined;
+        this._animReady = undefined; // allow a retry
+        Promise.resolve(unsubPromise)
+          .then((u) => typeof u === "function" && u())
+          .catch(() => {});
+        throw err;
+      }
+    })();
+    return this._animReady;
+  }
+
+  _applyAnimationChange(m, push = true) {
+    if (!m || typeof m !== "object") return;
+    if (m.action === "saved" && m.animation && typeof m.animation.id === "string") {
+      this._animations = { ...this._animations, [m.animation.id]: m.animation };
+    } else if (m.action === "deleted" && typeof m.id === "string") {
+      if (!(m.id in this._animations)) return;
+      const next = { ...this._animations };
+      delete next[m.id];
+      this._animations = next;
+    } else if (m.action === "reset" && m.animations && typeof m.animations === "object") {
+      this._animations = Array.isArray(m.animations)
+        ? Object.fromEntries(m.animations.filter((d) => d && d.id).map((d) => [d.id, d]))
+        : { ...m.animations };
+    } else {
+      return;
+    }
+    if (push) this._pushLibrary();
+  }
+
+  _pushLibrary() {
+    if (this._studioEl) this._studioEl.library = { ...this._animations };
+  }
+
+  _wsErrorMessage(err, fallback) {
+    if (!err) return fallback;
+    const fields = Array.isArray(err.errors) ? err.errors : [];
+    const detail = fields
+      .map((f) => (f && f.path ? `${f.path}: ${f.message}` : f && f.message))
+      .filter(Boolean)
+      .join("; ");
+    const base = err.message || err.code || fallback;
+    return detail ? `${base} (${detail})` : base;
+  }
+
+  /**
+   * `mc-anim-save` / `mc-anim-duplicate`, detail `{ animation }`. The WS promise is put on
+   * `detail.result` (resolves with the stored document) so the studio can await it.
+   */
+  _onStudioSave(e) {
+    const animation = e.detail && e.detail.animation;
+    if (!animation || typeof animation !== "object") return;
+    this._animError = "";
+    const result = this.hass
+      .callWS({ type: "magic_card_utils/save_animation", animation })
+      .then((res) => res && res.animation);
+    if (e.detail) e.detail.result = result;
+    result.catch((err) => {
+      console.error("[magic_card_utils] save animation failed", err);
+      this._animError = this._wsErrorMessage(err, "The animation could not be saved");
+    });
+  }
+
+  /** `mc-anim-delete`, detail `{ id }`. The WS promise is put on `detail.result`. */
+  _onStudioDelete(e) {
+    const id = e.detail && e.detail.id;
+    if (typeof id !== "string" || !id) return;
+    this._animError = "";
+    const result = this.hass.callWS({
+      type: "magic_card_utils/delete_animation",
+      animation_id: id,
+    });
+    if (e.detail) e.detail.result = result;
+    result.catch((err) => {
+      console.error("[magic_card_utils] delete animation failed", err);
+      this._animError = this._wsErrorMessage(err, "The animation could not be deleted");
+    });
+  }
+
+  /** `mc-anim-select`, detail `{ id }` (or null): keeps `?animation=` in the URL in sync. */
+  _onStudioSelect(e) {
+    const id = e.detail && e.detail.id;
+    this._selectedAnimation = typeof id === "string" && ANIMATION_ID_RE.test(id) ? id : null;
+    try {
+      const url = new URL(window.location.href);
+      if (this._selectedAnimation) url.searchParams.set("animation", this._selectedAnimation);
+      else url.searchParams.delete("animation");
+      window.history.replaceState(window.history.state, "", url);
+    } catch (_err) {
+      // The deep link just isn't updated.
+    }
+  }
+
+  _renderAnimationsTab() {
+    if (this._animStatus === "ready") this.updateComplete.then(() => this._attachStudio());
+    return html`
+      ${this._animError
+        ? html`<div class="error dismissable" role="alert">
+            <span>${this._animError}</span>
+            <button class="close-btn" title="Dismiss" @click=${() => (this._animError = "")}>&times;</button>
+          </div>`
+        : ""}
+      ${this._animStatus === "loading" || this._animStatus === ""
+        ? html`<div class="studio-status"><ha-circular-progress active></ha-circular-progress></div>`
+        : ""}
+      ${this._animStatus === "error"
+        ? html`<div class="content">
+            <div class="empty studio-message" role="alert">
+              <div>${this._animMessage}</div>
+              <button class="btn" @click=${() => this._mountAnimationStudio()}>Try again</button>
+            </div>
+          </div>`
+        : ""}
+      <div class="studio-host" ?hidden=${this._animStatus !== "ready"}></div>
+    `;
+  }
+
   _subscribe() {
     if (this._unsubPromise) return;
     try {
@@ -676,6 +946,18 @@ class MagicCardUtilsPanel extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    const animPending = this._animUnsubPromise;
+    this._animUnsubPromise = undefined;
+    this._animReady = undefined;
+    this._studioEl = null;
+    if (this._animStatus !== "error") this._animStatus = "";
+    if (animPending) {
+      Promise.resolve(animPending)
+        .then((unsub) => {
+          if (typeof unsub === "function") unsub();
+        })
+        .catch(() => {});
+    }
     const pending = this._unsubPromise;
     this._unsubPromise = undefined;
     if (pending) {
@@ -701,6 +983,30 @@ class MagicCardUtilsPanel extends LitElement {
         <div class="title">${this.panel && this.panel.title}</div>
       </div>
 
+      <div class="tabs" role="tablist" aria-label="Magic Card Utils" @keydown=${this._onTabKeydown}>
+        ${[
+          ["templates", "Templates"],
+          ["animations", "Animations"],
+        ].map(
+          ([tab, label]) => html`<button
+            class="tab"
+            role="tab"
+            data-tab=${tab}
+            aria-selected=${this._tab === tab ? "true" : "false"}
+            tabindex=${this._tab === tab ? "0" : "-1"}
+            @click=${() => this._setTab(tab)}
+          >
+            ${label}
+          </button>`
+        )}
+      </div>
+
+      ${this._tab === "animations" ? this._renderAnimationsTab() : this._renderTemplatesTab()}
+    `;
+  }
+
+  _renderTemplatesTab() {
+    return html`
       ${this._error
         ? html`<div class="error">${this._error}</div>`
         : ""}
@@ -1166,6 +1472,70 @@ class MagicCardUtilsPanel extends LitElement {
       }
       .content {
         padding: 16px;
+      }
+      .tabs {
+        display: flex;
+        gap: 4px;
+        padding: 0 16px;
+        background: var(--card-background-color, var(--ha-card-background));
+        border-bottom: 1px solid var(--divider-color);
+        position: sticky;
+        top: 64px;
+        z-index: 3;
+      }
+      .tab {
+        height: 48px;
+        padding: 0 16px;
+        background: none;
+        border: 0;
+        border-bottom: 2px solid transparent;
+        color: var(--secondary-text-color);
+        font: inherit;
+        font-weight: 500;
+        cursor: pointer;
+        transition: color 120ms ease, border-color 120ms ease;
+      }
+      .tab:hover {
+        color: var(--primary-text-color);
+      }
+      .tab[aria-selected="true"] {
+        color: var(--primary-color);
+        border-bottom-color: var(--primary-color);
+      }
+      .tab:focus-visible {
+        outline: 2px solid var(--primary-color);
+        outline-offset: -4px;
+        border-radius: 4px;
+      }
+      .error.dismissable {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .error.dismissable span {
+        flex: 1;
+      }
+      .error.dismissable .close-btn {
+        color: inherit;
+      }
+      .studio-status {
+        display: flex;
+        justify-content: center;
+        padding: 48px 16px;
+      }
+      .studio-message {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+      .studio-host {
+        display: block;
+        height: calc(100vh - 64px - 49px);
+        min-height: 480px;
+      }
+      .studio-host[hidden] {
+        display: none;
       }
       .empty {
         padding: 24px;

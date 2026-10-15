@@ -18,6 +18,7 @@ Magic Card Utils is a Home Assistant integration that provides shared template s
 - **Templates panel:** a sidebar panel to browse, preview, edit, rename, duplicate and delete templates.
 - **Studio editing:** open a template straight into the full-screen Magic Card studio.
 - **Linked card tracking:** the integration counts how many dashboard cards use each template and prevents deleting templates that are still in use.
+- **Animation library:** custom animations made in the Magic Card animation studio are stored here and can be used by every card.
 - **Live updates:** every change is pushed to all open cards and panels over the WebSocket API.
 - **WebSocket API:** other custom cards can store and link their own templates too.
 
@@ -68,6 +69,14 @@ When the side panel is enabled, **Magic Card Templates** appears in the sidebar 
 - **Edit:** view the template's YAML next to a live preview. Click the pencil icon there to edit the card with the Magic Card editor and change the template's name, description or card type, then click **Save**.
 - **Duplicate:** save a copy of the template under a new name.
 - **Delete:** remove the template. This is disabled while any card still links to it.
+
+## Animations tab
+
+The side panel has two tabs: **Templates** and **Animations**. The Animations tab opens the Magic Card animation studio, where you build keyframe, particle, path and sequence animations. They are saved in a shared library, and any card can use one with `preset: custom:<id>`.
+
+The panel loads the studio from `magic-card-animation-studio.js` in the same folder as your dashboard's Magic Card resource (for HACS installs, `/hacsfiles/magic-card/`). If it isn't there, it uses the copy bundled with this integration. If neither can be loaded, the tab says so.
+
+To open one animation directly, add `?animation=<id>` to the panel URL, for example `/magic-card-utils?animation=doorbell-wiggle`.
 
 ## Integrating from a third-party card
 
@@ -172,6 +181,37 @@ template: kitchen-light-card
 On render, the card looks up its template with `get_templates` (or keeps a `subscribe_templates` subscription) and applies it.
 
 The integration scans all dashboards for `template: <name>` values that match a saved template and reports the count as `linked_cards`. Counts are refreshed whenever a dashboard is saved, so the panel stays accurate without the card having to track anything. Because templates are broadcast by the server, every linked card on every dashboard updates when the template changes.
+
+## Animation library API
+
+The animation library has its own commands. Reading is open to any signed-in user, so dashboards of non-admin users can still play custom animations. Saving and deleting need an admin.
+
+| Command type | Payload | Result / event |
+|---|---|---|
+| `magic_card_utils/get_animations` | none | Result: `{ animations: { [id]: animation } }` |
+| `magic_card_utils/subscribe_animations` | none | Result: empty. Every later change arrives as an event: `{ action: "saved", animation }` or `{ action: "deleted", id }`. `{ action: "reset", animations }` is reserved for replacing the whole library; the integration doesn't send it yet. No initial state is sent, so fetch it with `get_animations` after subscribing. |
+| `magic_card_utils/save_animation` | `{ animation: object }` | Result: `{ animation }`. Creates or replaces the animation with that `id`. |
+| `magic_card_utils/delete_animation` | `{ animation_id: string }` | Result: `{}`. Deleting an id that doesn't exist also succeeds. |
+
+`delete_animation` takes `animation_id` and not `id`, because `id` is the WebSocket message id.
+
+The Magic Card frontend defines the full animation document and validates it. The integration only checks the structure:
+
+- `id`: 1 to 64 characters from `a-z`, `0-9`, `_` and `-`, starting with a letter or digit.
+- `name`: a non-empty string of at most 80 characters.
+- `kind`: `keyframes`, `particles`, `path` or `sequence`.
+- `version`: a whole number, 1 or higher.
+- At most 64 KB of JSON per animation, and at most 200 animations in the library.
+
+A document that fails these checks is refused with the error code `invalid_format`. The error also has an `errors` list of `{ path, message }` items, one per field:
+
+```js
+try {
+  await hass.callWS({ type: "magic_card_utils/save_animation", animation });
+} catch (err) {
+  // err.code === "invalid_format", err.errors === [{ path: "name", message: "..." }]
+}
+```
 
 ## Support
 
