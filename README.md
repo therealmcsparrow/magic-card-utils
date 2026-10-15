@@ -8,7 +8,7 @@
 
 ## Introduction
 
-Magic Card Utils is a Home Assistant integration that provides shared template storage for the [Magic Card](https://github.com/therealmcsparrow/magic-card) frontend. Save a card once as a template, link it from any number of dashboards, and manage all templates from a sidebar panel.
+Magic Card Utils is a Home Assistant integration that provides shared template storage for the [Magic Card](https://github.com/therealmcsparrow/magic-card) frontend. Save a card once as a template, link it from any number of dashboards, and manage all templates from a sidebar panel. It also stores a shared library of custom animations made in the Magic Card animation studio.
 
 > **Beta:** this integration is under active development. Expect changes between versions.
 
@@ -52,7 +52,7 @@ Only one instance of the integration can be configured.
 
 ## Templates panel
 
-When the side panel is enabled, **Magic Card Templates** appears in the sidebar (admin users only). It lists all saved templates:
+When the side panel is enabled, **Magic Card Templates** appears in the sidebar (admin users only). It has two tabs: **Templates** and **Animations**. The Templates tab lists all saved templates:
 
 | Column | Shows |
 |---|---|
@@ -72,9 +72,9 @@ When the side panel is enabled, **Magic Card Templates** appears in the sidebar 
 
 ## Animations tab
 
-The side panel has two tabs: **Templates** and **Animations**. The Animations tab opens the Magic Card animation studio, where you build keyframe, particle, path and sequence animations. They are saved in a shared library, and any card can use one with `preset: custom:<id>`.
+The Animations tab opens the Magic Card animation studio, where you build keyframe, particle, path and sequence animations. They are saved in a shared library, and any card can use one with `preset: custom:<id>`.
 
-The panel loads the studio from `magic-card-animation-studio.js` in the same folder as your dashboard's Magic Card resource (for HACS installs, `/hacsfiles/magic-card/`). If it isn't there, it uses the copy bundled with this integration. If neither can be loaded, the tab says so.
+The studio is part of Magic Card, not of this integration. The panel loads `magic-card-animation-studio.js` from the same folder as your dashboard's Magic Card resource (for HACS installs, `/hacsfiles/magic-card/`). It also tries `/magic_card_utils_static/magic-card-animation-studio.js`, but this integration doesn't ship a copy of the studio yet. If the studio can't be loaded, the tab shows a message asking you to install a Magic Card version that includes it.
 
 To open one animation directly, add `?animation=<id>` to the panel URL, for example `/magic-card-utils?animation=doorbell-wiggle`.
 
@@ -212,6 +212,14 @@ try {
   // err.code === "invalid_format", err.errors === [{ path: "name", message: "..." }]
 }
 ```
+
+Other errors:
+
+| Error code | When |
+|---|---|
+| `invalid_format` (without `errors`) | Saving a new animation when the library already holds 200. |
+| `not_loaded` | The animation library hasn't finished loading yet. |
+| `save_failed` | The library couldn't be written to storage. |
 
 ## Support
 

@@ -11,7 +11,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Animation library: a shared store for the custom animations made in the Magic Card animation studio. Every card can use them as `preset: custom:<id>`.
 - WebSocket commands `get_animations`, `subscribe_animations`, `save_animation` and `delete_animation`. Any signed-in user can read the library; saving and deleting need an admin.
 - The library holds at most 200 animations of at most 64 KB each. Animations with an invalid id, name, kind or version are refused with `invalid_format` and a list of field errors.
-- **Animations** tab in the side panel. It loads the animation studio (`magic-card-animation-studio.js`) from the same folder as your dashboard's Magic Card resource, or from the copy bundled with this integration. Open `?animation=<id>` to go straight to one animation.
+- **Animations** tab in the side panel, next to the Templates tab. It loads the Magic Card animation studio (`magic-card-animation-studio.js`) from the same folder as your dashboard's Magic Card resource. This integration doesn't ship a copy of the studio yet; if it can't be loaded, the tab says so. Open `?animation=<id>` to go straight to one animation.
+- Error codes `not_loaded` (library still loading) and `save_failed` (storage write failed) for the animation commands.
+
+### Changed
+
+- README: animation library, Animations tab and animation API documented.
 
 ## [2026.10.03] - 2026-10-15
 
