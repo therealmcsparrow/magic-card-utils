@@ -109,7 +109,10 @@ function dumpYaml(value, indent = 0) {
     .join("\n");
 }
 
-const STATIC_BASE = "/magic_card_utils_static";
+const CARD_TAG = "magic-card";
+// Oldest `window.MagicCard.apiVersion` this panel works with. Magic Card versions without
+// `window.MagicCard` predate the contract and are used as-is (feature-detected).
+const MIN_MAGIC_CARD_API = 1;
 const STUDIO_FILE = "magic-card-animation-studio.js";
 const STUDIO_TAG = "magic-card-animation-studio";
 const ANIMATION_ID_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
@@ -309,11 +312,9 @@ class MagicCardUtilsPanel extends LitElement {
     try {
       let el;
       if (isMagicCard) {
-        await this._ensureMagicCardEditor();
-        if (!customElements.get("magic-card")) {
-          throw new Error("The Magic Card could not be loaded.");
-        }
-        el = document.createElement("magic-card");
+        const status = await this._ensureMagicCard();
+        if (!status.ok) throw new Error(status.message);
+        el = document.createElement(CARD_TAG);
         el.setConfig(renderConfig);
       } else {
         const helpers = await window.loadCardHelpers();
@@ -357,43 +358,73 @@ class MagicCardUtilsPanel extends LitElement {
     }
   }
 
-  async _ensureMagicCardEditor() {
-    if (customElements.get("magic-card-editor")) return true;
-    if (!this._editorLoad) this._editorLoad = this._loadMagicCard();
-    await this._editorLoad;
-    return !!customElements.get("magic-card-editor");
+  /**
+   * Make sure the installed Magic Card is loaded and compatible.
+   * Resolves to `{ ok: true }` or `{ ok: false, message }` with a message for the user.
+   */
+  async _ensureMagicCard() {
+    if (!this._cardLoad) this._cardLoad = this._loadMagicCard();
+    await this._cardLoad;
+    if (!customElements.get(CARD_TAG)) {
+      this._cardLoad = undefined; // allow a retry
+      return {
+        ok: false,
+        message: this._magicCardUrl
+          ? `Magic Card could not be loaded from ${this._magicCardUrl}.`
+          : "Magic Card isn't installed. Install it from HACS and add it as a dashboard resource.",
+      };
+    }
+    const api = window.MagicCard;
+    if (api && !(Number(api.apiVersion) >= MIN_MAGIC_CARD_API)) {
+      return {
+        ok: false,
+        message:
+          `Magic Card ${api.version || ""} is too old for Magic Card Utils ` +
+          `(needs API version ${MIN_MAGIC_CARD_API} or newer). Update Magic Card.`,
+      };
+    }
+    return { ok: true };
   }
 
   async _loadMagicCard() {
-    // Dashboard resources aren't loaded on custom panels. Prefer the dashboard's own
-    // magic-card URL so the module is shared (a second copy would collide on
-    // customElements.define); fall back to the bundled copy.
-    let url = `${STATIC_BASE}/magic-card.js`;
+    // Dashboard resources aren't loaded on custom panels, so load the installed Magic Card
+    // from its dashboard resource URL. Importing that same URL shares the module with
+    // dashboards (a second copy would collide on customElements.define).
     try {
       const resources = await this.hass.callWS({ type: "lovelace/resources" });
       const res = (resources || []).find((r) => /\/magic-card\.js(\?|$)/.test(r.url));
-      if (res) url = res.url;
+      this._magicCardUrl = res ? res.url : null;
     } catch (_err) {
-      // Resources unavailable: use the bundled copy.
+      this._magicCardUrl = null;
     }
-    this._magicCardUrl = url;
+    if (customElements.get(CARD_TAG) || !this._magicCardUrl) return;
     try {
-      await import(url);
+      await import(this._magicCardUrl);
     } catch (err) {
-      console.error("[magic_card_utils] failed to load magic-card", url, err);
+      console.error("[magic_card_utils] failed to load magic-card", this._magicCardUrl, err);
     }
   }
 
   async _mountEditor() {
     if (!this.shadowRoot.querySelector(".editor-host")) return;
-    const loaded = await this._ensureMagicCardEditor();
+    const status = await this._ensureMagicCard();
+    let el = null;
+    let message = status.message;
+    if (status.ok) {
+      try {
+        // The card's own hook, so a lazily loaded editor works too.
+        el = await customElements.get(CARD_TAG).getConfigElement();
+      } catch (err) {
+        console.error("[magic_card_utils] failed to create the Magic Card editor", err);
+        message = "The Magic Card editor could not be loaded.";
+      }
+    }
     const host = this.shadowRoot.querySelector(".editor-host");
     if (!host || this._viewMode !== "edit") return;
-    if (!loaded) {
-      host.textContent = "The Magic Card editor could not be loaded.";
+    if (!el) {
+      host.textContent = message;
       return;
     }
-    const el = document.createElement("magic-card-editor");
     el.hass = this.hass;
     const config = this._getEditorConfig();
     el.setConfig(config);
@@ -708,34 +739,36 @@ class MagicCardUtilsPanel extends LitElement {
     });
   }
 
-  /** Load magic-card (for the live preview), then the studio next to it. */
+  /**
+   * Load Magic Card (for the live preview), then the studio from the same folder.
+   * Resolves to `{ ok: true }` or `{ ok: false, message }`.
+   */
   async _ensureAnimationStudio() {
-    if (customElements.get(STUDIO_TAG)) return true;
+    const status = await this._ensureMagicCard();
+    if (!status.ok) return status;
+    if (customElements.get(STUDIO_TAG)) return { ok: true };
     if (!this._studioLoad) {
       this._studioLoad = (async () => {
-        if (!this._editorLoad) this._editorLoad = this._loadMagicCard();
-        await this._editorLoad;
-        if (customElements.get(STUDIO_TAG)) return;
-        const fallback = `${STATIC_BASE}/${STUDIO_FILE}`;
-        const urls = [_studioUrlFor(this._magicCardUrl), fallback].filter(
-          (u, i, all) => u && all.indexOf(u) === i
-        );
-        for (const url of urls) {
-          try {
-            await import(url);
-            if (customElements.get(STUDIO_TAG)) return;
-          } catch (err) {
-            console.warn("[magic_card_utils] animation studio not loaded from", url, err);
-          }
+        const url = _studioUrlFor(this._magicCardUrl);
+        if (!url) return;
+        try {
+          await import(url);
+        } catch (err) {
+          console.warn("[magic_card_utils] animation studio not loaded from", url, err);
         }
       })();
     }
     await this._studioLoad;
     if (!customElements.get(STUDIO_TAG)) {
       this._studioLoad = undefined; // allow a retry
-      return false;
+      return {
+        ok: false,
+        message:
+          `The animation studio could not be loaded. It ships with Magic Card as ${STUDIO_FILE}: ` +
+          "update Magic Card to a version that includes it.",
+      };
     }
-    return true;
+    return { ok: true };
   }
 
   async _mountAnimationStudio() {
@@ -750,13 +783,10 @@ class MagicCardUtilsPanel extends LitElement {
       this._animMessage = "The animation library could not be loaded.";
       return;
     }
-    const loaded = await this._ensureAnimationStudio();
-    if (!loaded) {
+    const status = await this._ensureAnimationStudio();
+    if (!status.ok) {
       this._animStatus = "error";
-      this._animMessage =
-        "The animation studio could not be loaded. It ships with Magic Card " +
-        `as ${STUDIO_FILE}: install a Magic Card version that includes it, ` +
-        "or update Magic Card Utils.";
+      this._animMessage = status.message;
       return;
     }
     const el = document.createElement(STUDIO_TAG);

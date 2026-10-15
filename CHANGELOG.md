@@ -4,6 +4,17 @@ All notable changes to Magic Card Utils are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use calendar versioning (`YYYY.MM.NN`).
 
+## [2026.10.05] - Unreleased
+
+### Changed
+
+- The panel uses only the installed Magic Card (your dashboard resource) for the editor, studio, preview and animation studio. The editor is created with the card's `getConfigElement()`, ready for Magic Card loading its editor on demand.
+- The panel checks the Magic Card version through `window.MagicCard.apiVersion` and asks you to update Magic Card when it's too old. Magic Card versions without `window.MagicCard` still work.
+
+### Removed
+
+- The bundled copy of Magic Card (`www/magic-card.js`) and the bundled fallback for the animation studio. If Magic Card isn't installed, the panel says so.
+
 ## [2026.10.04] - 2026-10-15
 
 ### Added
@@ -72,6 +83,7 @@ First stable release.
 - Templates side panel with YAML view and preview, plus rename, duplicate and delete actions.
 - Config flow with an option to show or hide the side panel.
 
+[2026.10.05]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.05
 [2026.10.04]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.04
 [2026.10.03]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.03
 [2026.10.02]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.02

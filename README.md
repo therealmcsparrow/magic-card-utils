@@ -25,7 +25,7 @@ Magic Card Utils is a Home Assistant integration that provides shared template s
 ## Requirements
 
 - Home Assistant **2024.7** or newer.
-- [Magic Card](https://github.com/therealmcsparrow/magic-card) for creating and linking templates from your dashboards. A copy of the Magic Card editor is bundled for use in the panel.
+- [Magic Card](https://github.com/therealmcsparrow/magic-card), installed and added as a dashboard resource (HACS does this for you). The panel uses the installed Magic Card for its editor, studio, preview and animation studio. See [Magic Card compatibility](#magic-card-compatibility).
 
 ## Installation
 
@@ -70,11 +70,30 @@ When the side panel is enabled, **Magic Card Templates** appears in the sidebar 
 - **Duplicate:** save a copy of the template under a new name.
 - **Delete:** remove the template. This is disabled while any card still links to it.
 
+## Magic Card compatibility
+
+Magic Card Utils doesn't ship its own copy of Magic Card. The panel loads the Magic Card you installed, so the editor and studios always match the cards on your dashboards:
+
+- **Card and editor:** loaded from your dashboard resource whose URL ends in `/magic-card.js`. The editor is created with the card's own `getConfigElement()`, so it also works when Magic Card loads its editor on demand.
+- **Animation studio:** loaded from `magic-card-animation-studio.js` in the same folder as `magic-card.js`.
+- **Version check:** Magic Card can describe itself with a global object:
+
+  ```js
+  window.MagicCard = {
+    version: "0.0.32",  // the Magic Card release
+    apiVersion: 1,      // raised when the contract with Magic Card Utils changes in a breaking way
+  };
+  ```
+
+  The panel needs `apiVersion` 1 or newer. With an older Magic Card it shows a message asking you to update Magic Card instead of failing. Magic Card versions from before this contract (without `window.MagicCard`) still work.
+
+If Magic Card isn't installed or isn't a dashboard resource, the editor, studio and preview show a message instead.
+
 ## Animations tab
 
 The Animations tab opens the Magic Card animation studio, where you build keyframe, particle, path and sequence animations. They are saved in a shared library, and any card can use one with `preset: custom:<id>`.
 
-The studio is part of Magic Card, not of this integration. The panel loads `magic-card-animation-studio.js` from the same folder as your dashboard's Magic Card resource (for HACS installs, `/hacsfiles/magic-card/`). It also tries `/magic_card_utils_static/magic-card-animation-studio.js`, but this integration doesn't ship a copy of the studio yet. If the studio can't be loaded, the tab shows a message asking you to install a Magic Card version that includes it.
+The studio is part of Magic Card, not of this integration. The panel loads `magic-card-animation-studio.js` from the same folder as your dashboard's Magic Card resource (for HACS installs, `/hacsfiles/magic-card/`). If the studio can't be loaded, the tab shows a message asking you to update Magic Card to a version that includes it.
 
 To open one animation directly, add `?animation=<id>` to the panel URL, for example `/magic-card-utils?animation=doorbell-wiggle`.
 
