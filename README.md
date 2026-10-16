@@ -22,7 +22,7 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 
 - Home Assistant **2024.7** or newer.
 - [Magic Card](https://github.com/therealmcsparrow/magic-card), installed with HACS (or added as a dashboard resource of type JavaScript module). The panel uses the installed Magic Card; Magic Card Utils doesn't ship its own copy.
-- Magic Card **0.0.32-beta** or newer for the Animations tab.
+- Magic Card **2026.10.01** or newer for the Animations tab.
 
 ## Installation
 

@@ -11,7 +11,7 @@ The studio itself is part of Magic Card. How to use it is documented in the [Mag
 
 ## Requirements
 
-- Magic Card 0.0.32-beta or newer, added as a dashboard resource of type JavaScript module.
+- Magic Card 2026.10.01 or newer, added as a dashboard resource of type JavaScript module.
 - The file `magic-card-animation-studio.js` in the same folder as your `magic-card.js` resource. Magic Card releases attach it and HACS installs it with the card, in `/hacsfiles/magic-card/`. With a manual install of Magic Card, copy it next to `magic-card.js`.
 
 ## Loading
@@ -30,7 +30,7 @@ A spinner shows while it loads. When a step fails, the tab shows a message and a
 | Magic Card isn't installed. Install it from HACS and add it as a dashboard resource. | No dashboard resource ends in `/magic-card.js` |
 | Magic Card could not be loaded from *url*. | The resource exists but the file failed to load |
 | Magic Card *version* is too old for Magic Card Utils (…). Update Magic Card. | See [Version check](../compatibility/README.md#version-check) |
-| The animation studio could not be loaded. It ships with Magic Card as magic-card-animation-studio.js: update Magic Card to a version that includes it. | Magic Card is older than 0.0.32-beta, or the studio file is missing next to `magic-card.js` |
+| The animation studio could not be loaded. It ships with Magic Card as magic-card-animation-studio.js: update Magic Card to a version that includes it. | Magic Card is older than 2026.10.01, or the studio file is missing next to `magic-card.js` |
 
 [Troubleshooting](../troubleshooting/README.md) has the fixes.
 

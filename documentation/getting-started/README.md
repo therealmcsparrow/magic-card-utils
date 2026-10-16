@@ -13,7 +13,7 @@
 | What | Version | Why |
 | --- | --- | --- |
 | Home Assistant | 2024.7 or newer | The integration serves its panel with `async_register_static_paths`, added in 2024.7. HACS refuses to install it on older versions. |
-| [Magic Card](https://github.com/therealmcsparrow/magic-card) | Any version for templates; 0.0.32-beta or newer for the Animations tab | The panel uses the installed Magic Card for its editor, studio, preview and animation studio. Magic Card Utils doesn't ship its own copy. See [Magic Card compatibility](../compatibility/README.md). |
+| [Magic Card](https://github.com/therealmcsparrow/magic-card) | Any version for templates; 2026.10.01 or newer for the Animations tab | The panel uses the installed Magic Card for its editor, studio, preview and animation studio. Magic Card Utils doesn't ship its own copy. See [Magic Card compatibility](../compatibility/README.md). |
 | Magic Card as a dashboard resource | Type JavaScript module | The panel finds Magic Card through your dashboard resources. HACS adds the resource for you. |
 | An admin user | | The panel is only in the sidebar of admin users, and the template commands need an admin. |
 

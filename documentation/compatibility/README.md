@@ -45,6 +45,6 @@ A breaking change to the contract raises `apiVersion`; Magic Card Utils then rai
 | --- | --- |
 | Templates tab: table, template view, preview, editor | Any version |
 | Open in studio | A version with the studio |
-| Animations tab | 0.0.32-beta or newer, with `magic-card-animation-studio.js` next to `magic-card.js` |
+| Animations tab | 2026.10.01 or newer, with `magic-card-animation-studio.js` next to `magic-card.js` |
 
 Use the newest Magic Card release where you can. Magic Card's own documentation lists which version added what.
