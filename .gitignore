@@ -14,6 +14,9 @@ impeccable.json
 .mcp.json
 PRODUCT.md
 
+# Agent-skills issue tracker (local markdown)
+.scratch/
+
 # Development Temp
 .tmp/
 .results
