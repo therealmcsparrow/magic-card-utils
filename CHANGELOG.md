@@ -4,7 +4,7 @@ All notable changes to Magic Card Utils are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use calendar versioning (`YYYY.MM.NN`).
 
-## [Unreleased]
+## [2026.10.06] - 2026-10-16
 
 ### Added
 
@@ -98,6 +98,7 @@ First stable release.
 - Templates side panel with YAML view and preview, plus rename, duplicate and delete actions.
 - Config flow with an option to show or hide the side panel.
 
+[2026.10.06]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.06
 [2026.10.05]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.05
 [2026.10.04]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.04
 [2026.10.03]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.03
