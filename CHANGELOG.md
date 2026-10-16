@@ -4,6 +4,20 @@ All notable changes to Magic Card Utils are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use calendar versioning (`YYYY.MM.NN`).
 
+## [Unreleased]
+
+### Added
+
+- Documentation in the `documentation` folder: getting started, the panel, concepts (templates and linking, the animation library, storage), the WebSocket API, Magic Card compatibility and troubleshooting.
+
+### Changed
+
+- README shortened to an overview, with links to the documentation.
+
+### Removed
+
+- Unused code in the panel: the old module editor (palette, row, column and module controls, drag and drop) and its styles.
+
 ## [2026.10.05] - 2026-10-16
 
 ### Changed

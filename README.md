@@ -8,24 +8,21 @@
 
 ## Introduction
 
-Magic Card Utils is a Home Assistant integration that provides shared template storage for the [Magic Card](https://github.com/therealmcsparrow/magic-card) frontend. Save a card once as a template, link it from any number of dashboards, and manage all templates from a sidebar panel. It also stores a shared library of custom animations made in the Magic Card animation studio.
-
-> **Beta:** this integration is under active development. Expect changes between versions.
+Magic Card Utils is the Home Assistant integration behind [Magic Card](https://github.com/therealmcsparrow/magic-card). It stores templates and custom animations centrally, so every dashboard shares them. Save a card once as a template, link it from any number of dashboards, and manage everything from a sidebar panel.
 
 ## Features
 
-- **Shared template storage:** templates are stored centrally in Home Assistant and shared by every dashboard.
-- **Templates panel:** a sidebar panel to browse, preview, edit, rename, duplicate and delete templates.
-- **Studio editing:** open a template straight into the full-screen Magic Card studio.
-- **Linked card tracking:** the integration counts how many dashboard cards use each template and prevents deleting templates that are still in use.
-- **Animation library:** custom animations made in the Magic Card animation studio are stored here and can be used by every card.
-- **Live updates:** every change is pushed to all open cards and panels over the WebSocket API.
-- **WebSocket API:** other custom cards can store and link their own templates too.
+- **Shared templates:** save a card as a template and link it from any dashboard. Changes reach every linked card straight away.
+- **Linked card tracking:** the integration counts which cards use each template and won't delete a template that's still in use.
+- **Templates panel:** browse, preview, edit, duplicate and delete templates, or open one straight into the full-screen Magic Card studio.
+- **Animation library:** keep the custom animations from the Magic Card animation studio in one place, for every card and every user.
+- **WebSocket API:** other custom cards can store and link their own templates and use the animation library.
 
 ## Requirements
 
 - Home Assistant **2024.7** or newer.
-- [Magic Card](https://github.com/therealmcsparrow/magic-card), installed and added as a dashboard resource (HACS does this for you). The panel uses the installed Magic Card for its editor, studio, preview and animation studio. See [Magic Card compatibility](#magic-card-compatibility).
+- [Magic Card](https://github.com/therealmcsparrow/magic-card), installed with HACS (or added as a dashboard resource of type JavaScript module). The panel uses the installed Magic Card; Magic Card Utils doesn't ship its own copy.
+- Magic Card **0.0.32-beta** or newer for the Animations tab.
 
 ## Installation
 
@@ -39,7 +36,7 @@ Magic Card Utils is a Home Assistant integration that provides shared template s
 
 ### Manual installation
 
-1. Copy the `custom_components/magic_card_utils` folder from this repository into the `custom_components` folder of your Home Assistant configuration directory.
+1. Copy the `custom_components/magic_card_utils` folder from the latest release into the `custom_components` folder of your Home Assistant configuration directory.
 2. Restart Home Assistant.
 
 ## Configuration
@@ -48,201 +45,31 @@ Magic Card Utils is a Home Assistant integration that provides shared template s
 2. Click **+ Add Integration** and search for **Magic Card Utils**.
 3. Choose whether to show the side panel, then click **Submit**.
 
-Only one instance of the integration can be configured.
+The **Magic Card Templates** panel then appears in the sidebar of admin users. It has two tabs:
 
-## Templates panel
+- **Templates:** every template with its card type, linked cards and dates, and buttons to open it in the studio, edit it (YAML with a live preview, then the Magic Card editor), duplicate it or delete it.
+- **Animations:** the Magic Card animation studio, with the shared animation library.
 
-When the side panel is enabled, **Magic Card Templates** appears in the sidebar (admin users only). It has two tabs: **Templates** and **Animations**. The Templates tab lists all saved templates:
+After an update, restart Home Assistant so your browser loads the new panel.
 
-| Column | Shows |
-|---|---|
-| **Name** | The template name and description. |
-| **Card Type** | The card type the template is for, for example `custom:magic-card`. |
-| **Linked Cards** | How many dashboard cards currently use this template. |
-| **Created** | When the template was first saved. |
-| **Last Updated** | When the template was last saved. |
-| **Actions** | Open in studio, edit, duplicate and delete. |
+## Documentation
 
-### Actions
+The [documentation](https://github.com/therealmcsparrow/magic-card-utils/tree/main/documentation) covers everything in detail:
 
-- **Open in studio:** opens the template in the Magic Card editor and goes straight into the full-screen studio. Close the studio and click **Save** to store your changes.
-- **Edit:** view the template's YAML next to a live preview. Click the pencil icon there to edit the card with the Magic Card editor and change the template's name, description or card type, then click **Save**.
-- **Duplicate:** save a copy of the template under a new name.
-- **Delete:** remove the template. This is disabled while any card still links to it.
+| Topic | Covers |
+| --- | --- |
+| [Getting started](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/getting-started/README.md) | Requirements, installing, setting up, updating and removing |
+| [Panel](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/README.md) | The Templates and Animations tabs |
+| [Concepts](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/concepts/README.md) | Templates and linking, linked-card counting, the animation library and where the data is stored |
+| [WebSocket API](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/api/README.md) | Every command, payload, event and error code, for other custom cards |
+| [Magic Card compatibility](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/compatibility/README.md) | How the panel loads Magic Card and the `window.MagicCard` version check |
+| [Troubleshooting](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/troubleshooting/README.md) | Every panel message, its cause and the fix |
 
-## Magic Card compatibility
-
-Magic Card Utils doesn't ship its own copy of Magic Card. The panel loads the Magic Card you installed, so the editor and studios always match the cards on your dashboards:
-
-- **Card and editor:** loaded from your dashboard resource whose URL ends in `/magic-card.js`. The editor is created with the card's own `getConfigElement()`, so it also works when Magic Card loads its editor on demand.
-- **Animation studio:** loaded from `magic-card-animation-studio.js` in the same folder as `magic-card.js`.
-- **Version check:** Magic Card can describe itself with a global object:
-
-  ```js
-  window.MagicCard = {
-    version: "0.0.32",  // the Magic Card release
-    apiVersion: 1,      // raised when the contract with Magic Card Utils changes in a breaking way
-  };
-  ```
-
-  The panel needs `apiVersion` 1 or newer. With an older Magic Card it shows a message asking you to update Magic Card instead of failing. Magic Card versions from before this contract (without `window.MagicCard`) still work.
-
-If Magic Card isn't installed or isn't a dashboard resource, the editor, studio and preview show a message instead.
-
-## Animations tab
-
-The Animations tab opens the Magic Card animation studio, where you build keyframe, particle, path and sequence animations. They are saved in a shared library, and any card can use one with `preset: custom:<id>`.
-
-The studio is part of Magic Card, not of this integration. The panel loads `magic-card-animation-studio.js` from the same folder as your dashboard's Magic Card resource (for HACS installs, `/hacsfiles/magic-card/`). If the studio can't be loaded, the tab shows a message asking you to update Magic Card to a version that includes it.
-
-To open one animation directly, add `?animation=<id>` to the panel URL, for example `/magic-card-utils?animation=doorbell-wiggle`.
-
-## Integrating from a third-party card
-
-Magic Card Utils exposes a Home Assistant WebSocket API, so any custom Lovelace card can store its own templates here and link to them by name. All commands require an **admin** user (the same auth context the HA frontend already uses).
-
-The integration is a name-keyed store: `name` is the unique id and `template` is a free-form object you define. The server adds a few fields on save (see below). If `template.config` is present, any `not_synced` arrays inside it are stripped before storage so card-instance-specific state doesn't leak into the shared template.
-
-### Commands
-
-| Command type | Payload | Result / event |
-|---|---|---|
-| `magic_card_utils/get_templates` | — | Result: `{ templates: { [name]: template } }` |
-| `magic_card_utils/subscribe_templates` | — | Result: empty. The initial state and every later change arrive as events with `{ templates: { [name]: template } }`. |
-| `magic_card_utils/save_template` | `{ name: string, template: object, card_type?: string, old_name?: string }` | Result: `{ success: true }`. Broadcasts to all subscribers. An existing `name` is overwritten. |
-| `magic_card_utils/delete_template` | `{ name: string }` | Result: `{ success: true }`. Broadcasts to all subscribers. |
-
-**Renaming:** pass the current name as `old_name` and the new name as `name`. The template keeps its `created_at`. The command fails with `not_found` if `old_name` doesn't exist and with `name_taken` if `name` is already used. Dashboards that reference the old name are **not** updated automatically.
-
-**Deleting:** deleting a template that is still linked from a dashboard fails with the error code `linked_cards`. Deleting a name that doesn't exist succeeds.
-
-### Template object
-
-You can put anything you want in the template. The integration and side panel use these fields:
-
-| Field | Type | Purpose |
-|---|---|---|
-| `description` | string | Shown in the Name column under the template name. |
-| `config` | object | Recommended container for the actual card configuration. Any `not_synced` arrays inside are stripped on save. |
-| `card_type` | string | Set by the server from the `card_type` payload field, else `config.type`, else the previous value. Shown in the panel's Card Type column. |
-| `linked_cards` | number | Computed by the server on every read (see below). Any value you send is ignored. |
-| `created_at`, `last_updated` | string (ISO 8601 UTC) | Managed by the server. Do not set these yourself. |
-
-### Example: one-shot fetch
-
-```js
-const { templates } = await hass.connection.sendMessagePromise({
-  type: "magic_card_utils/get_templates",
-});
-
-for (const [name, template] of Object.entries(templates)) {
-  console.log(name, template.description, template.config);
-}
-```
-
-### Example: live subscription
-
-Use this when your card needs to react to changes from other instances or from the side panel.
-
-```js
-const unsubscribe = await hass.connection.subscribeMessage(
-  (msg) => {
-    this._templates = msg.templates;
-    this.requestUpdate();
-  },
-  { type: "magic_card_utils/subscribe_templates" }
-);
-
-// Later, when your element disconnects:
-unsubscribe();
-```
-
-The initial state arrives as the first event immediately after subscribing, so no separate initial fetch is needed.
-
-### Example: save, rename and delete
-
-```js
-await hass.connection.sendMessagePromise({
-  type: "magic_card_utils/save_template",
-  name: "kitchen-light-card",
-  template: {
-    description: "Reusable kitchen light card",
-    config: {
-      type: "custom:my-card",
-      entity: "light.kitchen",
-      rows: [/* ... */],
-    },
-  },
-});
-
-await hass.connection.sendMessagePromise({
-  type: "magic_card_utils/save_template",
-  old_name: "kitchen-light-card",
-  name: "kitchen-lights",
-  template: { /* full template content */ },
-});
-
-await hass.connection.sendMessagePromise({
-  type: "magic_card_utils/delete_template",
-  name: "kitchen-lights",
-});
-```
-
-### Linking a card to a template
-
-Linkage is by **name**. A card links to a template by putting `template: <name>` in its own Lovelace config:
-
-```yaml
-type: custom:my-card
-template: kitchen-light-card
-```
-
-On render, the card looks up its template with `get_templates` (or keeps a `subscribe_templates` subscription) and applies it.
-
-The integration scans all dashboards for `template: <name>` values that match a saved template and reports the count as `linked_cards`. Counts are refreshed whenever a dashboard is saved, so the panel stays accurate without the card having to track anything. Because templates are broadcast by the server, every linked card on every dashboard updates when the template changes.
-
-## Animation library API
-
-The animation library has its own commands. Reading is open to any signed-in user, so dashboards of non-admin users can still play custom animations. Saving and deleting need an admin.
-
-| Command type | Payload | Result / event |
-|---|---|---|
-| `magic_card_utils/get_animations` | none | Result: `{ animations: { [id]: animation } }` |
-| `magic_card_utils/subscribe_animations` | none | Result: empty. Every later change arrives as an event: `{ action: "saved", animation }` or `{ action: "deleted", id }`. `{ action: "reset", animations }` is reserved for replacing the whole library; the integration doesn't send it yet. No initial state is sent, so fetch it with `get_animations` after subscribing. |
-| `magic_card_utils/save_animation` | `{ animation: object }` | Result: `{ animation }`. Creates or replaces the animation with that `id`. |
-| `magic_card_utils/delete_animation` | `{ animation_id: string }` | Result: `{}`. Deleting an id that doesn't exist also succeeds. |
-
-`delete_animation` takes `animation_id` and not `id`, because `id` is the WebSocket message id.
-
-The Magic Card frontend defines the full animation document and validates it. The integration only checks the structure:
-
-- `id`: 1 to 64 characters from `a-z`, `0-9`, `_` and `-`, starting with a letter or digit.
-- `name`: a non-empty string of at most 80 characters.
-- `kind`: `keyframes`, `particles`, `path` or `sequence`.
-- `version`: a whole number, 1 or higher.
-- At most 64 KB of JSON per animation, and at most 200 animations in the library.
-
-A document that fails these checks is refused with the error code `invalid_format`. The error also has an `errors` list of `{ path, message }` items, one per field:
-
-```js
-try {
-  await hass.callWS({ type: "magic_card_utils/save_animation", animation });
-} catch (err) {
-  // err.code === "invalid_format", err.errors === [{ path: "name", message: "..." }]
-}
-```
-
-Other errors:
-
-| Error code | When |
-|---|---|
-| `invalid_format` (without `errors`) | Saving a new animation when the library already holds 200. |
-| `not_loaded` | The animation library hasn't finished loading yet. |
-| `save_failed` | The library couldn't be written to storage. |
+The [changelog](https://github.com/therealmcsparrow/magic-card-utils/blob/main/CHANGELOG.md) lists what changed in each release.
 
 ## Support
 
-If you have any issues with this integration, please [open an issue on GitHub](https://github.com/therealmcsparrow/magic-card-utils/issues).
+If you have any issues with this integration, please [open an issue on GitHub](https://github.com/therealmcsparrow/magic-card-utils/issues). The [troubleshooting page](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/troubleshooting/README.md#reporting-a-problem) lists what to include.
 
 ## Contributing
 
@@ -250,7 +77,7 @@ Contributions are welcome! Please open an issue or a pull request on [GitHub](ht
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/therealmcsparrow/magic-card-utils/blob/main/LICENSE) file for details.
 
 
 [hacs-badge]: https://img.shields.io/badge/HACS-Custom-41BDF5.svg
