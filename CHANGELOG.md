@@ -29,7 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- Needs Magic Card 0.0.32-beta or newer for the animation studio (`magic-card-animation-studio.js` is attached to that Magic Card release and installed by HACS).
+- Needs Magic Card 2026.10.01 or newer for the animation studio (`magic-card-animation-studio.js` is attached to that Magic Card release and installed by HACS).
 - The panel uses only the installed Magic Card (your dashboard resource) for the editor, studio, preview and animation studio. The editor is created with the card's `getConfigElement()`, ready for Magic Card loading its editor on demand.
 - The panel checks the Magic Card version through `window.MagicCard.apiVersion` and asks you to update Magic Card when it's too old. Magic Card versions without `window.MagicCard` still work.
 
@@ -77,7 +77,7 @@ First stable release.
 - Edit a template's card configuration directly in the templates panel, using the Magic Card editor.
 - **Open in studio** action in the templates table: opens a template straight into the full-screen Magic Card studio.
 - **Card Type** column in the templates table.
-- Bundled copy of the Magic Card editor (`magic-card.js`, 0.0.17-beta). The panel loads Magic Card on demand when it isn't loaded yet, preferring your dashboard's Magic Card resource when one exists.
+- Bundled copy of the Magic Card editor (`magic-card.js`). The panel loads Magic Card on demand when it isn't loaded yet, preferring your dashboard's Magic Card resource when one exists.
 - HACS now requires Home Assistant 2024.7 or newer.
 - `.gitignore`.
 
