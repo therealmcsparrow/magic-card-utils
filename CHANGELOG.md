@@ -4,6 +4,13 @@ All notable changes to Magic Card Utils are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use calendar versioning (`YYYY.MM.NN`).
 
+## [Unreleased]
+
+### Fixed
+
+- Saving a template in the edit view showed no error when it failed, for example with an empty name or a name that's already taken. The error now shows next to the Save button.
+- After saving a template, the next Save, Duplicate and Delete in the panel did nothing until the panel was reloaded.
+
 ## [2026.10.06] - 2026-10-16
 
 ### Added

@@ -133,6 +133,7 @@ class MagicCardUtilsPanel extends LitElement {
       _actionRow: { type: Object, state: true },
       _duplicateName: { type: String, state: true },
       _actionError: { type: String, state: true },
+      _editError: { type: String, state: true },
       _submitting: { type: Boolean, state: true },
       // animations tab
       _tab: { type: String, state: true }, // 'templates' | 'animations'
@@ -224,6 +225,7 @@ class MagicCardUtilsPanel extends LitElement {
       description: row.description || "",
       card_type: row.card_type || "",
     };
+    this._editError = "";
     this._previewError = "";
     this._previewEl = null;
   }
@@ -426,6 +428,7 @@ class MagicCardUtilsPanel extends LitElement {
     this._viewMode = "yaml";
     this._editConfig = null;
     this._editMeta = { name: "", description: "", card_type: "" };
+    this._editError = "";
     this._previewEl = null;
     this._previewError = "";
   }
@@ -438,7 +441,15 @@ class MagicCardUtilsPanel extends LitElement {
     if (this._submitting) return;
     const meta = this._editMeta;
     const name = (meta.name || "").trim();
-    if (!name) return;
+    if (!name) {
+      this._editError = "Name is required.";
+      return;
+    }
+    const renamed = this._viewRow && name !== this._viewRow.name;
+    if (renamed && this._templates.some((t) => t.name === name)) {
+      this._editError = `A template named '${name}' already exists.`;
+      return;
+    }
     const payload = {
       type: "magic_card_utils/save_template",
       name,
@@ -448,14 +459,16 @@ class MagicCardUtilsPanel extends LitElement {
       },
     };
     if (meta.card_type) payload.card_type = meta.card_type;
-    if (this._viewRow && name !== this._viewRow.name) payload.old_name = this._viewRow.name;
+    if (renamed) payload.old_name = this._viewRow.name;
     this._submitting = true;
+    this._editError = "";
     try {
       await this.hass.callWS(payload);
       this._closeOverlay();
     } catch (err) {
       console.error("[magic_card_utils] save failed", err);
-      this._actionError = (err && (err.message || err.code)) || "Save failed";
+      this._editError = this._wsErrorMessage(err, "The template could not be saved.");
+    } finally {
       this._submitting = false;
     }
   }
@@ -1047,6 +1060,9 @@ class MagicCardUtilsPanel extends LitElement {
                 </div>
                 ${this._viewMode === "edit" ? html`
                   <div class="dialog-footer">
+                    ${this._editError
+                      ? html`<div class="form-error" role="alert">${this._editError}</div>`
+                      : ""}
                     <button class="btn" @click=${this._closeOverlay}>Cancel</button>
                     <button class="btn primary" @click=${this._saveEditedTemplate} ?disabled=${this._submitting}>${this._submitting ? "Saving…" : "Save"}</button>
                   </div>
@@ -1674,9 +1690,13 @@ class MagicCardUtilsPanel extends LitElement {
       .dialog-footer {
         display: flex;
         justify-content: flex-end;
+        align-items: center;
         gap: 8px;
         padding: 12px 16px;
         border-top: 1px solid var(--divider-color);
+      }
+      .dialog-footer .form-error {
+        margin-right: auto;
       }
       .pane-header {
         display: flex;

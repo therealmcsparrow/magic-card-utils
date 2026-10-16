@@ -50,6 +50,8 @@ Editing shows two panes:
 
 Click **Save** to store everything, or **Cancel** to close without saving.
 
+When the template can't be saved, the edit view stays open and a red message next to the buttons says why: "Name is required.", "A template named '*name*' already exists." or the error from Home Assistant.
+
 Changing the name renames the template. It keeps its created date. Cards that link to the old name are **not** updated: they keep `template: <old name>` in their config and stop finding the template until you change them. See [Renaming](../concepts/templates.md#renaming).
 
 The editor comes from the installed Magic Card. When it can't be loaded, the Editor pane shows a message instead; see [Troubleshooting](../troubleshooting/README.md).
