@@ -4,28 +4,6 @@ import {
   css,
 } from "https://unpkg.com/lit@3.3.3/index.js?module";
 
-const _MODULE_PALETTE = [
-  { type: "header", label: "Header", defaults: { text: "" } },
-  { type: "entities", label: "Entities", defaults: { entities: [] } },
-  { type: "sensor", label: "Sensor", defaults: { entity: "" } },
-  { type: "climate", label: "Climate", defaults: { entity: "" } },
-  { type: "light", label: "Light", defaults: { entity: "" } },
-  { type: "switch", label: "Switch", defaults: { entity: "" } },
-  { type: "input_boolean", label: "Input Boolean", defaults: { entity: "" } },
-  { type: "script", label: "Script", defaults: { entity: "" } },
-  { type: "automation", label: "Automation", defaults: { entity: "" } },
-  { type: "group", label: "Group", defaults: { entities: [] } },
-  { type: "humidity", label: "Humidity", defaults: { entity: "" } },
-  { type: "temperature", label: "Temperature", defaults: { entity: "" } },
-  { type: "weather", label: "Weather", defaults: { entity: "" } },
-  { type: "camera", label: "Camera", defaults: { entity: "" } },
-  { type: "picture", label: "Picture", defaults: { entity: "" } },
-  { type: "iframe", label: "iFrame", defaults: { url: "" } },
-  { type: "markdown", label: "Markdown", defaults: { content: "" } },
-  { type: "divider", label: "Divider", defaults: {} },
-  { type: "spacer", label: "Spacer", defaults: {} },
-];
-
 function _padStr(n) {
   return " ".repeat(n);
 }
@@ -150,8 +128,6 @@ class MagicCardUtilsPanel extends LitElement {
       // edit mode state
       _editConfig: { type: Object, state: true },
       _editMeta: { type: Object, state: true }, // { name, description, card_type }
-      _paletteOpen: { type: Boolean, state: true },
-      _selectedSection: { type: Object, state: true }, // { row, col } for module placement
       // action dialog (edit/duplicate/delete)
       _actionMode: { type: String, state: true },
       _actionRow: { type: Object, state: true },
@@ -177,8 +153,6 @@ class MagicCardUtilsPanel extends LitElement {
     // edit mode
     this._editConfig = null;
     this._editMeta = { name: "", description: "", card_type: "" };
-    this._paletteOpen = false;
-    this._selectedSection = null;
     // action dialog
     this._actionMode = "";
     this._actionRow = null;
@@ -250,7 +224,6 @@ class MagicCardUtilsPanel extends LitElement {
       description: row.description || "",
       card_type: row.card_type || "",
     };
-    this._paletteOpen = false;
     this._previewError = "";
     this._previewEl = null;
   }
@@ -282,7 +255,7 @@ class MagicCardUtilsPanel extends LitElement {
     host.innerHTML = "";
     this._previewEl = null;
 
-    // In edit mode, the preview is the magic-card-editor itself
+    // In edit mode, the preview is the Magic Card editor itself
     if (this._viewMode === "edit") return;
 
     const config = this._viewRow?.raw?.config || this._viewRow?.raw || null;
@@ -453,8 +426,6 @@ class MagicCardUtilsPanel extends LitElement {
     this._viewMode = "yaml";
     this._editConfig = null;
     this._editMeta = { name: "", description: "", card_type: "" };
-    this._selectedSection = null;
-    this._paletteOpen = false;
     this._previewEl = null;
     this._previewError = "";
   }
@@ -486,137 +457,6 @@ class MagicCardUtilsPanel extends LitElement {
       console.error("[magic_card_utils] save failed", err);
       this._actionError = (err && (err.message || err.code)) || "Save failed";
       this._submitting = false;
-    }
-  }
-
-  _addModule(moduleDef) {
-    const cfg = this._editConfig;
-    const sel = this._selectedSection;
-    if (sel && sel.col != null && sel.row != null) {
-      const rows = cfg.rows || [];
-      if (sel.row < rows.length) {
-        const cols = rows[sel.row].columns || [];
-        if (sel.col < cols.length) {
-          cols[sel.col].modules = cols[sel.col].modules || [];
-          cols[sel.col].modules.push({ type: moduleDef.type, ...moduleDef.defaults });
-          rows[sel.row].columns = cols;
-          cfg.rows = rows;
-        }
-      }
-    } else {
-      // Append to first available column in first row
-      const rows = cfg.rows || [];
-      if (rows.length === 0) {
-        cfg.rows = [{ columns: [{ modules: [] }] }];
-      }
-      const cols = rows[0].columns || [];
-      if (cols.length === 0) {
-        cols.push({ modules: [] });
-      }
-      cols[0].modules = cols[0].modules || [];
-      cols[0].modules.push({ type: moduleDef.type, ...moduleDef.defaults });
-      rows[0].columns = cols;
-      cfg.rows = rows;
-    }
-    this._editConfig = { ...cfg };
-    this._paletteOpen = false;
-  }
-
-  _removeModule(rowIdx, colIdx, modIdx) {
-    const cfg = this._editConfig;
-    const rows = cfg.rows || [];
-    if (rowIdx < rows.length) {
-      const cols = rows[rowIdx].columns || [];
-      if (colIdx < cols.length) {
-        cols[colIdx].modules = (cols[colIdx].modules || []).filter((_, i) => i !== modIdx);
-        rows[rowIdx].columns = cols;
-        cfg.rows = rows;
-        this._editConfig = { ...cfg };
-      }
-    }
-  }
-
-  _moveModule(rowIdx, colIdx, modIdx, dir) {
-    const cfg = this._editConfig;
-    const rows = cfg.rows || [];
-    if (rowIdx < rows.length) {
-      const cols = rows[rowIdx].columns || [];
-      if (colIdx < cols.length) {
-        const mods = cols[colIdx].modules || [];
-        const newIdx = modIdx + dir;
-        if (newIdx >= 0 && newIdx < mods.length) {
-          [mods[modIdx], mods[newIdx]] = [mods[newIdx], mods[modIdx]];
-          cols[colIdx].modules = mods;
-          rows[rowIdx].columns = cols;
-          cfg.rows = rows;
-          this._editConfig = { ...cfg };
-        }
-      }
-    }
-  }
-
-  _addRow() {
-    const cfg = this._editConfig;
-    cfg.rows = cfg.rows || [];
-    cfg.rows.push({ columns: [{ modules: [] }] });
-    this._editConfig = { ...cfg };
-  }
-
-  _removeRow(rowIdx) {
-    const cfg = this._editConfig;
-    if ((cfg.rows || []).length > 1) {
-      cfg.rows = cfg.rows.filter((_, i) => i !== rowIdx);
-      this._editConfig = { ...cfg };
-    }
-  }
-
-  _moveRow(rowIdx, dir) {
-    const cfg = this._editConfig;
-    const rows = cfg.rows || [];
-    const newIdx = rowIdx + dir;
-    if (newIdx >= 0 && newIdx < rows.length) {
-      [rows[rowIdx], rows[newIdx]] = [rows[newIdx], rows[rowIdx]];
-      cfg.rows = [...rows];
-      this._editConfig = { ...cfg };
-    }
-  }
-
-  _addColumn(rowIdx) {
-    const cfg = this._editConfig;
-    const rows = cfg.rows || [];
-    if (rowIdx < rows.length) {
-      rows[rowIdx].columns = rows[rowIdx].columns || [];
-      rows[rowIdx].columns.push({ modules: [] });
-      cfg.rows = [...rows];
-      this._editConfig = { ...cfg };
-    }
-  }
-
-  _removeColumn(rowIdx, colIdx) {
-    const cfg = this._editConfig;
-    const rows = cfg.rows || [];
-    if (rowIdx < rows.length) {
-      const cols = rows[rowIdx].columns || [];
-      if (cols.length > 1) {
-        rows[rowIdx].columns = cols.filter((_, i) => i !== colIdx);
-        cfg.rows = [...rows];
-        this._editConfig = { ...cfg };
-      }
-    }
-  }
-
-  _moveColumn(rowIdx, colIdx, dir) {
-    const cfg = this._editConfig;
-    const rows = cfg.rows || [];
-    if (rowIdx < rows.length) {
-      const cols = rows[rowIdx].columns || [];
-      const newIdx = colIdx + dir;
-      if (newIdx >= 0 && newIdx < cols.length) {
-        [cols[colIdx], cols[newIdx]] = [cols[newIdx], cols[colIdx]];
-        rows[rowIdx].columns = [...cols];
-        cfg.rows = [...rows];
-        this._editConfig = { ...cfg };
-      }
     }
   }
 
@@ -1346,119 +1186,6 @@ class MagicCardUtilsPanel extends LitElement {
     });
   }
 
-  _renderEditPane() {
-    const meta = this._editMeta;
-    const cfg = this._editConfig;
-    return html`
-      <div class="pane-header">Editor</div>
-      <div class="editor-body">
-        <div class="editor-meta">
-          <label class="field">
-            <span class="field-label">Template Name</span>
-            <input class="field-input" type="text" .value=${meta.name} @input=${(e) => (meta.name = e.target.value)} />
-          </label>
-          <label class="field">
-            <span class="field-label">Description</span>
-            <input class="field-input" type="text" .value=${meta.description} @input=${(e) => (meta.description = e.target.value)} />
-          </label>
-          <label class="field">
-            <span class="field-label">Card Type</span>
-            <input class="field-input mono" type="text" placeholder="e.g. custom:magic-card" .value=${meta.card_type} @input=${(e) => (meta.card_type = e.target.value)} />
-          </label>
-        </div>
-        <div class="editor-structure">
-          <div class="structure-header">
-            <span>Rows</span>
-            <button class="btn" @click=${this._addRow}>+ Row</button>
-          </div>
-          ${(cfg.rows || []).map((row, ri) => html`
-            <div class="structure-row">
-              <div class="structure-row-header">
-                <span class="row-label">Row ${ri + 1}</span>
-                <div class="row-controls">
-                  <button class="ctrl-btn" title="Move up" ?disabled=${ri === 0} @click=${() => this._moveRow(ri, -1)}>↑</button>
-                  <button class="ctrl-btn" title="Move down" ?disabled=${ri === cfg.rows.length - 1} @click=${() => this._moveRow(ri, 1)}>↓</button>
-                  <button class="ctrl-btn danger" title="Remove row" ?disabled=${cfg.rows.length <= 1} @click=${() => this._removeRow(ri)}>✕</button>
-                </div>
-              </div>
-              <div class="structure-cols">
-                ${(row.columns || []).map((col, ci) => html`
-                  <div class="structure-col ${this._selectedSection && this._selectedSection.row === ri && this._selectedSection.col === ci ? 'selected' : ''}"
-                       @click=${() => (this._selectedSection = { row: ri, col: ci })}>
-                    <div class="col-header">
-                      <span>Col ${ci + 1}</span>
-                      <div class="col-controls">
-                        <button class="ctrl-btn" title="Move left" ?disabled=${ci === 0} @click=${() => this._moveColumn(ri, ci, -1)}>←</button>
-                        <button class="ctrl-btn" title="Move right" ?disabled=${ci === (row.columns || []).length - 1} @click=${() => this._moveColumn(ri, ci, 1)}>→</button>
-                        <button class="ctrl-btn danger" title="Remove column" ?disabled=${(row.columns || []).length <= 1} @click=${() => this._removeColumn(ri, ci)}>✕</button>
-                      </div>
-                    </div>
-                    <div class="col-modules">
-                      ${(col.modules || []).map((mod, mi) => html`
-                        <div class="module-item" draggable="true"
-                             @dragstart=${(e) => this._onModuleDragStart(e, ri, ci, mi)}
-                             @dragover=${(e) => e.preventDefault()}
-                             @drop=${(e) => this._onModuleDrop(e, ri, ci, mi)}>
-                          <span class="module-type">${mod.type || "(unknown)"}</span>
-                          <div class="module-controls">
-                            <button class="ctrl-btn" title="Move up" ?disabled=${mi === 0} @click=${() => this._moveModule(ri, ci, mi, -1)}>↑</button>
-                            <button class="ctrl-btn" title="Move down" ?disabled=${mi === (col.modules || []).length - 1} @click=${() => this._moveModule(ri, ci, mi, 1)}>↓</button>
-                            <button class="ctrl-btn danger" title="Remove" @click=${() => this._removeModule(ri, ci, mi)}>✕</button>
-                          </div>
-                        </div>
-                      `)}
-                      ${(col.modules || []).length === 0 ? html`<div class="col-empty">Click to select, then add modules</div>` : ""}
-                    </div>
-                  </div>
-                `)}
-                <button class="btn add-col-btn" @click=${() => this._addColumn(ri)}>+ Column</button>
-              </div>
-            </div>
-          `)}
-          ${this._paletteOpen ? this._renderPalette() : ""}
-        </div>
-      </div>
-    `;
-  }
-
-  _renderPalette() {
-    return html`
-      <div class="palette">
-        <div class="palette-header">Module Palette</div>
-        <div class="palette-items">
-          ${_MODULE_PALETTE.map((mod) => html`
-            <button class="palette-item" @click=${() => this._addModule(mod)} title=${mod.type}>
-              <span class="palette-label">${mod.label}</span>
-              <span class="palette-type">${mod.type}</span>
-            </button>
-          `)}
-        </div>
-      </div>
-    `;
-  }
-
-  _onModuleDragStart(e, rowIdx, colIdx, modIdx) {
-    e.dataTransfer.setData("text/plain", JSON.stringify({ rowIdx, colIdx, modIdx }));
-  }
-
-  _onModuleDrop(e, targetRow, targetCol, targetModIdx) {
-    e.preventDefault();
-    const raw = e.dataTransfer.getData("text/plain");
-    if (!raw) return;
-    try {
-      const { rowIdx, colIdx, modIdx } = JSON.parse(raw);
-      if (rowIdx === targetRow && colIdx === targetCol && modIdx === targetModIdx) return;
-      const cfg = this._editConfig;
-      const rows = cfg.rows || [];
-      const srcMod = (rows[rowIdx].columns[colIdx].modules || [])[modIdx];
-      if (!srcMod) return;
-      rows[rowIdx].columns[colIdx].modules.splice(modIdx, 1);
-      rows[targetRow].columns[targetCol].modules.splice(targetModIdx, 0, srcMod);
-      cfg.rows = [...rows];
-      this._editConfig = { ...cfg };
-    } catch (_) {}
-  }
-
   static get styles() {
     return css`
       :host {
@@ -1962,212 +1689,6 @@ class MagicCardUtilsPanel extends LitElement {
         color: var(--secondary-text-color);
         border-bottom: 1px solid var(--divider-color);
         background: var(--table-header-background-color, transparent);
-      }
-      .pane-header-btn {
-        font: inherit;
-        font-size: 11px;
-        padding: 2px 8px;
-        background: none;
-        color: var(--primary-color);
-        border: 1px solid var(--primary-color);
-        border-radius: 4px;
-        cursor: pointer;
-        text-transform: none;
-        letter-spacing: 0;
-      }
-      .pane-header-btn:hover {
-        background: var(--primary-color);
-        color: var(--text-primary-color, #fff);
-      }
-      .editor-body {
-        flex: 1;
-        overflow: auto;
-        padding: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-      .editor-meta {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid var(--divider-color);
-      }
-      .editor-structure {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      .structure-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 12px;
-        color: var(--secondary-text-color);
-        font-weight: 500;
-      }
-      .structure-row {
-        border: 1px solid var(--divider-color);
-        border-radius: 6px;
-        overflow: hidden;
-      }
-      .structure-row-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 6px 10px;
-        background: var(--table-header-background-color, var(--divider-color));
-      }
-      .row-label, .col-header > span {
-        font-size: 12px;
-        font-weight: 500;
-      }
-      .row-controls, .col-controls {
-        display: flex;
-        gap: 2px;
-        align-items: center;
-      }
-      .ctrl-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 24px;
-        height: 24px;
-        padding: 0 4px;
-        font-size: 12px;
-        background: none;
-        color: var(--secondary-text-color);
-        border: 0;
-        border-radius: 3px;
-        cursor: pointer;
-      }
-      .ctrl-btn:hover:not([disabled]) {
-        background: var(--divider-color);
-        color: var(--primary-text-color);
-      }
-      .ctrl-btn[disabled] {
-        opacity: 0.3;
-        cursor: not-allowed;
-      }
-      .ctrl-btn.danger:hover:not([disabled]) {
-        color: var(--error-color, #db4437);
-      }
-      .structure-cols {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        padding: 8px;
-        align-items: flex-start;
-      }
-      .structure-col {
-        flex: 1;
-        min-width: 120px;
-        border: 1px solid var(--divider-color);
-        border-radius: 4px;
-        cursor: pointer;
-        transition: border-color 120ms ease;
-      }
-      .structure-col:hover {
-        border-color: var(--primary-color);
-      }
-      .structure-col.selected {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 1px var(--primary-color);
-      }
-      .col-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 4px 8px;
-        font-size: 11px;
-        color: var(--secondary-text-color);
-        background: var(--table-header-background-color, transparent);
-        border-bottom: 1px solid var(--divider-color);
-      }
-      .col-modules {
-        padding: 6px 8px;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        min-height: 48px;
-      }
-      .module-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 4px 6px;
-        background: var(--primary-background-color);
-        border-radius: 4px;
-        border: 1px solid var(--divider-color);
-      }
-      .module-type {
-        font-size: 11px;
-        font-family: var(--code-font-family, monospace);
-        color: var(--primary-text-color);
-      }
-      .module-controls {
-        display: flex;
-        gap: 2px;
-      }
-      .col-empty {
-        font-size: 11px;
-        color: var(--secondary-text-color);
-        text-align: center;
-        padding: 8px 0;
-        font-style: italic;
-      }
-      .add-col-btn {
-        align-self: flex-start;
-        font-size: 11px;
-        padding: 4px 8px;
-      }
-      .palette {
-        border: 1px solid var(--divider-color);
-        border-radius: 6px;
-        overflow: hidden;
-      }
-      .palette-header {
-        padding: 6px 10px;
-        font-size: 11px;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--secondary-text-color);
-        background: var(--table-header-background-color, transparent);
-        border-bottom: 1px solid var(--divider-color);
-      }
-      .palette-items {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px;
-        padding: 8px;
-      }
-      .palette-item {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 2px;
-        padding: 6px 8px;
-        background: var(--primary-background-color);
-        border: 1px solid var(--divider-color);
-        border-radius: 4px;
-        cursor: pointer;
-        min-width: 80px;
-      }
-      .palette-item:hover {
-        border-color: var(--primary-color);
-        background: var(--divider-color);
-      }
-      .palette-label {
-        font-size: 12px;
-        font-weight: 500;
-        color: var(--primary-text-color);
-      }
-      .palette-type {
-        font-size: 10px;
-        font-family: var(--code-font-family, monospace);
-        color: var(--secondary-text-color);
       }
       .yaml-body {
         margin: 0;
