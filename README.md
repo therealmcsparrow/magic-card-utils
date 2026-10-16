@@ -71,6 +71,8 @@ The [changelog](https://github.com/therealmcsparrow/magic-card-utils/blob/main/C
 
 If you have any issues with this integration, please [open an issue on GitHub](https://github.com/therealmcsparrow/magic-card-utils/issues). The [troubleshooting page](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/troubleshooting/README.md#reporting-a-problem) lists what to include.
 
+If you'd like to support the project, you can buy me a coffee on [Ko-fi](https://ko-fi.com/mcsparrow) or send a donation via PayPal to `info@mcsparrow.eu`.
+
 ## Contributing
 
 Contributions are welcome! Please open an issue or a pull request on [GitHub](https://github.com/therealmcsparrow/magic-card-utils).
