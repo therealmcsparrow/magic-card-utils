@@ -16,6 +16,7 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 - **Linked card tracking:** the integration counts which cards use each template and won't delete a template that's still in use.
 - **Templates panel:** browse, preview, edit, duplicate and delete templates, or open one straight into the full-screen Magic Card studio.
 - **Animation library:** keep the custom animations from the Magic Card animation studio in one place, for every card and every user.
+- **Theme editor:** create and edit Home Assistant themes in a Themes tab, with a live preview and a Try on dashboard button. Saves write the theme file to `/config/themes`.
 - **WebSocket API:** other custom cards can store and link their own templates and use the animation library.
 
 ## Requirements
@@ -23,6 +24,7 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 - Home Assistant **2024.7** or newer.
 - [Magic Card](https://github.com/therealmcsparrow/magic-card), installed with HACS (or added as a dashboard resource of type JavaScript module). The panel uses the installed Magic Card; Magic Card Utils doesn't ship its own copy.
 - Magic Card **2026.10.01** or newer for the Animations tab.
+- Magic Card **2026.10.06** or newer for the Themes tab.
 
 ## Installation
 
@@ -45,10 +47,11 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 2. Click **+ Add Integration** and search for **Magic Card Utils**.
 3. Choose whether to show the side panel, then click **Submit**.
 
-The **Magic Card Templates** panel then appears in the sidebar of admin users. It has two tabs:
+The **Magic Card Templates** panel then appears in the sidebar of admin users. It has three tabs:
 
 - **Templates:** every template with its card type, linked cards and dates, and buttons to open it in the studio, edit it (YAML with a live preview, then the Magic Card editor), duplicate it or delete it.
 - **Animations:** the Magic Card animation studio, with the shared animation library.
+- **Themes:** the Magic Card theme editor. It lists the theme files in `/config/themes`, and creates, edits, saves and deletes them. Saving needs the include lines in `configuration.yaml`, which the tab shows when they are missing. The [Magic Card theme documentation](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/themes/README.md) covers the editor itself.
 
 After an update, restart Home Assistant so your browser loads the new panel.
 
@@ -59,7 +62,7 @@ The [documentation](https://github.com/therealmcsparrow/magic-card-utils/tree/ma
 | Topic | Covers |
 | --- | --- |
 | [Getting started](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/getting-started/README.md) | Requirements, installing, setting up, updating and removing |
-| [Panel](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/README.md) | The Templates and Animations tabs |
+| [Panel](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/README.md) | The Templates, Animations and Themes tabs |
 | [Concepts](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/concepts/README.md) | Templates and linking, linked-card counting, the animation library and where the data is stored |
 | [WebSocket API](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/api/README.md) | Every command, payload, event and error code, for other custom cards |
 | [Magic Card compatibility](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/compatibility/README.md) | How the panel loads Magic Card and the `window.MagicCard` version check |
