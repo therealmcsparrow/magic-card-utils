@@ -4,7 +4,7 @@ All notable changes to Magic Card Utils are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use calendar versioning (`YYYY.MM.NN`).
 
-## [Unreleased]
+## [2026.10.09] - 2026-10-17
 
 ### Added
 
@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Lit 3.3.3 is served from the integration's `www/` folder instead of being loaded from `unpkg.com`. The panel no longer depends on a third-party CDN.
 - `manifest.json` declares `issue_tracker`, which links to the GitHub issues page.
+- README: the PayPal donation link points to https://www.paypal.biz/therealmcsparrow.
 - LICENSE copyright holder is now "McSparrow", year 2026. The MIT text is unchanged.
 - README: the License section states that brand assets and the McSparrow and Magic Card names are not covered by MIT. A Third-party section lists Lit and Montserrat. The requirements note the Home Assistant 2026.3 icon and logo behaviour.
 
@@ -137,7 +138,8 @@ First stable release.
 - Templates side panel with YAML view and preview, plus rename, duplicate and delete actions.
 - Config flow with an option to show or hide the side panel.
 
-[Unreleased]: https://github.com/therealmcsparrow/magic-card-utils/compare/2026.10.08...HEAD
+[Unreleased]: https://github.com/therealmcsparrow/magic-card-utils/compare/2026.10.09...HEAD
+[2026.10.09]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.09
 [2026.10.08]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.08
 [2026.10.07]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.07
 [2026.10.06]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.06
