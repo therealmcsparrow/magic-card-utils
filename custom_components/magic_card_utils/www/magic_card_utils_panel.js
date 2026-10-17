@@ -678,8 +678,9 @@ class MagicCardUtilsPanel extends LitElement {
   _syncTabQuery(tab) {
     try {
       const url = new URL(window.location.href);
-      if (tab !== "themes") url.searchParams.delete(THEME_QUERY_KEY);
-      else if (this._selectedTheme) url.searchParams.set(THEME_QUERY_KEY, this._selectedTheme);
+      // No open theme (list view, Back, delete) means no `?theme=`, or the rebuilt panel re-opens it.
+      if (tab !== "themes" || !this._selectedTheme) url.searchParams.delete(THEME_QUERY_KEY);
+      else url.searchParams.set(THEME_QUERY_KEY, this._selectedTheme);
       if (tab !== "animations") url.searchParams.delete("animation");
       else if (this._selectedAnimation) url.searchParams.set("animation", this._selectedAnimation);
       if (url.href !== window.location.href) window.history.replaceState(window.history.state, "", url);
