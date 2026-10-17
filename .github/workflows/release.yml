@@ -1,0 +1,93 @@
+name: Release assets
+
+# Runs when a release is published manually (`gh release create <CalVer>`).
+# It only attaches assets. It never creates releases or tags.
+on:
+  release:
+    types: [published]
+
+permissions: {}
+
+jobs:
+  assets:
+    name: Zip and SBOM
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # upload assets to the existing release
+    env:
+      TAG: ${{ github.event.release.tag_name }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      LIT_VERSION: "3.3.3"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+
+      - name: Check tag matches manifest version
+        run: |
+          set -euo pipefail
+          version=$(python3 -c "import json;print(json.load(open('custom_components/magic_card_utils/manifest.json'))['version'])")
+          if [ "$version" != "$TAG" ]; then
+            echo "::error::Release tag '$TAG' does not match manifest version '$version'"
+            exit 1
+          fi
+
+      - name: Build integration zip
+        run: |
+          set -euo pipefail
+          # HACS (zip_release) expects the integration files at the zip root.
+          (cd custom_components/magic_card_utils && zip -r -X "$GITHUB_WORKSPACE/magic_card_utils.zip" . -x '*__pycache__*' '*.pyc')
+          unzip -l magic_card_utils.zip
+
+      - name: Generate CycloneDX SBOM
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, glob, hashlib, uuid, datetime
+          tag = os.environ["TAG"]
+          lit = os.environ["LIT_VERSION"]
+          www = "custom_components/magic_card_utils/www"
+          lit_files = sorted(glob.glob(f"{www}/*lit*.js"))
+          if not lit_files:
+              print(f"::warning::no vendored Lit file matching {www}/*lit*.js found; SBOM lists Lit {lit} anyway")
+          lit_comp = {
+              "type": "library",
+              "bom-ref": f"pkg:npm/lit@{lit}",
+              "name": "lit",
+              "version": lit,
+              "purl": f"pkg:npm/lit@{lit}",
+              "licenses": [{"license": {"id": "BSD-3-Clause"}}],
+              "externalReferences": [{"type": "website", "url": "https://lit.dev"}],
+              "properties": [{"name": "vendored-in", "value": ", ".join(lit_files) or "unknown"}],
+          }
+          if lit_files:
+              lit_comp["hashes"] = [{"alg": "SHA-256", "content": hashlib.sha256(open(lit_files[0], "rb").read()).hexdigest()}]
+          app = {
+              "type": "application",
+              "bom-ref": f"pkg:github/{os.environ['GH_REPO']}@{tag}",
+              "name": "magic_card_utils",
+              "version": tag,
+              "purl": f"pkg:github/{os.environ['GH_REPO']}@{tag}",
+              "licenses": [{"license": {"id": "MIT"}}],
+          }
+          bom = {
+              "bomFormat": "CycloneDX",
+              "specVersion": "1.5",
+              "serialNumber": f"urn:uuid:{uuid.uuid4()}",
+              "version": 1,
+              "metadata": {
+                  "timestamp": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                  "component": app,
+                  "tools": {"components": [{"type": "application", "name": "release.yml inline generator"}]},
+              },
+              "components": [lit_comp],
+              "dependencies": [{"ref": app["bom-ref"], "dependsOn": [lit_comp["bom-ref"]]}, {"ref": lit_comp["bom-ref"], "dependsOn": []}],
+          }
+          json.dump(bom, open("magic_card_utils.sbom.cdx.json", "w"), indent=2)
+          PY
+          python3 -m json.tool magic_card_utils.sbom.cdx.json > /dev/null
+
+      - name: Upload assets to the release
+        run: gh release upload "$TAG" magic_card_utils.zip magic_card_utils.sbom.cdx.json --clobber
