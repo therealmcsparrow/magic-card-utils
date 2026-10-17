@@ -4,6 +4,16 @@ All notable changes to Magic Card Utils are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use calendar versioning (`YYYY.MM.NN`).
 
+## [2026.10.08] - 2026-10-17
+
+### Added
+
+- **Themes** tab in the Magic Card Templates panel. It loads the Magic Card theme editor (`magic-card-theme-editor.js`, next to `magic-card.js`) when you open it, and lists the theme files in `/config/themes`. It needs Magic Card 2026.10.06 or newer; the tab says so when the editor is missing.
+- Four admin-only WebSocket commands for the theme editor: `magic_card_utils/themes_list`, `themes_get`, `themes_save` and `themes_delete`. A save writes only `/config/themes/<name>.yaml`, then reloads Home Assistant's themes. Names that could point outside that folder are refused. Files the editor cannot safely rewrite are listed read only, with a reason.
+- A save is refused with `themes_not_included` until `configuration.yaml` loads themes from `/config/themes`, or a theme from that folder is already loaded (for example from a package).
+- Deep link `?theme=<name>` opens that theme in the Themes tab. Leaving the tab removes it from the URL.
+- Documentation: [Themes](documentation/api/themes.md) for the commands and [Panel](documentation/panel/themes.md) for the tab.
+
 ## [2026.10.07] - 2026-10-16
 
 ### Fixed
@@ -105,6 +115,7 @@ First stable release.
 - Templates side panel with YAML view and preview, plus rename, duplicate and delete actions.
 - Config flow with an option to show or hide the side panel.
 
+[2026.10.08]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.08
 [2026.10.07]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.07
 [2026.10.06]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.06
 [2026.10.05]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.05
