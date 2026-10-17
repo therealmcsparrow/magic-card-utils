@@ -22,6 +22,9 @@ from .themes_contract import INCLUDE_HINT, THEMES_DIR, IncludeState, IncludeStat
 
 MAX_INCLUDE_DEPTH = 5
 MAX_INCLUDE_BYTES = 1024 * 1024
+# Total budget for one scan (configuration.yaml plus everything it includes), so fan-out stays bounded.
+MAX_INCLUDE_FILES = 100
+MAX_INCLUDE_TOTAL_BYTES = 8 * 1024 * 1024
 
 _INCLUDE_DIR_TAGS = (
     "!include_dir_list",
@@ -46,9 +49,27 @@ class _Included:
         self.data = data
 
 
+class _Budget:
+    """Files and bytes a single scan may still read."""
+
+    def __init__(self) -> None:
+        self.files = MAX_INCLUDE_FILES
+        self.bytes = MAX_INCLUDE_TOTAL_BYTES
+
+    def take(self, size: int) -> bool:
+        if self.files <= 0 or size > self.bytes:
+            return False
+        self.files -= 1
+        self.bytes -= size
+        return True
+
+
 class _Loader(yaml.SafeLoader):
-    def __init__(self, stream: str, base_dir: Path, root: Path, depth: int) -> None:
+    def __init__(
+        self, stream: str, base_dir: Path, root: Path, depth: int, budget: _Budget
+    ) -> None:
         super().__init__(stream)
+        self.mc_budget = budget
         self.mc_base_dir = base_dir
         self.mc_root = root
         self.mc_depth = depth
@@ -78,7 +99,7 @@ def _construct_include(loader: _Loader, node: yaml.Node) -> Any:
     path = _resolve(loader, node)
     if path is None:
         return None
-    return _Included(_load_file(path, loader.mc_root, loader.mc_depth + 1))
+    return _Included(_load_file(path, loader.mc_root, loader.mc_depth + 1, loader.mc_budget))
 
 
 def _construct_dir(tag: str):
@@ -101,14 +122,17 @@ for _tag in ("!secret", "!env_var", "!input"):
 _Loader.add_constructor(None, _construct_none)
 
 
-def _load_file(path: Path, root: Path, depth: int) -> Any:
+def _load_file(path: Path, root: Path, depth: int, budget: _Budget) -> Any:
     """Parse one YAML file; None when it cannot be read, is too large or is invalid."""
     loader: _Loader | None = None
     try:
-        if not path.is_file() or path.stat().st_size > MAX_INCLUDE_BYTES:
+        if not path.is_file():
+            return None
+        size = path.stat().st_size
+        if size > MAX_INCLUDE_BYTES or not budget.take(size):
             return None
         text = path.read_text(encoding="utf-8")
-        loader = _Loader(text, path.parent, root, depth)
+        loader = _Loader(text, path.parent, root, depth, budget)
         return loader.get_single_data()
     except Exception:  # noqa: BLE001 - never raise
         return None
@@ -128,10 +152,12 @@ def scan_include_state(config_dir: str | Path) -> IncludeState:
     try:
         root = Path(config_dir).resolve()
         config_file = root / "configuration.yaml"
+        budget = _Budget()
         if not config_file.is_file() or config_file.stat().st_size > MAX_INCLUDE_BYTES:
             return "unknown"
+        budget.take(config_file.stat().st_size)
         text = config_file.read_text(encoding="utf-8")
-        loader = _Loader(text, root, root, 0)
+        loader = _Loader(text, root, root, 0, budget)
         try:
             data = _unwrap(loader.get_single_data())
         finally:
