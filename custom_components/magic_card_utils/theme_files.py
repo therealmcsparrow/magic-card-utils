@@ -9,6 +9,7 @@ removed.
 from __future__ import annotations
 
 import datetime
+import logging
 import math
 import os
 import re
@@ -39,6 +40,8 @@ from .themes_contract import (
     THEMES_DIR,
     WRITTEN_HEADER,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 MAX_ERRORS = 50
 MTIME_TOLERANCE = 0.001
@@ -170,6 +173,28 @@ def validate_save_request(name: Any, theme: Any) -> None:
 # ---------------------------------------------------------------- reading
 
 
+class _NoAliasLoader(yaml.SafeLoader):
+    """SafeLoader that refuses aliases, so a file can never expand (self-reference, billion laughs)."""
+
+    def compose_node(self, parent, index):  # type: ignore[override]
+        if self.check_event(yaml.events.AliasEvent):
+            event = self.peek_event()
+            raise yaml.constructor.ConstructorError(
+                None, None, "aliases are not supported", event.start_mark
+            )
+        return super().compose_node(parent, index)
+
+
+def _is_plain(value: Any, depth: int = 0) -> bool:
+    """True for scalars, and for a mapping of scalars (the theme shape). Anything else is refused."""
+    if isinstance(value, (str, int, float, bool, datetime.date, datetime.datetime)) or value is None:
+        return True
+    if depth < 3 and isinstance(value, dict):
+        return all(isinstance(k, (str, int, float, bool)) and _is_plain(v, depth + 1) for k, v in value.items())
+    return False
+
+
+
 def _jsonable(value: Any) -> Any:
     if isinstance(value, dict):
         return {(k if isinstance(k, str) else str(k)): _jsonable(v) for k, v in value.items()}
@@ -221,25 +246,31 @@ def _inspect(config_dir: Path, path: Path, base: Path) -> dict[str, Any]:
     try:
         if path.stat().st_size > MAX_FILE_BYTES:
             return result("too_large")
-        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        data = yaml.load(path.read_text(encoding="utf-8"), Loader=_NoAliasLoader)  # noqa: S506 - SafeLoader subclass
     except yaml.constructor.ConstructorError as err:
         if "could not determine a constructor for the tag" in (err.problem or ""):
             return result("yaml_tags")
         return result("parse_error")
-    except (OSError, UnicodeDecodeError, yaml.YAMLError, ValueError, RecursionError):
+    except (OSError, UnicodeDecodeError, yaml.YAMLError, ValueError, RecursionError, MemoryError):
         return result("parse_error")
 
     if not isinstance(data, dict) or not data:
         return result("parse_error")
-    if len(data) == 1:
-        (key, value), = data.items()
-        if not isinstance(value, dict):
-            return result("parse_error")
-        theme = _jsonable(value)
-    else:
-        value = data.get(stem)
-        theme = _jsonable(value) if isinstance(value, dict) else {}
-        key = None
+    try:
+        if len(data) == 1:
+            (key, value), = data.items()
+            if not isinstance(value, dict) or not _is_plain(value):
+                return result("parse_error")
+            theme = _jsonable(value)
+        else:
+            value = data.get(stem)
+            if isinstance(value, dict) and not _is_plain(value):
+                return result("parse_error")
+            theme = _jsonable(value) if isinstance(value, dict) else {}
+            key = None
+    except (RecursionError, MemoryError):
+        theme = {}
+        return result("parse_error")
     entry["has_modes"] = MODES_KEY in theme
     entry["var_count"] = _count_vars(theme)
 
@@ -282,7 +313,8 @@ def read_theme(config_dir: str | Path, name: str) -> dict[str, Any]:
     try:
         records, _ = _walk(config_dir)
     except OSError as err:
-        raise ThemeFileError(ERR_READ_FAILED, f"Could not read the themes folder: {err}") from err
+        _LOGGER.warning("Could not read the themes folder: %r", err)
+        raise ThemeFileError(ERR_READ_FAILED, "Could not read the themes folder.") from err
     matches = [r for r in records if r["entry"]["name"] == name]
     if not matches:
         raise ThemeFileError(ERR_NOT_FOUND, "Theme not found.")
@@ -349,7 +381,8 @@ def write_theme(
         write_utf8_file_atomic(str(path), text.encode("utf-8"), mode="wb")
         mtime = path.stat().st_mtime
     except (OSError, WriteError) as err:
-        raise ThemeFileError(ERR_SAVE_FAILED, f"Could not write the theme file: {err}") from err
+        _LOGGER.warning("Could not write theme file %s: %r", name, err)
+        raise ThemeFileError(ERR_SAVE_FAILED, "Could not write the theme file.") from err
     return {"name": name, "file": _rel(config_dir, path), "mtime": mtime}
 
 
@@ -364,4 +397,5 @@ def delete_theme(config_dir: str | Path, name: str) -> None:
     try:
         path.unlink()
     except OSError as err:
-        raise ThemeFileError(ERR_SAVE_FAILED, f"Could not delete the theme file: {err}") from err
+        _LOGGER.warning("Could not delete theme file %s: %r", name, err)
+        raise ThemeFileError(ERR_SAVE_FAILED, "Could not delete the theme file.") from err
