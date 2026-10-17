@@ -94,6 +94,78 @@ const MIN_MAGIC_CARD_API = 1;
 const STUDIO_FILE = "magic-card-animation-studio.js";
 const STUDIO_TAG = "magic-card-animation-studio";
 const ANIMATION_ID_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
+// Theme editor (contract theme-editor 1.0.0 in Magic Card, theme-files 1.0.0 in themes_contract.py).
+const THEME_EDITOR_FILE = "magic-card-theme-editor.js";
+const THEME_EDITOR_TAG = "magic-card-theme-editor";
+const THEME_NAME_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
+const THEME_QUERY_KEY = "theme";
+const CMD_THEMES_LIST = "magic_card_utils/themes_list";
+const CMD_THEMES_GET = "magic_card_utils/themes_get";
+const CMD_THEMES_SAVE = "magic_card_utils/themes_save";
+const CMD_THEMES_DELETE = "magic_card_utils/themes_delete";
+const TABS = [
+  ["templates", "Templates"],
+  ["animations", "Animations"],
+  ["themes", "Themes"],
+];
+// Kept for the page's lifetime: the editor holds the draft and the dashboard trial, and the trial
+// bar's "Back to theme editor" re-opens the panel, which builds a new panel element.
+let _themeElCache = null;
+let _lastTab = null;
+
+/** The deep-linked theme (`?theme=<name>`), if the name is well formed. */
+function _themeFromUrl() {
+  try {
+    const name = new URLSearchParams(window.location.search).get(THEME_QUERY_KEY);
+    return name && THEME_NAME_RE.test(name) ? name : null;
+  } catch (_err) {
+    return null;
+  }
+}
+
+/** Turn a websocket error ({code, message}) into an Error with `code` and optional `errors`. */
+function _toThemeBackendError(err) {
+  const src = err && typeof err === "object" ? err : {};
+  const out = new Error(
+    typeof src.message === "string" && src.message
+      ? src.message
+      : typeof err === "string"
+      ? err
+      : "Request failed"
+  );
+  out.code = typeof src.code === "string" && src.code ? src.code : "unknown";
+  const list = [src.errors, src.error && src.error.errors, src.data && src.data.errors].find(Array.isArray);
+  if (list) {
+    out.errors = list
+      .filter((f) => f && typeof f === "object")
+      .map((f) => ({ path: String(f.path ?? ""), message: String(f.message ?? "") }));
+  }
+  return out;
+}
+
+/** ThemeBackend (theme-editor contract) on top of the theme-files websocket commands. */
+function _createThemeBackend(getHass) {
+  const call = async (msg) => {
+    try {
+      return await getHass().callWS(msg);
+    } catch (err) {
+      throw _toThemeBackendError(err);
+    }
+  };
+  return {
+    list: () => call({ type: CMD_THEMES_LIST }),
+    get: (name) => call({ type: CMD_THEMES_GET, name }),
+    save: (req) => {
+      const msg = { type: CMD_THEMES_SAVE, name: req.name, theme: req.theme };
+      if (req.overwrite) msg.overwrite = true;
+      if (req.base_mtime !== undefined && req.base_mtime !== null) msg.base_mtime = req.base_mtime;
+      return call(msg);
+    },
+    remove: async (name) => {
+      await call({ type: CMD_THEMES_DELETE, name });
+    },
+  };
+}
 
 /** The deep-linked animation (`?animation=<id>`), if the id is well formed. */
 function _animationFromUrl() {
@@ -105,11 +177,11 @@ function _animationFromUrl() {
   }
 }
 
-/** The studio next to a magic-card.js URL (same directory and query), or null. */
-function _studioUrlFor(cardUrl) {
+/** A file next to a magic-card.js URL (same directory and query), or null. */
+function _siblingUrl(cardUrl, file) {
   if (!cardUrl) return null;
   const m = /^(.*\/)magic-card\.js(\?.*)?$/.exec(cardUrl);
-  return m ? `${m[1]}${STUDIO_FILE}${m[2] || ""}` : null;
+  return m ? `${m[1]}${file}${m[2] || ""}` : null;
 }
 
 class MagicCardUtilsPanel extends LitElement {
@@ -140,6 +212,9 @@ class MagicCardUtilsPanel extends LitElement {
       _animStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _animMessage: { type: String, state: true },
       _animError: { type: String, state: true },
+      // themes tab
+      _themeStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
+      _themeMessage: { type: String, state: true },
     };
   }
 
@@ -162,7 +237,15 @@ class MagicCardUtilsPanel extends LitElement {
     this._submitting = false;
     // animations tab
     this._selectedAnimation = _animationFromUrl();
-    this._tab = this._selectedAnimation ? "animations" : "templates";
+    this._selectedTheme = _themeFromUrl();
+    this._tab = this._selectedAnimation
+      ? "animations"
+      : this._selectedTheme || (_themeElCache && _lastTab === "themes")
+      ? "themes"
+      : "templates";
+    this._themeStatus = "";
+    this._themeMessage = "";
+    this._themeEl = null;
     this._animations = {};
     this._animStatus = "";
     this._animMessage = "";
@@ -315,6 +398,14 @@ class MagicCardUtilsPanel extends LitElement {
     if (changedProps.has("hass") && this._studioEl && this.hass) {
       this._studioEl.hass = this.hass;
     }
+    if (this._themeEl && this.hass && (changedProps.has("hass") || changedProps.has("narrow"))) {
+      this._themeEl.hass = this.hass;
+      this._themeEl.narrow = !!this.narrow;
+    }
+    if (this._tab === "themes" && this.hass && !this._themeEl && this._themeStatus === "") {
+      this._mountThemeEditor();
+    }
+    if (this._tab === "themes" && this._themeStatus === "ready") this._attachThemeEditor();
     if (this._tab === "animations" && this.hass && !this._studioEl && this._animStatus === "") {
       this._mountAnimationStudio();
     }
@@ -579,12 +670,34 @@ class MagicCardUtilsPanel extends LitElement {
   _setTab(tab) {
     if (this._tab === tab) return;
     this._tab = tab;
+    _lastTab = tab;
+    this._syncTabQuery(tab);
+  }
+
+  /** Keep only the active tab's deep-link key in the URL. */
+  _syncTabQuery(tab) {
+    try {
+      const url = new URL(window.location.href);
+      if (tab !== "themes") url.searchParams.delete(THEME_QUERY_KEY);
+      else if (this._selectedTheme) url.searchParams.set(THEME_QUERY_KEY, this._selectedTheme);
+      if (tab !== "animations") url.searchParams.delete("animation");
+      else if (this._selectedAnimation) url.searchParams.set("animation", this._selectedAnimation);
+      if (url.href !== window.location.href) window.history.replaceState(window.history.state, "", url);
+    } catch (_err) {
+      // The deep link just isn't updated.
+    }
   }
 
   _onTabKeydown(e) {
-    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    const i = TABS.findIndex(([t]) => t === this._tab);
+    let j;
+    if (e.key === "ArrowRight") j = (i + 1) % TABS.length;
+    else if (e.key === "ArrowLeft") j = (i - 1 + TABS.length) % TABS.length;
+    else if (e.key === "Home") j = 0;
+    else if (e.key === "End") j = TABS.length - 1;
+    else return;
     e.preventDefault();
-    const next = this._tab === "templates" ? "animations" : "templates";
+    const next = TABS[j][0];
     this._setTab(next);
     this.updateComplete.then(() => {
       const btn = this.shadowRoot.querySelector(`.tab[data-tab="${next}"]`);
@@ -602,7 +715,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (customElements.get(STUDIO_TAG)) return { ok: true };
     if (!this._studioLoad) {
       this._studioLoad = (async () => {
-        const url = _studioUrlFor(this._magicCardUrl);
+        const url = _siblingUrl(this._magicCardUrl, STUDIO_FILE);
         if (!url) return;
         try {
           await import(url);
@@ -801,6 +914,119 @@ class MagicCardUtilsPanel extends LitElement {
     `;
   }
 
+  // ---- Themes tab ---------------------------------------------------------
+
+  /**
+   * Load Magic Card, then the theme editor from the same folder (only when the tab opens).
+   * Resolves to `{ ok: true }` or `{ ok: false, message }`.
+   */
+  async _ensureThemeEditor() {
+    const status = await this._ensureMagicCard();
+    if (!status.ok) return status;
+    if (!customElements.get(THEME_EDITOR_TAG)) {
+      if (!this._themeLoad) {
+        this._themeLoad = (async () => {
+          const url = _siblingUrl(this._magicCardUrl, THEME_EDITOR_FILE);
+          if (!url) return;
+          try {
+            await import(url);
+          } catch (err) {
+            console.warn("[magic_card_utils] theme editor not loaded from", url, err);
+          }
+        })();
+      }
+      await this._themeLoad;
+    }
+    const ctor = customElements.get(THEME_EDITOR_TAG);
+    if (!ctor) {
+      this._themeLoad = undefined; // allow a retry
+      return {
+        ok: false,
+        message:
+          `The theme editor could not be loaded. It ships with Magic Card as ${THEME_EDITOR_FILE}: ` +
+          "update Magic Card to 2026.10.06 or newer.",
+      };
+    }
+    const major = parseInt(String(ctor.contractVersion || "").split(".")[0], 10);
+    if (major !== 1) {
+      return {
+        ok: false,
+        message:
+          "This Magic Card Utils version doesn't match the theme editor in Magic Card. " +
+          "Update both to their latest versions.",
+      };
+    }
+    return { ok: true };
+  }
+
+  async _mountThemeEditor() {
+    if (this._themeEl || this._themeStatus === "loading") return;
+    this._themeStatus = "loading";
+    this._themeMessage = "";
+    let el = _themeElCache;
+    if (!el) {
+      const status = await this._ensureThemeEditor();
+      if (!status.ok) {
+        this._themeStatus = "error";
+        this._themeMessage = status.message;
+        return;
+      }
+      el = document.createElement(THEME_EDITOR_TAG);
+      el.backend = _createThemeBackend(() => (_themeElCache && _themeElCache.hass) || this.hass);
+      el.selectedName = this._selectedTheme;
+      _themeElCache = el;
+    } else if (this._selectedTheme) {
+      el.selectedName = this._selectedTheme;
+    }
+    // A reused element may still carry the listener of an earlier panel instance; replace it.
+    if (el._mcuSelectListener) el.removeEventListener("mc-theme-select", el._mcuSelectListener);
+    el._mcuSelectListener = (e) => this._onThemeSelect(e);
+    el.addEventListener("mc-theme-select", el._mcuSelectListener);
+    el.hass = this.hass;
+    el.narrow = !!this.narrow;
+    this._themeEl = el;
+    this._themeStatus = "ready";
+    await this.updateComplete;
+    this._attachThemeEditor();
+  }
+
+  /** The editor element is kept across tab switches; put it (back) into the tab's host. */
+  _attachThemeEditor() {
+    const host = this.shadowRoot.querySelector(".theme-host");
+    if (!host || !this._themeEl || this._themeEl.parentNode === host) return;
+    host.innerHTML = "";
+    host.appendChild(this._themeEl);
+  }
+
+  /** `mc-theme-select`, detail `{ name }` (or null): keeps `?theme=` in the URL in sync. */
+  _onThemeSelect(e) {
+    const name = e.detail && e.detail.name;
+    this._selectedTheme = typeof name === "string" && THEME_NAME_RE.test(name) ? name : null;
+    this._syncTabQuery("themes");
+  }
+
+  _renderThemesTab() {
+    return html`
+      ${this._themeStatus === "loading" || this._themeStatus === ""
+        ? html`<div class="studio-status"><ha-circular-progress active></ha-circular-progress></div>`
+        : ""}
+      ${this._themeStatus === "error"
+        ? html`<div class="content">
+            <div class="empty studio-message" role="alert">
+              <div>${this._themeMessage}</div>
+              <button class="btn" @click=${() => this._retryThemes()}>Try again</button>
+            </div>
+          </div>`
+        : ""}
+      <div class="theme-host" ?hidden=${this._themeStatus !== "ready"}></div>
+    `;
+  }
+
+  _retryThemes() {
+    this._themeStatus = "";
+    this._themeMessage = "";
+  }
+
   _subscribe() {
     if (this._unsubPromise) return;
     try {
@@ -833,6 +1059,10 @@ class MagicCardUtilsPanel extends LitElement {
     this._animUnsubPromise = undefined;
     this._animReady = undefined;
     this._studioEl = null;
+    // The editor element survives in _themeElCache; this panel instance just lets go of it.
+    if (this._themeEl && this._themeEl.parentNode) this._themeEl.parentNode.removeChild(this._themeEl);
+    this._themeEl = null;
+    if (this._themeStatus !== "error") this._themeStatus = "";
     if (this._animStatus !== "error") this._animStatus = "";
     if (animPending) {
       Promise.resolve(animPending)
@@ -867,10 +1097,7 @@ class MagicCardUtilsPanel extends LitElement {
       </div>
 
       <div class="tabs" role="tablist" aria-label="Magic Card Utils" @keydown=${this._onTabKeydown}>
-        ${[
-          ["templates", "Templates"],
-          ["animations", "Animations"],
-        ].map(
+        ${TABS.map(
           ([tab, label]) => html`<button
             class="tab"
             role="tab"
@@ -884,7 +1111,11 @@ class MagicCardUtilsPanel extends LitElement {
         )}
       </div>
 
-      ${this._tab === "animations" ? this._renderAnimationsTab() : this._renderTemplatesTab()}
+      ${this._tab === "animations"
+        ? this._renderAnimationsTab()
+        : this._tab === "themes"
+        ? this._renderThemesTab()
+        : this._renderTemplatesTab()}
     `;
   }
 
@@ -1307,8 +1538,14 @@ class MagicCardUtilsPanel extends LitElement {
         height: calc(100vh - 64px - 49px);
         min-height: 480px;
       }
-      .studio-host[hidden] {
+      .studio-host[hidden],
+      .theme-host[hidden] {
         display: none;
+      }
+      .theme-host {
+        display: block;
+        height: calc(100vh - 64px - 49px);
+        min-height: 480px;
       }
       .empty {
         padding: 24px;
