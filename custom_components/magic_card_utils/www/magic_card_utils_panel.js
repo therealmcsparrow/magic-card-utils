@@ -2,7 +2,7 @@ import {
   LitElement,
   html,
   css,
-} from "https://unpkg.com/lit@3.3.3/index.js?module";
+} from "./lit-core.min.js";
 
 function _padStr(n) {
   return " ".repeat(n);
