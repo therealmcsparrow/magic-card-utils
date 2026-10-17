@@ -1,5 +1,9 @@
 # Magic Card Utils
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/therealmcsparrow/magic-card-utils/main/custom_components/magic_card_utils/brand/logo@2x.png" alt="Magic Card logo" width="240">
+</p>
+
 [![HACS][hacs-badge]][hacs-url]
 [![GitHub Release][version-badge]][version-url]
 [![GitHub License][license-badge]][license-url]
