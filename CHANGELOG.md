@@ -4,6 +4,27 @@ All notable changes to Magic Card Utils are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use calendar versioning (`YYYY.MM.NN`).
 
+## [Unreleased]
+
+### Added
+
+- Brand images in `custom_components/magic_card_utils/brand/` (`icon`, `logo` and `dark_logo` PNGs, 1x and `@2x`). Home Assistant and HACS show the integration icon and logo from Home Assistant 2026.3. Older versions show a placeholder. The README header shows the logo.
+- `SECURITY.md`: how to report a vulnerability privately.
+- CI workflow `validate.yml`: hassfest and HACS validation on push, on pull request and weekly.
+- Dependabot configuration for GitHub Actions versions.
+- CycloneDX SBOM attached to each GitHub release.
+
+### Changed
+
+- Lit 3.3.3 is served from the integration's `www/` folder instead of being loaded from `unpkg.com`. The panel no longer depends on a third-party CDN.
+- `manifest.json` declares `issue_tracker`, which links to the GitHub issues page.
+- LICENSE copyright holder is now "McSparrow", year 2026. The MIT text is unchanged.
+- README: the License section states that brand assets and the McSparrow and Magic Card names are not covered by MIT. A Third-party section lists Lit and Montserrat. The requirements note the Home Assistant 2026.3 icon and logo behaviour.
+
+### Removed
+
+- Unused `icon.png` and `logo.png` in the repository root. The images in `brand/` replace them.
+
 ## [2026.10.08] - 2026-10-17
 
 ### Added
@@ -115,6 +136,7 @@ First stable release.
 - Templates side panel with YAML view and preview, plus rename, duplicate and delete actions.
 - Config flow with an option to show or hide the side panel.
 
+[Unreleased]: https://github.com/therealmcsparrow/magic-card-utils/compare/2026.10.08...HEAD
 [2026.10.08]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.08
 [2026.10.07]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.07
 [2026.10.06]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.06

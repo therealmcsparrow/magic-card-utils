@@ -26,6 +26,7 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 ## Requirements
 
 - Home Assistant **2024.7** or newer.
+- The integration icon and logo show in Home Assistant and HACS from Home Assistant **2026.3**. Older versions show a placeholder.
 - [Magic Card](https://github.com/therealmcsparrow/magic-card), installed with HACS (or added as a dashboard resource of type JavaScript module). The panel uses the installed Magic Card; Magic Card Utils doesn't ship its own copy.
 - Magic Card **2026.10.01** or newer for the Animations tab.
 - Magic Card **2026.10.06** or newer for the Themes tab.
@@ -87,6 +88,13 @@ Contributions are welcome! Please open an issue or a pull request on [GitHub](ht
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](https://github.com/therealmcsparrow/magic-card-utils/blob/main/LICENSE) file for details.
+
+The MIT License covers the source code. It does not cover the brand assets (the files in `images/` and `custom_components/magic_card_utils/brand/`) or the McSparrow and Magic Card names and logos. These are not released under the MIT License.
+
+### Third-party
+
+- **Lit 3.3.3** (BSD-3-Clause): the panel uses a local copy in `www/` instead of loading it from unpkg.com.
+- **Montserrat** (SIL Open Font License 1.1): used in the Magic Card logo, `images/magic-card-logo.svg`.
 
 
 [hacs-badge]: https://img.shields.io/badge/HACS-Custom-41BDF5.svg
