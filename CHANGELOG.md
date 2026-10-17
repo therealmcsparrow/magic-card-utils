@@ -23,7 +23,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
-- Unused `icon.png` and `logo.png` in the repository root. The images in `brand/` replace them.
+- Unused `icon.png` and `logo.png` in `custom_components/magic_card_utils/`. The images in `brand/` replace them.
+- Non-standard `load_after` key from `manifest.json`. Home Assistant ignores it, and hassfest rejects it. Load order is already set by `dependencies`.
 
 ## [2026.10.08] - 2026-10-17
 
