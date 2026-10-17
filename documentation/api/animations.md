@@ -11,6 +11,8 @@ Reading the library is open to any signed-in user; saving and deleting need an a
 
 ## Commands
 
+`get_animations` and `subscribe_animations` are deliberately not admin only: they are read-only, and cards need them to play animations for non-admin dashboard viewers.
+
 | Command type | Payload | Result |
 | --- | --- | --- |
 | `magic_card_utils/get_animations` | none | `{ animations: { [id]: animation } }` |

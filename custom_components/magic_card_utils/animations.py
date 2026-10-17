@@ -169,6 +169,7 @@ async def async_setup_animations(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_delete_animation)
 
 
+# Read commands are intentionally not admin only: cards need them for non-admin viewers.
 @websocket_api.websocket_command({vol.Required("type"): "magic_card_utils/get_animations"})
 @callback
 def ws_get_animations(
