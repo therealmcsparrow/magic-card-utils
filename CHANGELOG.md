@@ -6,25 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2026.10.11-beta.1] - 2026-10-18 (pre-release)
+
+Pre-release for testing. HACS hides pre-releases unless you turn on **Show beta versions**. Install the matching Magic Card pre-release (2026.10.11-beta.1 or newer) as well.
+
 ### Added
 
-- A Shapes tab next to Library lists your saved shapes with New shape, Edit, Rename, Delete and Export on each row. Shapes still show in Library too. It needs a Magic Card that includes the Shapes view; an older one shows all kinds in that tab.
-
-- The panel speaks English (UK), English (US) and Dutch, following your Home Assistant profile language. Any other language shows English (UK). The messages are in `www/mc-i18n-panel.js`, generated from Magic Card together with the runtime `www/mc-i18n.js`.
-- The setup screen has text: `translations/en.json`, `en-GB.json` and `nl.json`. Home Assistant reads these for a custom integration, not `strings.json`, so the setup screen shows its title, description and option label.
+- A Library tab in the panel: your saved icons, shapes, animations and theme presets, with New icon, New shape, Edit, Rename, Delete, Export and Import. Only admin users can change the library.
+- A Shapes tab next to Library lists your saved shapes with New shape, Edit, Rename, Delete and Export on each row. Shapes still show in Library too.
+- An Editors tab to draw a new icon or shape without a card, with your most recent icons and shapes to reopen.
+- Saved icons appear in Home Assistant's icon picker after a reload. Magic Card draws them in full colour; Home Assistant's own cards show a one-colour silhouette.
+- Import and export of icons, shapes, animations and theme presets as files. Imports are limited to 1 MB and checked before anything is saved.
+- Save as my preset in the Themes tab keeps a theme in your shared library.
+- The panel is available in English (UK), English (US) and Dutch, following your Home Assistant profile language. Any other language shows English (UK). The sidebar entry stays in English.
+- The setup screen is translated into the same three languages.
 
 ### Changed
 
-- `www/mc-ui-kit.js` is regenerated from Magic Card 2026.10.11-beta.1 (commit 0f298bb), which brings the movable and resizable window, the new slider and row options and the library view changes.
-- The panel content uses the same buttons, fields, notices, icon buttons and chips as the Magic Card editor. They come from `www/mc-ui-kit.js`, generated from Magic Card. The Home Assistant header and page tabs are unchanged.
-- Dialogs follow the kit: larger corners, the kit shadow and scrim, a close icon button instead of a text cross, and labelled fields with help text under them.
+- Needs Magic Card 2026.10.11-beta.1 or newer for the Library, Shapes and Editors tabs. An older Magic Card shows a message in place of the editors.
+- The panel uses the same buttons, fields, notices, icon buttons and chips as the Magic Card editor. The Home Assistant header and page tabs are unchanged.
+- Dialogs follow the Magic Card look: larger corners, the same shadow and background dimming, a close button with an icon, and labelled fields with help text under them.
 - Errors and warnings in the panel show as inline notices with an icon, not coloured bars. Table action buttons share one neutral colour and each has an accessible name.
 
 ## [2026.10.09] - 2026-10-17
 
 ### Added
-
-- A Shapes tab next to Library lists your saved shapes with New shape, Edit, Rename, Delete and Export on each row. Shapes still show in Library too. It needs a Magic Card that includes the Shapes view; an older one shows all kinds in that tab.
 
 - Brand images in `custom_components/magic_card_utils/brand/` (`icon`, `logo` and `dark_logo` PNGs, 1x and `@2x`). Home Assistant and HACS show the integration icon and logo from Home Assistant 2026.3. Older versions show a placeholder. The README header shows the logo.
 - `SECURITY.md`: how to report a vulnerability privately.
@@ -49,8 +55,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- A Shapes tab next to Library lists your saved shapes with New shape, Edit, Rename, Delete and Export on each row. Shapes still show in Library too. It needs a Magic Card that includes the Shapes view; an older one shows all kinds in that tab.
-
 - **Themes** tab in the Magic Card Templates panel. It loads the Magic Card theme editor (`magic-card-theme-editor.js`, next to `magic-card.js`) when you open it, and lists the theme files in `/config/themes`. It needs Magic Card 2026.10.06 or newer; the tab says so when the editor is missing.
 - Four admin-only WebSocket commands for the theme editor: `magic_card_utils/themes_list`, `themes_get`, `themes_save` and `themes_delete`. A save writes only `/config/themes/<name>.yaml`, then reloads Home Assistant's themes. Names that could point outside that folder are refused. Files the editor cannot safely rewrite are listed read only, with a reason.
 - A save is refused with `themes_not_included` until `configuration.yaml` loads themes from `/config/themes`, or a theme from that folder is already loaded (for example from a package).
@@ -67,8 +71,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [2026.10.06] - 2026-10-16
 
 ### Added
-
-- A Shapes tab next to Library lists your saved shapes with New shape, Edit, Rename, Delete and Export on each row. Shapes still show in Library too. It needs a Magic Card that includes the Shapes view; an older one shows all kinds in that tab.
 
 - Documentation in the `documentation` folder: getting started, the panel, concepts (templates and linking, the animation library, storage), the WebSocket API, Magic Card compatibility and troubleshooting.
 

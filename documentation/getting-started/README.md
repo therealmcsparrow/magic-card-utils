@@ -2,6 +2,7 @@
 
 - [Requirements](#requirements)
 - [Install with HACS](#install-with-hacs)
+- [Install the pre-release](#install-the-pre-release)
 - [Install by hand](#install-by-hand)
 - [Set up the integration](#set-up-the-integration)
 - [Show or hide the side panel](#show-or-hide-the-side-panel)
@@ -13,7 +14,7 @@
 | What | Version | Why |
 | --- | --- | --- |
 | Home Assistant | 2024.7 or newer | The integration serves its panel with `async_register_static_paths`, added in 2024.7. HACS refuses to install it on older versions. |
-| [Magic Card](https://github.com/therealmcsparrow/magic-card) | Any version for templates; 2026.10.01 or newer for the Animations tab | The panel uses the installed Magic Card for its editor, studio, preview and animation studio. Magic Card Utils doesn't ship its own copy. See [Magic Card compatibility](../compatibility/README.md). |
+| [Magic Card](https://github.com/therealmcsparrow/magic-card) | Any version for templates; 2026.10.01 or newer for the Animations tab; 2026.10.11-beta.1 or newer for the Library, Shapes and Editors tabs | The panel uses the installed Magic Card for its editor, studio, preview and animation studio. Magic Card Utils doesn't ship its own copy. See [Magic Card compatibility](../compatibility/README.md). |
 | Magic Card as a dashboard resource | Type JavaScript module | The panel finds Magic Card through your dashboard resources. HACS adds the resource for you. |
 | An admin user | | The panel is only in the sidebar of admin users, and the template commands need an admin. |
 
@@ -24,6 +25,17 @@
 3. Add `https://github.com/therealmcsparrow/magic-card-utils` with type **Integration**.
 4. Search for **Magic Card Utils** in HACS and click **Download**.
 5. Restart Home Assistant.
+
+## Install the pre-release
+
+Version 2026.10.11-beta.1 is a pre-release for testing. HACS hides it until you turn on **Show beta versions**.
+
+1. Install the matching Magic Card pre-release (2026.10.11-beta.1 or newer) first.
+2. In HACS, open **Settings** and turn on **Show beta versions**.
+3. Open **Magic Card Utils**, choose **Redownload** from the menu (⋮), and select `2026.10.11-beta.1`.
+4. Restart Home Assistant.
+
+To go back to the last stable release, use **Redownload** again and pick the newest version without `-beta`.
 
 ## Install by hand
 

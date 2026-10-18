@@ -12,7 +12,7 @@
 
 ## Introduction
 
-Magic Card Utils is the Home Assistant integration behind [Magic Card](https://github.com/therealmcsparrow/magic-card). It stores templates and custom animations centrally, so every dashboard shares them. Save a card once as a template, link it from any number of dashboards, and manage everything from a sidebar panel.
+Magic Card Utils is the Home Assistant integration behind [Magic Card](https://github.com/therealmcsparrow/magic-card). It stores templates, icons, shapes, animations and theme presets in one place, so every dashboard shares them. Save a card once as a template, link it from any number of dashboards, and manage everything from a sidebar panel.
 
 ## Features
 
@@ -20,16 +20,21 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 - **Linked card tracking:** the integration counts which cards use each template and won't delete a template that's still in use.
 - **Templates panel:** browse, preview, edit, duplicate and delete templates, or open one straight into the full-screen Magic Card studio.
 - **Animation library:** keep the custom animations from the Magic Card animation studio in one place, for every card and every user.
+- **Icon and shape library:** draw icons and shapes without a card, in the Library, Shapes and Editors tabs. Saved icons appear in Home Assistant's icon picker after a reload, and Magic Card draws them in full colour. Home Assistant's own cards show them as one-colour silhouettes.
+- **Theme presets:** keep your own theme presets in the shared library, and import or export them as files.
+- **Import and export:** move icons, shapes, animations and theme presets between Home Assistant installations. Imports are size-limited and checked before anything is saved. See [Library](documentation/panel/library.md).
 - **Theme editor:** create and edit Home Assistant themes in a Themes tab, with a live preview and a Try on dashboard button. Saves write the theme file to `/config/themes`.
+- **Languages:** English (UK), English (US) and Dutch, following your Home Assistant profile language.
 - **WebSocket API:** other custom cards can store and link their own templates and use the animation library.
 
 ## Requirements
 
 - Home Assistant **2024.7** or newer.
-- The integration icon and logo show in Home Assistant from **2026.3**, and in the HACS/Marketplace list from **2026.11**. Older versions show a placeholder.
+- The integration icon and logo show in Home Assistant from **2026.3**. In the HACS list they show from **HACS 2026.11**; until then HACS shows a placeholder, because a HACS fix is still pending. Older versions show a placeholder.
 - [Magic Card](https://github.com/therealmcsparrow/magic-card), installed with HACS (or added as a dashboard resource of type JavaScript module). The panel uses the installed Magic Card; Magic Card Utils doesn't ship its own copy.
 - Magic Card **2026.10.01** or newer for the Animations tab.
 - Magic Card **2026.10.06** or newer for the Themes tab.
+- Magic Card **2026.10.11-beta.1** or newer for the Library, Shapes and Editors tabs and for icons in Home Assistant's icon picker.
 
 ## Installation
 
@@ -45,6 +50,16 @@ Click the button above to open the repository in HACS, then click **Download** a
 4. Search for **Magic Card Utils** in HACS and click **Download**.
 5. Restart Home Assistant.
 
+### Pre-release (beta)
+
+HACS hides pre-releases unless you turn on **Show beta versions**. Use a test system first, and install the matching Magic Card pre-release (2026.10.11-beta.1 or newer) too.
+
+1. In HACS, open **Settings** and turn on **Show beta versions**.
+2. Open **Magic Card Utils**, choose **Redownload** from the menu (⋮), and select `2026.10.11-beta.1`.
+3. Restart Home Assistant.
+
+Report problems on [GitHub](https://github.com/therealmcsparrow/magic-card-utils/issues).
+
 ### Manual installation
 
 1. Copy the `custom_components/magic_card_utils` folder from the latest release into the `custom_components` folder of your Home Assistant configuration directory.
@@ -56,11 +71,16 @@ Click the button above to open the repository in HACS, then click **Download** a
 2. Click **+ Add Integration** and search for **Magic Card Utils**.
 3. Choose whether to show the side panel, then click **Submit**.
 
-The **Magic Card Templates** panel then appears in the sidebar of admin users. It has three tabs:
+The **Magic Card Templates** panel then appears in the sidebar of admin users. It has six tabs:
 
 - **Templates:** every template with its card type, linked cards and dates, and buttons to open it in the studio, edit it (YAML with a live preview, then the Magic Card editor), duplicate it or delete it.
 - **Animations:** the Magic Card animation studio, with the shared animation library.
 - **Themes:** the Magic Card theme editor. It lists the theme files in `/config/themes`, and creates, edits, saves and deletes them. Saving needs the include lines in `configuration.yaml`, which the tab shows when they are missing. The [Magic Card theme documentation](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/themes/README.md) covers the editor itself.
+- **Library:** your saved icons, shapes, animations and theme presets, with New icon, New shape, Edit, Rename, Delete, Export and Import.
+- **Shapes:** your saved shapes, with New shape, Edit, Rename, Delete and Export.
+- **Editors:** draw a new icon or shape without a card, and reopen your most recent ones.
+
+Only admin users can create, change, rename, delete or import library items.
 
 After an update, restart Home Assistant so your browser loads the new panel.
 
@@ -70,11 +90,13 @@ The [documentation](https://github.com/therealmcsparrow/magic-card-utils/tree/ma
 
 | Topic | Covers |
 | --- | --- |
-| [Getting started](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/getting-started/README.md) | Requirements, installing, setting up, updating and removing |
-| [Panel](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/README.md) | The Templates, Animations and Themes tabs |
+| [Getting started](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/getting-started/README.md) | Requirements, installing (including the pre-release), setting up, updating and removing |
+| [Panel](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/README.md) | All six tabs |
+| [Library](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/library.md) | Icons, shapes, animations and theme presets, the Editors tab, import and export, and the icon picker |
+| [Languages](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/languages.md) | English (UK), English (US) and Dutch, and what follows your profile language |
 | [Concepts](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/concepts/README.md) | Templates and linking, linked-card counting, the animation library and where the data is stored |
 | [WebSocket API](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/api/README.md) | Every command, payload, event and error code, for other custom cards |
-| [Magic Card compatibility](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/compatibility/README.md) | How the panel loads Magic Card and the `window.MagicCard` version check |
+| [Magic Card compatibility](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/compatibility/README.md) | Which Magic Card version each tab needs, and the version check |
 | [Troubleshooting](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/troubleshooting/README.md) | Every panel message, its cause and the fix |
 
 The [changelog](https://github.com/therealmcsparrow/magic-card-utils/blob/main/CHANGELOG.md) lists what changed in each release.
@@ -82,6 +104,8 @@ The [changelog](https://github.com/therealmcsparrow/magic-card-utils/blob/main/C
 ## Support
 
 If you have any issues with this integration, please [open an issue on GitHub](https://github.com/therealmcsparrow/magic-card-utils/issues). The [troubleshooting page](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/troubleshooting/README.md#reporting-a-problem) lists what to include.
+
+Security problems: see [SECURITY.md](https://github.com/therealmcsparrow/magic-card-utils/blob/main/SECURITY.md).
 
 If you'd like to support the project, you can buy me a coffee on [Ko-fi](https://ko-fi.com/mcsparrow) or send a donation via [PayPal](https://www.paypal.biz/therealmcsparrow).
 
@@ -98,6 +122,7 @@ The MIT License covers the source code. It does not cover the brand assets (the 
 ### Third-party
 
 - **Lit 3.3.3** (BSD-3-Clause): the panel uses a local copy in `www/` instead of loading it from unpkg.com.
+- **Material Design Icons, @mdi/js 7.4.47** (Apache-2.0): a few icon paths are built into `custom_components/magic_card_utils/www/mc-ui-kit.js`. The licence text is in `custom_components/magic_card_utils/www/LICENSE-mdi.txt`.
 
 
 [hacs-badge]: https://img.shields.io/badge/HACS-Custom-41BDF5.svg

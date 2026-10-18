@@ -48,5 +48,17 @@ A breaking change to the contract raises `apiVersion`; Magic Card Utils then rai
 | Open in studio | A version with the studio |
 | Animations tab | 2026.10.01 or newer, with `magic-card-animation-studio.js` next to `magic-card.js` |
 | Themes tab | 2026.10.06 or newer, with `magic-card-theme-editor.js` next to `magic-card.js` |
+| Library, Shapes and Editors tabs, and icons in Home Assistant's icon picker | 2026.10.11-beta.1 or newer |
 
 Use the newest Magic Card release where you can. Magic Card's own documentation lists which version added what.
+
+### Which version the editors need
+
+The Library, Shapes and Editors tabs check the installed Magic Card's `window.MagicCard.version` against 2026.10.11-beta.1. Version numbers are compared like this:
+
+- The three numbers (2026.10.11) decide first.
+- A release is newer than its own pre-releases, so 2026.10.11 satisfies a minimum of 2026.10.11-beta.1.
+- Pre-releases compare field by field. `2026.10.11-beta.2` is newer than `2026.10.11-beta.1`. `2026.10.11-beta` is older than `2026.10.11-beta.1`, because it has fewer parts.
+- Build metadata after a `+` is ignored.
+
+Magic Card versions below the minimum, or a Magic Card that doesn't report its version, show this message in place of the editors: "Drawing icons and shapes here needs Magic Card 2026.10.11-beta.1 or newer. Update Magic Card in HACS." See [Troubleshooting](../troubleshooting/README.md#messages-in-the-panel).

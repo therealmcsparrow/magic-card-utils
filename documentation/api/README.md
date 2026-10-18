@@ -36,6 +36,12 @@ unsubscribe(); // when your element disconnects
 
 A non-admin user calling an admin command gets Home Assistant's `unauthorized` error.
 
+### Icon and shape library
+
+The Library, Shapes and Editors tabs and the icon picker use the icon and shape library, which is stored in Home Assistant. Saving, renaming, deleting and importing icons and shapes are admin-only. A saved icon is named `mcu:` followed by its id in Home Assistant's icon picker; see [Using icons in Home Assistant](../panel/library.md#using-icons-in-home-assistant).
+
+The command names for the icon and shape library are not listed on this page yet.
+
 ## Errors
 
 A refused command rejects the promise with an error object:
