@@ -106,10 +106,28 @@ const CMD_THEMES_DELETE = "magic_card_utils/themes_delete";
 const CMD_PRESETS_LIST = "magic_card_utils/theme_presets_list";
 const CMD_PRESETS_SAVE = "magic_card_utils/theme_presets_save";
 const CMD_PRESETS_DELETE = "magic_card_utils/theme_presets_delete";
+// Editors in the panel (mcu-library 1.0.0 r4, library_contract.py "Editors in the panel").
+const SVG_EDITOR_TAG = "mc-svg-editor";
+const SHAPE_STUDIO_TAG = "mc-shape-studio";
+const LIBRARY_VIEW_TAG = "mc-library-view";
+const EDITORS_MIN_CONTRACT_REVISION = 5; // svg-editor SVG_EDITOR_MCU_MIN_REVISION
+// PLACEHOLDER: the Lead sets this to the Magic Card release that ships the editors in the panel (epic E).
+const MIN_MAGIC_CARD_FOR_EDITORS = "2026.10.11";
+const RECENT_ITEMS = 8;
+const CMD_ICONS_LIST = "magic_card_utils/icons_list";
+const CMD_SHAPES_LIST = "magic_card_utils/shapes_list";
+const LIBRARY_ID_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
+const FOCUS_KEY_RE = /^[A-Za-z0-9_.:-]{1,96}$/;
+const MSG_NO_CARD = "Install Magic Card to draw icons and shapes here.";
+const MSG_UPDATE_CARD = `Drawing icons and shapes here needs Magic Card ${MIN_MAGIC_CARD_FOR_EDITORS} or newer. Update Magic Card.`;
+const MSG_ADMIN_ONLY = "Only administrators can create or change icons and shapes.";
+const MSG_EDITOR_LOAD = "The editor could not be loaded from Magic Card. Try again.";
 const TABS = [
   ["templates", "Templates"],
   ["animations", "Animations"],
   ["themes", "Themes"],
+  ["library", "Library"],
+  ["editors", "Editors"],
 ];
 // Kept for the page's lifetime: the editor holds the draft and the dashboard trial, and the trial
 // bar's "Back to theme editor" re-opens the panel, which builds a new panel element.
@@ -146,18 +164,21 @@ function _toThemeBackendError(err) {
   return out;
 }
 
-/** ThemeBackend.presets (theme-editor 1.1.0, mcu-library revision 3) on the theme_presets commands. */
+/**
+ * ThemeBackend.presets (theme-editor 1.1.0 ThemePresetStore, mcu-library revision 4) on the theme_presets
+ * commands: list() resolves the array, save() the item, remove() nothing.
+ */
 function _createPresetBackend(call) {
   return {
     list: async () => {
       const res = await call({ type: CMD_PRESETS_LIST });
-      return { theme_presets: Array.isArray(res && res.theme_presets) ? res.theme_presets : [] };
+      return Array.isArray(res && res.theme_presets) ? res.theme_presets : [];
     },
     save: async (preset, baseUpdatedAt) => {
       const msg = { type: CMD_PRESETS_SAVE, theme_preset: preset };
       if (typeof baseUpdatedAt === "string") msg.base_updated_at = baseUpdatedAt;
       const res = await call(msg);
-      return { theme_preset: res.theme_preset };
+      return res.theme_preset;
     },
     remove: async (id) => {
       await call({ type: CMD_PRESETS_DELETE, theme_preset_id: id });
@@ -166,14 +187,18 @@ function _createPresetBackend(call) {
 }
 
 /** ThemeBackend (theme-editor contract) on top of the theme-files websocket commands. */
-function _createThemeBackend(getHass) {
-  const call = async (msg) => {
+function _makeCall(getHass) {
+  return async (msg) => {
     try {
       return await getHass().callWS(msg);
     } catch (err) {
       throw _toThemeBackendError(err);
     }
   };
+}
+
+function _createThemeBackend(getHass) {
+  const call = _makeCall(getHass);
   return {
     list: () => call({ type: CMD_THEMES_LIST }),
     get: (name) => call({ type: CMD_THEMES_GET, name }),
@@ -207,6 +232,29 @@ function _siblingUrl(cardUrl, file) {
   return m ? `${m[1]}${file}${m[2] || ""}` : null;
 }
 
+/** The newest `limit` items by updated_at (ISO strings sort as text); anything that is not an item is skipped. */
+function _recentItems(list, limit) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .filter((i) => i && typeof i === "object" && typeof i.id === "string" && i.id)
+    .sort((a, b) => String(b.updated_at || "").localeCompare(String(a.updated_at || "")))
+    .slice(0, limit);
+}
+
+/** First element with this data-focus-key, looking through open shadow roots. */
+function _deepFindByFocusKey(root, key) {
+  if (!root || !FOCUS_KEY_RE.test(key)) return null;
+  const hit = root.querySelector(`[data-focus-key="${key}"]`);
+  if (hit) return hit;
+  for (const el of root.querySelectorAll("*")) {
+    if (el.shadowRoot) {
+      const found = _deepFindByFocusKey(el.shadowRoot, key);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
 class MagicCardUtilsPanel extends LitElement {
   static get properties() {
     return {
@@ -238,6 +286,14 @@ class MagicCardUtilsPanel extends LitElement {
       // themes tab
       _themeStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _themeMessage: { type: String, state: true },
+      // library and editors tabs
+      _libraryStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
+      _libraryMessage: { type: String, state: true },
+      _editorOpen: { type: Boolean, state: true },
+      _editorBusy: { type: Boolean, state: true },
+      _editorNotice: { type: String, state: true },
+      _recent: { type: Object, state: true },
+      _recentError: { type: String, state: true },
     };
   }
 
@@ -274,6 +330,20 @@ class MagicCardUtilsPanel extends LitElement {
     this._animMessage = "";
     this._animError = "";
     this._studioEl = null;
+    // library and editors tabs
+    this._libraryStatus = "";
+    this._libraryMessage = "";
+    this._libraryEl = null;
+    this._libraryStale = false;
+    this._editorOpen = false;
+    this._editorBusy = false;
+    this._editorNotice = "";
+    this._editorEl = null;
+    this._editorOpener = null;
+    this._editorFocusKey = "";
+    this._recent = { icons: [], shapes: [] };
+    this._recentError = "";
+    this._recentLoaded = false;
   }
 
   _processTemplates(templates) {
@@ -424,6 +494,19 @@ class MagicCardUtilsPanel extends LitElement {
     if (this._themeEl && this.hass && (changedProps.has("hass") || changedProps.has("narrow"))) {
       this._themeEl.hass = this.hass;
       this._themeEl.narrow = !!this.narrow;
+    }
+    if (changedProps.has("hass") && this.hass) {
+      this._syncEditorHass();
+      if (this._libraryEl) this._libraryEl.hass = this.hass;
+    }
+    if (this._editorOpen) {
+      this._attachEditor();
+    } else {
+      if (this._tab === "library" && this.hass && !this._libraryEl && this._libraryStatus === "") {
+        this._mountLibraryView();
+      }
+      if (this._tab === "library" && this._libraryStatus === "ready") this._attachLibraryView();
+      if (this._tab === "editors" && this.hass && !this._recentLoaded) this._loadRecent();
     }
     if (this._tab === "themes" && this.hass && !this._themeEl && this._themeStatus === "") {
       this._mountThemeEditor();
@@ -1051,6 +1134,341 @@ class MagicCardUtilsPanel extends LitElement {
     this._themeMessage = "";
   }
 
+  // ---- Library and Editors tabs ---------------------------------------------
+
+  /**
+   * Load Magic Card, then what the Library tab ('library') or an editor ('icon' / 'shape') needs from it,
+   * and check the version. Resolves to `{ ok: true }` or `{ ok: false, message }`.
+   */
+  async _ensureEditors(what) {
+    const card = await this._ensureMagicCard();
+    if (!card.ok) {
+      const missing = !customElements.get(CARD_TAG) && !this._magicCardUrl;
+      return { ok: false, message: missing ? MSG_NO_CARD : card.message };
+    }
+    const mc = window.MagicCard;
+    if (!mc || typeof mc.loadEditor !== "function") return { ok: false, message: MSG_UPDATE_CARD };
+    const loader = what === "library" ? "loadTransfer" : what === "shape" ? "loadShapeEditor" : "loadSvgEditor";
+    try {
+      if (!(await mc.loadEditor())) return { ok: false, message: MSG_EDITOR_LOAD };
+      if (typeof mc[loader] !== "function") return { ok: false, message: MSG_UPDATE_CARD };
+      if (!(await mc[loader]())) return { ok: false, message: MSG_EDITOR_LOAD };
+    } catch (err) {
+      console.warn("[magic_card_utils] editor chunk not loaded", err);
+      return { ok: false, message: MSG_EDITOR_LOAD };
+    }
+    const tag = what === "library" ? LIBRARY_VIEW_TAG : what === "shape" ? SHAPE_STUDIO_TAG : SVG_EDITOR_TAG;
+    const ctor = customElements.get(tag);
+    if (!ctor) return { ok: false, message: MSG_EDITOR_LOAD };
+    let revision = Number(ctor.contractRevision);
+    if (what === "library" && !Number.isFinite(revision)) {
+      // The view carries no revision of its own: judge by the SVG editor of the same Magic Card.
+      try {
+        if (typeof mc.loadSvgEditor === "function" && (await mc.loadSvgEditor())) {
+          const svg = customElements.get(SVG_EDITOR_TAG);
+          revision = Number(svg && svg.contractRevision);
+        }
+      } catch (_err) {
+        revision = NaN;
+      }
+    }
+    if (!(revision >= EDITORS_MIN_CONTRACT_REVISION)) return { ok: false, message: MSG_UPDATE_CARD };
+    return { ok: true };
+  }
+
+  _isAdmin() {
+    return !!(this.hass && this.hass.user && this.hass.user.is_admin);
+  }
+
+  _syncEditorHass() {
+    if (this._editorEl && this.hass) this._editorEl.hass = this.hass;
+  }
+
+  _findByFocusKey(key) {
+    return _deepFindByFocusKey(this.shadowRoot, key);
+  }
+
+  _tabButton(tab) {
+    return this.shadowRoot.querySelector(`.tab[data-tab="${tab}"]`);
+  }
+
+  /**
+   * The editor shell, shared by both tabs. `kind` is 'icon' or 'shape', `id` a saved item to edit
+   * (none = new), `opener` the control to return focus to.
+   */
+  async _openEditor({ kind, id, opener } = {}) {
+    if (this._editorOpen || this._editorBusy) return;
+    if (kind !== "icon" && kind !== "shape") return;
+    if (id !== undefined && !(typeof id === "string" && LIBRARY_ID_RE.test(id))) return;
+    if (!this._isAdmin()) {
+      // The save commands are admin-only; the Library view shows its buttons to everyone.
+      this._editorNotice = MSG_ADMIN_ONLY;
+      return;
+    }
+    this._editorBusy = true;
+    this._editorNotice = "";
+    try {
+      const status = await this._ensureEditors(kind);
+      if (!status.ok) {
+        this._editorNotice = status.message;
+        return;
+      }
+      let value;
+      if (kind === "shape" && id) {
+        let res;
+        try {
+          res = await this.hass.callWS({ type: CMD_SHAPES_LIST });
+        } catch (_err) {
+          this._editorNotice = "That shape could not be read. Try again.";
+          return;
+        }
+        const item = Array.isArray(res && res.shapes) ? res.shapes.find((s) => s && s.id === id) : null;
+        if (!item) {
+          this._editorNotice = "That shape no longer exists.";
+          this._loadRecent();
+          return;
+        }
+        value = { shape: "custom", shape_options: item.shape };
+      }
+      const el = document.createElement(kind === "icon" ? SVG_EDITOR_TAG : SHAPE_STUDIO_TAG);
+      el.host = "mcu";
+      el.hass = this.hass;
+      el.libraryAvailable = true;
+      if (kind === "icon") {
+        el.source = id ? { kind: "library", id } : { kind: "blank" };
+        if (id) el.savedId = id;
+      } else {
+        if (value) {
+          el.value = value;
+          el.savedId = id; // the studio updates this item (base_updated_at) instead of creating one
+        }
+        el.customShapes = {};
+      }
+      const onSaved = () => this._onEditorSaved();
+      const onClose = () => this._closeEditor();
+      const [saveEvent, closeEvent] = kind === "icon" ? ["mc-svg-save", "mc-svg-close"] : ["mc-shape-save", "mc-shape-close"];
+      el.addEventListener(saveEvent, onSaved);
+      el.addEventListener(closeEvent, onClose);
+      this._editorListeners = [[saveEvent, onSaved], [closeEvent, onClose]];
+      const rawKey = opener && typeof opener.getAttribute === "function" ? opener.getAttribute("data-focus-key") : "";
+      this._editorFocusKey = rawKey && FOCUS_KEY_RE.test(rawKey) ? rawKey : "";
+      this._editorOpener = opener || null;
+      this._editorEl = el;
+      this._editorOpen = true;
+      await this.updateComplete;
+      this._attachEditor();
+      el.tabIndex = -1;
+      if (typeof el.focus === "function") el.focus({ preventScroll: true });
+    } finally {
+      this._editorBusy = false;
+    }
+  }
+
+  /** Put the editor element into the shell's host (the host exists once the tab content is hidden). */
+  _attachEditor() {
+    const host = this.shadowRoot.querySelector(".editor-host");
+    if (!host || !this._editorEl || this._editorEl.parentNode === host) return;
+    host.appendChild(this._editorEl);
+  }
+
+  /** A save keeps the editor open; the lists behind it are refreshed. */
+  _onEditorSaved() {
+    this._libraryStale = true;
+    this._loadRecent();
+  }
+
+  async _closeEditor() {
+    const el = this._editorEl;
+    if (!el) return;
+    for (const [type, fn] of this._editorListeners || []) el.removeEventListener(type, fn);
+    this._editorListeners = [];
+    if (el.parentNode) el.parentNode.removeChild(el);
+    const opener = this._editorOpener;
+    const key = this._editorFocusKey;
+    this._editorEl = null;
+    this._editorOpener = null;
+    this._editorFocusKey = "";
+    this._editorOpen = false;
+    if (this._libraryStale) {
+      // The Library view has no refresh call: build a fresh one for the changed lists.
+      this._libraryStale = false;
+      this._libraryEl = null;
+      if (this._libraryStatus !== "error") this._libraryStatus = "";
+    }
+    await this.updateComplete;
+    await this._restoreFocus(opener, key);
+  }
+
+  /** Focus the opener, else its replacement (same data-focus-key), else the current tab. */
+  async _restoreFocus(opener, key) {
+    let target = opener && opener.isConnected ? opener : null;
+    for (let i = 0; !target && key && i < 20; i++) {
+      target = this._findByFocusKey(key);
+      if (!target) await new Promise((r) => setTimeout(r, 50));
+    }
+    if (!target) target = this._tabButton(this._tab);
+    if (target && typeof target.focus === "function") target.focus();
+  }
+
+  /** `mc-library-open` from <mc-library-view>: detail { kind: 'icon' | 'shape', id? }. */
+  _onLibraryOpen(e) {
+    const d = e && e.detail;
+    if (!d || (d.kind !== "icon" && d.kind !== "shape")) return;
+    if (d.id !== undefined && !(typeof d.id === "string" && LIBRARY_ID_RE.test(d.id))) return;
+    // The view fires the event on itself, so the control that was used is the one holding focus.
+    const path = typeof e.composedPath === "function" ? e.composedPath() : [];
+    const opener = path.find((n) => n && n.tagName === "BUTTON") || this._deepActiveElement();
+    this._openEditor({ kind: d.kind, id: d.id, opener });
+  }
+
+  /** The focused element, looking through open shadow roots (null when nothing but the page has focus). */
+  _deepActiveElement() {
+    let a = document.activeElement;
+    while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement;
+    return a && a !== document.body ? a : null;
+  }
+
+  async _loadRecent() {
+    this._recentLoaded = true;
+    if (!this.hass) return;
+    try {
+      const [icons, shapes] = await Promise.all([
+        this.hass.callWS({ type: CMD_ICONS_LIST }),
+        this.hass.callWS({ type: CMD_SHAPES_LIST }),
+      ]);
+      this._recent = {
+        icons: _recentItems(icons && icons.icons, RECENT_ITEMS),
+        shapes: _recentItems(shapes && shapes.shapes, RECENT_ITEMS),
+      };
+      this._recentError = "";
+    } catch (err) {
+      console.warn("[magic_card_utils] recent items not loaded", err);
+      this._recentError = "Your saved icons and shapes could not be loaded.";
+    }
+  }
+
+  async _mountLibraryView() {
+    if (this._libraryEl || this._libraryStatus === "loading") return;
+    this._libraryStatus = "loading";
+    this._libraryMessage = "";
+    const status = await this._ensureEditors("library");
+    if (!status.ok) {
+      this._libraryStatus = "error";
+      this._libraryMessage = status.message;
+      return;
+    }
+    const el = document.createElement(LIBRARY_VIEW_TAG);
+    el.context = "mcu-panel";
+    el.hass = this.hass;
+    el.presets = _createPresetBackend(_makeCall(() => this.hass));
+    el.addEventListener("mc-library-open", (e) => this._onLibraryOpen(e));
+    this._libraryEl = el;
+    this._libraryStatus = "ready";
+    await this.updateComplete;
+    this._attachLibraryView();
+  }
+
+  _attachLibraryView() {
+    const host = this.shadowRoot.querySelector(".library-host");
+    if (!host || !this._libraryEl || this._libraryEl.parentNode === host) return;
+    host.innerHTML = "";
+    host.appendChild(this._libraryEl);
+  }
+
+  _retryLibrary() {
+    this._libraryStatus = "";
+    this._libraryMessage = "";
+  }
+
+  _seeAllInLibrary() {
+    this._setTab("library");
+    this.updateComplete.then(() => {
+      const btn = this._tabButton("library");
+      if (btn) btn.focus();
+    });
+  }
+
+  _renderEditorNotice() {
+    return this._editorNotice
+      ? html`<div class="empty editor-notice" role="alert">${this._editorNotice}</div>`
+      : this._editorBusy
+      ? html`<div class="studio-status" role="status"><ha-circular-progress active></ha-circular-progress></div>`
+      : "";
+  }
+
+  _renderLibraryTab() {
+    return html`
+      ${this._renderEditorNotice()}
+      ${this._libraryStatus === "loading" || this._libraryStatus === ""
+        ? html`<div class="studio-status"><ha-circular-progress active></ha-circular-progress></div>`
+        : ""}
+      ${this._libraryStatus === "error"
+        ? html`<div class="content">
+            <div class="empty studio-message" role="alert">
+              <div>${this._libraryMessage}</div>
+              <button class="btn" @click=${() => this._retryLibrary()}>Try again</button>
+            </div>
+          </div>`
+        : ""}
+      <div class="library-host" ?hidden=${this._libraryStatus !== "ready"}></div>
+    `;
+  }
+
+  _renderRecent(title, kind, items) {
+    return html`
+      <h2 class="section-title">${title}</h2>
+      ${items.length === 0
+        ? html`<div class="empty">Nothing saved yet.</div>`
+        : html`<ul class="recent-list">
+            ${items.map(
+              (item) => html`<li>
+                <span class="recent-name">${item.name || item.id}</span>
+                <button
+                  class="btn"
+                  data-focus-key=${`edit-${kind}-${item.id}`}
+                  aria-label=${`Edit ${item.name || item.id}`}
+                  ?disabled=${this._editorBusy || !this._isAdmin()}
+                  @click=${(e) => this._openEditor({ kind, id: item.id, opener: e.currentTarget })}
+                >
+                  Edit
+                </button>
+              </li>`
+            )}
+          </ul>`}
+    `;
+  }
+
+  _renderEditorsTab() {
+    return html`
+      <div class="content editors-tab">
+        ${this._renderEditorNotice()}
+        ${this._recentError ? html`<div class="empty" role="alert">${this._recentError}</div>` : ""}
+        ${this._isAdmin() ? "" : html`<div class="empty" role="status">${MSG_ADMIN_ONLY}</div>`}
+        <div class="editor-actions">
+          <button
+            class="btn primary"
+            data-focus-key="new-icon"
+            ?disabled=${this._editorBusy || !this._isAdmin()}
+            @click=${(e) => this._openEditor({ kind: "icon", opener: e.currentTarget })}
+          >
+            New icon
+          </button>
+          <button
+            class="btn primary"
+            data-focus-key="new-shape"
+            ?disabled=${this._editorBusy || !this._isAdmin()}
+            @click=${(e) => this._openEditor({ kind: "shape", opener: e.currentTarget })}
+          >
+            New shape
+          </button>
+        </div>
+        ${this._renderRecent("Recent icons", "icon", this._recent.icons)}
+        ${this._renderRecent("Recent shapes", "shape", this._recent.shapes)}
+        <button class="btn" @click=${() => this._seeAllInLibrary()}>See all in Library</button>
+      </div>
+    `;
+  }
+
   _subscribe() {
     if (this._unsubPromise) return;
     try {
@@ -1086,6 +1504,17 @@ class MagicCardUtilsPanel extends LitElement {
     // The editor element survives in _themeElCache; this panel instance just lets go of it.
     if (this._themeEl && this._themeEl.parentNode) this._themeEl.parentNode.removeChild(this._themeEl);
     this._themeEl = null;
+    if (this._editorEl) {
+      for (const [type, fn] of this._editorListeners || []) this._editorEl.removeEventListener(type, fn);
+      if (this._editorEl.parentNode) this._editorEl.parentNode.removeChild(this._editorEl);
+    }
+    this._editorEl = null;
+    this._editorOpen = false;
+    this._editorOpener = null;
+    this._libraryEl = null;
+    this._libraryStale = false;
+    if (this._libraryStatus !== "error") this._libraryStatus = "";
+    this._recentLoaded = false;
     if (this._themeStatus !== "error") this._themeStatus = "";
     if (this._animStatus !== "error") this._animStatus = "";
     if (animPending) {
@@ -1120,26 +1549,32 @@ class MagicCardUtilsPanel extends LitElement {
         <div class="title">${this.panel && this.panel.title}</div>
       </div>
 
-      <div class="tabs" role="tablist" aria-label="Magic Card Utils" @keydown=${this._onTabKeydown}>
-        ${TABS.map(
-          ([tab, label]) => html`<button
-            class="tab"
-            role="tab"
-            data-tab=${tab}
-            aria-selected=${this._tab === tab ? "true" : "false"}
-            tabindex=${this._tab === tab ? "0" : "-1"}
-            @click=${() => this._setTab(tab)}
-          >
-            ${label}
-          </button>`
-        )}
-      </div>
+      ${this._editorOpen
+        ? html`<div class="editor-host"></div>`
+        : html`<div class="tabs" role="tablist" aria-label="Magic Card Utils" @keydown=${this._onTabKeydown}>
+              ${TABS.map(
+                ([tab, label]) => html`<button
+                  class="tab"
+                  role="tab"
+                  data-tab=${tab}
+                  aria-selected=${this._tab === tab ? "true" : "false"}
+                  tabindex=${this._tab === tab ? "0" : "-1"}
+                  @click=${() => this._setTab(tab)}
+                >
+                  ${label}
+                </button>`
+              )}
+            </div>
 
-      ${this._tab === "animations"
-        ? this._renderAnimationsTab()
-        : this._tab === "themes"
-        ? this._renderThemesTab()
-        : this._renderTemplatesTab()}
+            ${this._tab === "animations"
+              ? this._renderAnimationsTab()
+              : this._tab === "themes"
+              ? this._renderThemesTab()
+              : this._tab === "library"
+              ? this._renderLibraryTab()
+              : this._tab === "editors"
+              ? this._renderEditorsTab()
+              : this._renderTemplatesTab()}`}
     `;
   }
 
@@ -1510,8 +1945,10 @@ class MagicCardUtilsPanel extends LitElement {
         position: sticky;
         top: 64px;
         z-index: 3;
+        overflow-x: auto;
       }
       .tab {
+        flex: none;
         height: 48px;
         padding: 0 16px;
         background: none;
@@ -1565,6 +2002,66 @@ class MagicCardUtilsPanel extends LitElement {
       .studio-host[hidden],
       .theme-host[hidden] {
         display: none;
+      }
+      .library-host {
+        display: block;
+        padding: 16px;
+      }
+      .library-host[hidden] {
+        display: none;
+      }
+      .editor-host {
+        display: block;
+        height: calc(100vh - 64px);
+        min-height: 480px;
+      }
+      .editor-notice {
+        margin: 16px;
+      }
+      .editors-tab {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .editors-tab > .empty {
+        align-self: stretch;
+      }
+      .editor-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .editors-tab .btn {
+        min-height: 36px;
+      }
+      .section-title {
+        margin: 12px 0 0;
+        font-size: 16px;
+        font-weight: 500;
+      }
+      .recent-list {
+        align-self: stretch;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        background: var(--card-background-color, var(--ha-card-background));
+        border-radius: 8px;
+      }
+      .recent-list li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 16px;
+        border-bottom: 1px solid var(--divider-color);
+      }
+      .recent-list li:last-child {
+        border-bottom: none;
+      }
+      .recent-name {
+        min-width: 0;
+        overflow-wrap: anywhere;
       }
       .theme-host {
         display: block;
@@ -1991,3 +2488,14 @@ class MagicCardUtilsPanel extends LitElement {
 if (!customElements.get("magic-card-utils-panel")) {
   customElements.define("magic-card-utils-panel", MagicCardUtilsPanel);
 }
+
+// Test hooks (tests/panel_editors.test.mjs); nothing in Home Assistant reads them.
+export const _testing = {
+  createPresetBackend: _createPresetBackend,
+  recentItems: _recentItems,
+  FOCUS_KEY_RE,
+  MIN_MAGIC_CARD_FOR_EDITORS,
+  EDITORS_MIN_CONTRACT_REVISION,
+  RECENT_ITEMS,
+  TABS,
+};
