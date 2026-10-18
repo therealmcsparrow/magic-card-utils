@@ -4,6 +4,10 @@
 
 Only the latest release receives security fixes. Releases use CalVer (for example `2026.10.08`). Update through HACS before reporting.
 
+## Status of this project
+
+Magic Card Utils is non-commercial open source software under the EU Cyber Resilience Act (CRA). It is not sold. At most, it receives voluntary donations.
+
 ## Reporting a vulnerability
 
 Please do not open a public issue. Use GitHub private vulnerability reporting:
