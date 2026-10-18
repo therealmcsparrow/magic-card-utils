@@ -3,6 +3,7 @@ import {
   html,
   css,
 } from "./lit-core.min.js";
+import { mcUiKit, glyph } from "./mc-ui-kit.js";
 
 function _padStr(n) {
   return " ".repeat(n);
@@ -1033,9 +1034,12 @@ class MagicCardUtilsPanel extends LitElement {
     if (this._animStatus === "ready") this.updateComplete.then(() => this._attachStudio());
     return html`
       ${this._animError
-        ? html`<div class="error dismissable" role="alert">
-            <span>${this._animError}</span>
-            <button class="close-btn" title="Dismiss" @click=${() => (this._animError = "")}>&times;</button>
+        ? html`<div class="content">
+            <div class="notice error" role="alert">
+              ${glyph("error", 20)}
+              <div class="body"><p>${this._animError}</p></div>
+              <button type="button" class="icon-btn sm close-btn" aria-label="Dismiss" title="Dismiss" @click=${() => (this._animError = "")}>${glyph("close")}</button>
+            </div>
           </div>`
         : ""}
       ${this._animStatus === "loading" || this._animStatus === ""
@@ -1043,9 +1047,12 @@ class MagicCardUtilsPanel extends LitElement {
         : ""}
       ${this._animStatus === "error"
         ? html`<div class="content">
-            <div class="empty studio-message" role="alert">
-              <div>${this._animMessage}</div>
-              <button class="btn" @click=${() => this._mountAnimationStudio()}>Try again</button>
+            <div class="notice error" role="alert">
+              ${glyph("error", 20)}
+              <div class="body">
+                <p>${this._animMessage}</p>
+                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._mountAnimationStudio()}>Try again</button></div>
+              </div>
             </div>
           </div>`
         : ""}
@@ -1151,9 +1158,12 @@ class MagicCardUtilsPanel extends LitElement {
         : ""}
       ${this._themeStatus === "error"
         ? html`<div class="content">
-            <div class="empty studio-message" role="alert">
-              <div>${this._themeMessage}</div>
-              <button class="btn" @click=${() => this._retryThemes()}>Try again</button>
+            <div class="notice error" role="alert">
+              ${glyph("error", 20)}
+              <div class="body">
+                <p>${this._themeMessage}</p>
+                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryThemes()}>Try again</button></div>
+              </div>
             </div>
           </div>`
         : ""}
@@ -1416,7 +1426,10 @@ class MagicCardUtilsPanel extends LitElement {
 
   _renderEditorNotice() {
     return this._editorNotice
-      ? html`<div class="empty editor-notice" role="alert">${this._editorNotice}</div>`
+      ? html`<div class="notice warn editor-notice" role="alert">
+          ${glyph("warn", 20)}
+          <div class="body"><p>${this._editorNotice}</p></div>
+        </div>`
       : this._editorBusy
       ? html`<div class="studio-status" role="status"><ha-circular-progress active></ha-circular-progress></div>`
       : "";
@@ -1430,9 +1443,12 @@ class MagicCardUtilsPanel extends LitElement {
         : ""}
       ${this._libraryStatus === "error"
         ? html`<div class="content">
-            <div class="empty studio-message" role="alert">
-              <div>${this._libraryMessage}</div>
-              <button class="btn" @click=${() => this._retryLibrary()}>Try again</button>
+            <div class="notice error" role="alert">
+              ${glyph("error", 20)}
+              <div class="body">
+                <p>${this._libraryMessage}</p>
+                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryLibrary()}>Try again</button></div>
+              </div>
             </div>
           </div>`
         : ""}
@@ -1442,15 +1458,16 @@ class MagicCardUtilsPanel extends LitElement {
 
   _renderRecent(title, kind, items) {
     return html`
-      <h2 class="section-title">${title}</h2>
+      <section class="recent-section">
+      <div class="group-head"><h3>${title}</h3></div>
       ${items.length === 0
-        ? html`<div class="empty">Nothing saved yet.</div>`
+        ? html`<div class="empty"><strong>Nothing saved yet.</strong></div>`
         : html`<ul class="recent-list">
             ${items.map(
               (item) => html`<li>
                 <span class="recent-name">${item.name || item.id}</span>
                 <button
-                  class="btn"
+                  class="btn btn-secondary btn-sm"
                   data-focus-key=${`edit-${kind}-${item.id}`}
                   aria-label=${`Edit ${item.name || item.id}`}
                   ?disabled=${this._editorBusy || !this._isAdmin()}
@@ -1461,6 +1478,7 @@ class MagicCardUtilsPanel extends LitElement {
               </li>`
             )}
           </ul>`}
+      </section>
     `;
   }
 
@@ -1468,11 +1486,15 @@ class MagicCardUtilsPanel extends LitElement {
     return html`
       <div class="content editors-tab">
         ${this._renderEditorNotice()}
-        ${this._recentError ? html`<div class="empty" role="alert">${this._recentError}</div>` : ""}
-        ${this._isAdmin() ? "" : html`<div class="empty" role="status">${MSG_ADMIN_ONLY}</div>`}
+        ${this._recentError
+          ? html`<div class="notice error" role="alert">${glyph("error", 20)}<div class="body"><p>${this._recentError}</p></div></div>`
+          : ""}
+        ${this._isAdmin()
+          ? ""
+          : html`<div class="notice info" role="status">${glyph("info", 20)}<div class="body"><p>${MSG_ADMIN_ONLY}</p></div></div>`}
         <div class="editor-actions">
           <button
-            class="btn primary"
+            class="btn btn-primary"
             data-focus-key="new-icon"
             ?disabled=${this._editorBusy || !this._isAdmin()}
             @click=${(e) => this._openEditor({ kind: "icon", opener: e.currentTarget })}
@@ -1480,7 +1502,7 @@ class MagicCardUtilsPanel extends LitElement {
             New icon
           </button>
           <button
-            class="btn primary"
+            class="btn btn-primary"
             data-focus-key="new-shape"
             ?disabled=${this._editorBusy || !this._isAdmin()}
             @click=${(e) => this._openEditor({ kind: "shape", opener: e.currentTarget })}
@@ -1490,7 +1512,7 @@ class MagicCardUtilsPanel extends LitElement {
         </div>
         ${this._renderRecent("Recent icons", "icon", this._recent.icons)}
         ${this._renderRecent("Recent shapes", "shape", this._recent.shapes)}
-        <button class="btn" @click=${() => this._seeAllInLibrary()}>See all in Library</button>
+        <button class="btn btn-secondary see-all" @click=${() => this._seeAllInLibrary()}>See all in Library</button>
       </div>
     `;
   }
@@ -1606,13 +1628,12 @@ class MagicCardUtilsPanel extends LitElement {
 
   _renderTemplatesTab() {
     return html`
-      ${this._error
-        ? html`<div class="error">${this._error}</div>`
-        : ""}
-
       <div class="content">
+        ${this._error
+          ? html`<div class="notice error" role="alert">${glyph("error", 20)}<div class="body"><p>${this._error}</p></div></div>`
+          : ""}
         ${this._templates.length === 0
-          ? html`<div class="empty">No templates saved yet.</div>`
+          ? html`<div class="empty"><strong>No templates saved yet.</strong></div>`
           : html`
               <table class="templates-table">
                 <thead>
@@ -1644,51 +1665,45 @@ class MagicCardUtilsPanel extends LitElement {
                         <td class="col-actions">
                           <div class="action-buttons">
                             <button
-                              class="action-btn studio"
+                              type="button"
+                              class="icon-btn sm action-btn studio"
                               title="Open in studio"
+                              aria-label=${`Open ${row.name} in studio`}
                               @click=${() => this._openStudio(row)}
                             >
-                              <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path
-                                  d="M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z"
-                                />
-                              </svg>
+                              ${glyph("fullscreen")}
                             </button>
                             <button
-                              class="action-btn edit"
+                              type="button"
+                              class="icon-btn sm action-btn edit"
                               title="Edit"
+                              aria-label=${`Edit ${row.name}`}
                               @click=${() => this._openTemplate(row)}
                             >
-                              <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path
-                                  d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"
-                                />
-                              </svg>
+                              ${glyph("pencil")}
                             </button>
                             <button
-                              class="action-btn duplicate"
+                              type="button"
+                              class="icon-btn sm action-btn duplicate"
                               title="Duplicate"
+                              aria-label=${`Duplicate ${row.name}`}
                               @click=${() => this._openDuplicate(row)}
                             >
-                              <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path
-                                  d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
-                                />
-                              </svg>
+                              ${glyph("copy")}
                             </button>
                             <button
-                              class="action-btn danger"
+                              type="button"
+                              class="icon-btn sm danger action-btn"
                               title=${row.linked_cards > 0
                                 ? `Cannot delete — ${row.linked_cards} linked card(s)`
                                 : "Delete"}
+                              aria-label=${row.linked_cards > 0
+                                ? `Cannot delete ${row.name}: ${row.linked_cards} linked card(s)`
+                                : `Delete ${row.name}`}
                               ?disabled=${row.linked_cards > 0}
                               @click=${() => this._openDelete(row)}
                             >
-                              <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path
-                                  d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z"
-                                />
-                              </svg>
+                              ${glyph("delete")}
                             </button>
                           </div>
                         </td>
@@ -1719,16 +1734,16 @@ class MagicCardUtilsPanel extends LitElement {
                   <div class="dialog-title">
                     <span class="dialog-title-name">${this._viewRow.name}</span>
                     ${this._viewRow.card_type
-                      ? html`<span class="dialog-title-type">${this._viewRow.card_type}</span>`
+                      ? html`<span class="chip mono">${this._viewRow.card_type}</span>`
                       : ""}
                   </div>
                   <div class="dialog-header-actions">
                     ${this._viewMode === "yaml"
-                      ? html`<button class="action-btn" title="Edit" @click=${() => this._openEditTemplate(this._viewRow)}>
-                          <svg viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"/></svg>
+                      ? html`<button type="button" class="icon-btn sm" title="Edit" aria-label="Edit template" @click=${() => this._openEditTemplate(this._viewRow)}>
+                          ${glyph("pencil")}
                         </button>`
                       : ""}
-                    <button class="close-btn" @click=${this._closeOverlay} title="Close">&times;</button>
+                    <button type="button" class="icon-btn sm close-btn" @click=${this._closeOverlay} title="Close" aria-label="Close">${glyph("close")}</button>
                   </div>
                 </div>
                 <div class="dialog-body">
@@ -1737,22 +1752,22 @@ class MagicCardUtilsPanel extends LitElement {
                         <div class="pane metadata-pane">
                           <div class="pane-header">Template</div>
                           <div class="meta-body">
-                            <label class="field">
-                              <span class="field-label">Name</span>
-                              <input class="field-input" type="text" .value=${this._editMeta.name}
+                            <div class="field">
+                              <div class="field-head"><label for="mcu-meta-name">Name</label></div>
+                              <input id="mcu-meta-name" class="input" type="text" .value=${this._editMeta.name}
                                 @input=${(e) => (this._editMeta = { ...this._editMeta, name: e.target.value })} />
-                            </label>
-                            <label class="field">
-                              <span class="field-label">Description</span>
-                              <input class="field-input" type="text" .value=${this._editMeta.description}
+                            </div>
+                            <div class="field">
+                              <div class="field-head"><label for="mcu-meta-description">Description</label></div>
+                              <input id="mcu-meta-description" class="input" type="text" .value=${this._editMeta.description}
                                 @input=${(e) => (this._editMeta = { ...this._editMeta, description: e.target.value })} />
-                            </label>
-                            <label class="field">
-                              <span class="field-label">Card Type</span>
-                              <input class="field-input mono" type="text" placeholder="custom:magic-card" .value=${this._editMeta.card_type}
+                            </div>
+                            <div class="field">
+                              <div class="field-head"><label for="mcu-meta-type">Card Type</label></div>
+                              <input id="mcu-meta-type" class="input mono" type="text" placeholder="custom:magic-card" .value=${this._editMeta.card_type}
                                 @input=${(e) => (this._editMeta = { ...this._editMeta, card_type: e.target.value })} />
-                            </label>
-                            <div class="meta-hint">Edit the card using the editor on the right. Its changes are captured live.</div>
+                            </div>
+                            <p class="help">Edit the card using the editor on the right. Its changes are captured live.</p>
                           </div>
                         </div>
                       `
@@ -1768,7 +1783,9 @@ class MagicCardUtilsPanel extends LitElement {
                       ? html`<div class="editor-host" @config-changed=${this._onEditorConfigChanged}></div>`
                       : html`
                           <div class="preview-wrap">
-                            ${this._previewError ? html`<div class="preview-error">${this._previewError}</div>` : ""}
+                            ${this._previewError
+                              ? html`<div class="notice error preview-note" role="alert">${glyph("error", 20)}<div class="body"><p>${this._previewError}</p></div></div>`
+                              : ""}
                             <div class="preview-host"></div>
                           </div>
                         `}
@@ -1777,10 +1794,10 @@ class MagicCardUtilsPanel extends LitElement {
                 ${this._viewMode === "edit" ? html`
                   <div class="dialog-footer">
                     ${this._editError
-                      ? html`<div class="form-error" role="alert">${this._editError}</div>`
+                      ? html`<div class="footer-note"><div class="notice error" role="alert">${glyph("error", 20)}<div class="body"><p>${this._editError}</p></div></div></div>`
                       : ""}
-                    <button class="btn" @click=${this._closeOverlay}>Cancel</button>
-                    <button class="btn primary" @click=${this._saveEditedTemplate} ?disabled=${this._submitting}>${this._submitting ? "Saving…" : "Save"}</button>
+                    <button type="button" class="btn btn-secondary" @click=${this._closeOverlay}>Cancel</button>
+                    <button type="button" class="btn btn-primary" @click=${this._saveEditedTemplate} ?disabled=${this._submitting}>${this._submitting ? "Saving…" : "Save"}</button>
                   </div>
                 ` : ""}
               </div>
@@ -1816,15 +1833,17 @@ class MagicCardUtilsPanel extends LitElement {
                   ? "Duplicate template"
                   : "Delete template"}
               </span>
-              <span class="dialog-title-type">${row.name}</span>
+              <span class="chip mono">${row.name}</span>
             </div>
             <button
-              class="close-btn"
+              type="button"
+              class="icon-btn sm close-btn"
               @click=${this._closeAction}
               ?disabled=${this._submitting}
               title="Close"
+              aria-label="Close"
             >
-              &times;
+              ${glyph("close")}
             </button>
           </div>
           <div class="action-body">
@@ -1835,12 +1854,13 @@ class MagicCardUtilsPanel extends LitElement {
               ? this._renderDeleteForm(row)
               : ""}
             ${this._actionError
-              ? html`<div class="form-error">${this._actionError}</div>`
+              ? html`<div class="notice error" role="alert">${glyph("error", 20)}<div class="body"><p>${this._actionError}</p></div></div>`
               : ""}
           </div>
           <div class="action-footer">
             <button
-              class="btn"
+              type="button"
+              class="btn btn-secondary"
               @click=${this._closeAction}
               ?disabled=${this._submitting}
             >
@@ -1848,7 +1868,8 @@ class MagicCardUtilsPanel extends LitElement {
             </button>
             ${this._actionMode === "duplicate"
               ? html`<button
-                  class="btn primary"
+                  type="button"
+                  class="btn btn-primary"
                   @click=${this._submitDuplicate}
                   ?disabled=${this._submitting}
                 >
@@ -1857,7 +1878,8 @@ class MagicCardUtilsPanel extends LitElement {
               : ""}
             ${this._actionMode === "delete"
               ? html`<button
-                  class="btn danger"
+                  type="button"
+                  class="btn btn-danger"
                   @click=${this._submitDelete}
                   ?disabled=${this._submitting || row.linked_cards > 0}
                 >
@@ -1872,19 +1894,20 @@ class MagicCardUtilsPanel extends LitElement {
 
   _renderDuplicateForm() {
     return html`
-      <label class="field">
-        <span class="field-label">New template name</span>
+      <div class="field">
+        <div class="field-head"><label for="mcu-duplicate-name">New template name</label></div>
         <input
-          class="field-input"
+          id="mcu-duplicate-name"
+          class="input"
           type="text"
           .value=${this._duplicateName}
           @input=${(e) => (this._duplicateName = e.target.value)}
           ?disabled=${this._submitting}
         />
-      </label>
-      <div class="field-hint">
-        Copies the config, description, and card type. Created and updated
-        timestamps reset to now.
+        <p class="help">
+          Copies the config, description, and card type. Created and updated
+          timestamps reset to now.
+        </p>
       </div>
     `;
   }
@@ -1892,9 +1915,14 @@ class MagicCardUtilsPanel extends LitElement {
   _renderDeleteForm(row) {
     if (row.linked_cards > 0) {
       return html`
-        <div class="form-warning">
-          This template is still linked to ${row.linked_cards} card(s) and
-          cannot be deleted. Remove the bindings first.
+        <div class="notice warn" role="status">
+          ${glyph("warn", 20)}
+          <div class="body">
+            <p>
+              This template is still linked to ${row.linked_cards} card(s) and
+              cannot be deleted. Remove the bindings first.
+            </p>
+          </div>
         </div>
       `;
     }
@@ -1919,7 +1947,11 @@ class MagicCardUtilsPanel extends LitElement {
   }
 
   static get styles() {
-    return css`
+    // The kit first (buttons, fields, notices, icon buttons, chips, empty), then layout only. The page header
+    // and the page tab bar are Home Assistant's own chrome (design/10 D6) and keep their HA variables.
+    return [
+      mcUiKit,
+      css`
       :host {
         display: block;
       }
@@ -1954,12 +1986,10 @@ class MagicCardUtilsPanel extends LitElement {
         line-height: 1;
         flex: 1;
       }
-      .error {
-        padding: 12px 16px;
-        background: var(--error-color, #db4437);
-        color: #fff;
-      }
       .content {
+        display: grid;
+        gap: 12px;
+        align-content: start;
         padding: 16px;
       }
       .tabs {
@@ -1998,27 +2028,10 @@ class MagicCardUtilsPanel extends LitElement {
         outline-offset: -4px;
         border-radius: 4px;
       }
-      .error.dismissable {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      .error.dismissable span {
-        flex: 1;
-      }
-      .error.dismissable .close-btn {
-        color: inherit;
-      }
       .studio-status {
         display: flex;
         justify-content: center;
         padding: 48px 16px;
-      }
-      .studio-message {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 16px;
       }
       .studio-host {
         display: block;
@@ -2045,42 +2058,38 @@ class MagicCardUtilsPanel extends LitElement {
         margin: 16px;
       }
       .editors-tab {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
         gap: 12px;
-      }
-      .editors-tab > .empty {
-        align-self: stretch;
       }
       .editor-actions {
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
       }
-      .editors-tab .btn {
-        min-height: 36px;
+      .see-all {
+        justify-self: start;
       }
-      .section-title {
-        margin: 12px 0 0;
-        font-size: 16px;
-        font-weight: 500;
+      .recent-section {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
       }
       .recent-list {
-        align-self: stretch;
+        justify-self: stretch;
         list-style: none;
         margin: 0;
         padding: 0;
-        background: var(--card-background-color, var(--ha-card-background));
-        border-radius: 8px;
+        background: var(--mc-surface);
+        border: 1px solid var(--mc-divider);
+        border-radius: var(--mc-radius-lg);
       }
       .recent-list li {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        padding: 8px 16px;
-        border-bottom: 1px solid var(--divider-color);
+        min-height: var(--mc-hit);
+        padding: 4px 8px 4px 16px;
+        border-bottom: 1px solid var(--mc-divider);
       }
       .recent-list li:last-child {
         border-bottom: none;
@@ -2094,34 +2103,29 @@ class MagicCardUtilsPanel extends LitElement {
         height: calc(100vh - 64px - 49px);
         min-height: 480px;
       }
-      .empty {
-        padding: 24px;
-        text-align: center;
-        color: var(--secondary-text-color);
-        background: var(--card-background-color, var(--ha-card-background));
-        border-radius: 8px;
-      }
       .templates-table {
         width: 100%;
         border-collapse: collapse;
-        background: var(--card-background-color, var(--ha-card-background));
-        border-radius: 8px;
+        background: var(--mc-surface);
+        border: 1px solid var(--mc-divider);
+        border-radius: var(--mc-radius-lg);
         overflow: hidden;
       }
       .templates-table th,
       .templates-table td {
         text-align: left;
-        padding: 12px 16px;
-        border-bottom: 1px solid var(--divider-color);
+        padding: 8px 16px;
+        border-bottom: 1px solid var(--mc-divider);
         vertical-align: middle;
       }
       .templates-table tbody tr:last-child td {
         border-bottom: none;
       }
       .templates-table th {
+        font-size: 0.8125rem;
         font-weight: 500;
-        color: var(--secondary-text-color);
-        background: var(--table-header-background-color, transparent);
+        color: var(--mc-text-2);
+        background: var(--mc-surface-2);
       }
       .col-name {
         width: 1%;
@@ -2145,50 +2149,6 @@ class MagicCardUtilsPanel extends LitElement {
         align-items: center;
         justify-content: flex-end;
       }
-      .action-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        padding: 0;
-        background: none;
-        border: 0;
-        border-radius: 4px;
-        color: var(--secondary-text-color);
-        cursor: pointer;
-        transition: background-color 120ms ease, color 120ms ease;
-      }
-      .action-btn:hover:not([disabled]) {
-        background: var(--divider-color);
-      }
-      .action-btn[disabled] {
-        opacity: 0.35;
-        cursor: not-allowed;
-      }
-      .action-btn.studio {
-        color: var(--primary-color);
-      }
-      .action-btn.edit {
-        color: var(--info-color, #2196f3);
-      }
-      .action-btn.duplicate {
-        color: var(--success-color, #43a047);
-      }
-      .action-btn.danger {
-        color: var(--error-color, #db4437);
-      }
-      .action-btn.studio:hover:not([disabled]),
-      .action-btn.edit:hover:not([disabled]),
-      .action-btn.duplicate:hover:not([disabled]),
-      .action-btn.danger:hover:not([disabled]) {
-        filter: brightness(1.15);
-      }
-      .action-btn svg {
-        width: 18px;
-        height: 18px;
-        fill: currentColor;
-      }
       .template-name {
         font-weight: 500;
         max-width: 100%;
@@ -2198,15 +2158,15 @@ class MagicCardUtilsPanel extends LitElement {
         display: inline-block;
       }
       .secondary {
-        font-size: 12px;
-        color: var(--secondary-text-color);
+        font-size: 0.75rem;
+        color: var(--mc-text-2);
         margin-top: 2px;
         white-space: normal;
       }
       .overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.5);
+        background: var(--mc-scrim);
         z-index: 10;
         display: flex;
         align-items: center;
@@ -2214,10 +2174,10 @@ class MagicCardUtilsPanel extends LitElement {
         padding: 16px;
       }
       .dialog {
-        background: var(--card-background-color, var(--ha-card-background));
-        color: var(--primary-text-color);
-        border-radius: 8px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        background: var(--mc-surface);
+        color: var(--mc-text);
+        border-radius: var(--mc-radius-xl);
+        box-shadow: var(--mc-shadow-dialog);
         max-width: 1280px;
         width: 100%;
         max-height: 90vh;
@@ -2238,33 +2198,31 @@ class MagicCardUtilsPanel extends LitElement {
         flex: 1 1 50%;
       }
       .pane + .pane {
-        border-left: 1px solid var(--divider-color);
+        border-left: 1px solid var(--mc-divider);
       }
       .pane-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         padding: 8px 16px;
-        font-size: 12px;
+        font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        color: var(--secondary-text-color);
-        border-bottom: 1px solid var(--divider-color);
-        background: var(--table-header-background-color, transparent);
+        color: var(--mc-text-2);
+        border-bottom: 1px solid var(--mc-divider);
+        background: var(--mc-surface-2);
       }
       .preview-wrap {
         flex: 1;
         overflow: auto;
         padding: 16px;
-        background: var(--primary-background-color);
+        background: var(--mc-ground);
       }
       .preview-host {
         display: block;
       }
-      .preview-error {
-        padding: 12px;
+      .preview-note {
         margin-bottom: 12px;
-        background: var(--error-color, #db4437);
-        color: #fff;
-        border-radius: 4px;
-        font-size: 13px;
       }
       .editor-host {
         flex: 1;
@@ -2278,19 +2236,14 @@ class MagicCardUtilsPanel extends LitElement {
         align-self: stretch;
       }
       .metadata-pane {
-        flex: 0 0 220px;
-        border-right: 1px solid var(--divider-color);
+        flex: 0 0 240px;
+        border-right: 1px solid var(--mc-divider);
       }
       .meta-body {
         padding: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      .meta-hint {
-        font-size: 12px;
-        color: var(--secondary-text-color);
-        line-height: 1.4;
+        display: grid;
+        gap: 12px;
+        align-content: start;
       }
       @media (max-width: 720px) {
         .dialog-body {
@@ -2298,114 +2251,24 @@ class MagicCardUtilsPanel extends LitElement {
         }
         .pane + .pane {
           border-left: 0;
-          border-top: 1px solid var(--divider-color);
+          border-top: 1px solid var(--mc-divider);
         }
       }
       .action-dialog {
         max-width: 480px;
       }
       .action-body {
-        padding: 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
+        padding: 16px 20px;
+        display: grid;
+        gap: 16px;
         overflow: auto;
-      }
-      .field {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-      .field-label {
-        font-size: 12px;
-        color: var(--secondary-text-color);
-      }
-      .field-input {
-        font: inherit;
-        font-size: 14px;
-        padding: 8px 10px;
-        background: var(--primary-background-color);
-        color: var(--primary-text-color);
-        border: 1px solid var(--divider-color);
-        border-radius: 4px;
-        outline: none;
-        resize: vertical;
-      }
-      .field-input:focus {
-        border-color: var(--primary-color);
-      }
-      .field-input.mono {
-        font-family: var(--code-font-family, monospace);
-        font-size: 13px;
-      }
-      .field-hint {
-        font-size: 12px;
-        color: var(--secondary-text-color);
-        line-height: 1.4;
-      }
-      .form-error {
-        padding: 8px 12px;
-        background: var(--error-color, #db4437);
-        color: #fff;
-        border-radius: 4px;
-        font-size: 13px;
-      }
-      .form-warning {
-        padding: 8px 12px;
-        background: var(--warning-color, #ffa600);
-        color: #000;
-        border-radius: 4px;
-        font-size: 13px;
-        line-height: 1.4;
-      }
-      .action-footer {
-        display: flex;
-        justify-content: flex-end;
-        gap: 8px;
-        padding: 12px 16px;
-        border-top: 1px solid var(--divider-color);
-      }
-      .btn {
-        font: inherit;
-        font-size: 14px;
-        padding: 8px 16px;
-        background: transparent;
-        color: var(--primary-text-color);
-        border: 1px solid var(--divider-color);
-        border-radius: 4px;
-        cursor: pointer;
-      }
-      .btn:hover:not([disabled]) {
-        background: var(--divider-color);
-      }
-      .btn[disabled] {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-      .btn.primary {
-        background: var(--primary-color);
-        color: var(--text-primary-color, #fff);
-        border-color: var(--primary-color);
-      }
-      .btn.primary:hover:not([disabled]) {
-        filter: brightness(1.1);
-        background: var(--primary-color);
-      }
-      .btn.danger {
-        background: var(--error-color, #db4437);
-        color: #fff;
-        border-color: var(--error-color, #db4437);
-      }
-      .btn.danger:hover:not([disabled]) {
-        filter: brightness(1.1);
-        background: var(--error-color, #db4437);
       }
       .dialog-header {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 12px 16px;
-        border-bottom: 1px solid var(--divider-color);
+        gap: 8px;
+        padding: 12px 12px 12px 20px;
+        border-bottom: 1px solid var(--mc-divider);
       }
       .dialog-title {
         flex: 1;
@@ -2415,99 +2278,45 @@ class MagicCardUtilsPanel extends LitElement {
         min-width: 0;
       }
       .dialog-title-name {
-        font-size: 16px;
+        font-size: 1rem;
         font-weight: 500;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-      }
-      .dialog-title-type {
-        padding: 2px 8px;
-        font-family: var(--code-font-family, monospace);
-        font-size: 11px;
-        color: var(--secondary-text-color);
-        background: var(--divider-color);
-        border-radius: 4px;
-        white-space: nowrap;
-        flex-shrink: 0;
-      }
-      .close-btn {
-        font-size: 22px;
-        line-height: 1;
-        background: none;
-        border: 0;
-        color: var(--secondary-text-color);
-        cursor: pointer;
-        padding: 4px 8px;
-        border-radius: 4px;
-      }
-      .close-btn:hover {
-        background: var(--divider-color);
-        color: var(--primary-text-color);
       }
       .dialog-header-actions {
         display: flex;
         align-items: center;
         gap: 4px;
       }
-      .dialog-header-actions .action-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        padding: 0;
-        background: none;
-        border: 0;
-        border-radius: 4px;
-        color: var(--secondary-text-color);
-        cursor: pointer;
-      }
-      .dialog-header-actions .action-btn svg {
-        width: 18px;
-        height: 18px;
-        fill: currentColor;
-      }
-      .dialog-header-actions .action-btn:hover {
-        background: var(--divider-color);
-      }
+      .action-footer,
       .dialog-footer {
         display: flex;
         justify-content: flex-end;
         align-items: center;
         gap: 8px;
         padding: 12px 16px;
-        border-top: 1px solid var(--divider-color);
+        border-top: 1px solid var(--mc-divider);
       }
-      .dialog-footer .form-error {
+      .footer-note {
         margin-right: auto;
-      }
-      .pane-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 8px 16px;
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--secondary-text-color);
-        border-bottom: 1px solid var(--divider-color);
-        background: var(--table-header-background-color, transparent);
+        min-width: 0;
       }
       .yaml-body {
         margin: 0;
         padding: 16px;
         background: var(--code-editor-background-color, #1e1e1e);
         color: var(--primary-text-color);
-        font-family: var(--code-font-family, monospace);
-        font-size: 12px;
+        font-family: var(--mc-mono);
+        font-size: 0.75rem;
         line-height: 1.5;
         overflow: auto;
         flex: 1;
         min-height: 0;
         white-space: pre;
       }
-    `;
+    `,
+    ];
   }
 }
 

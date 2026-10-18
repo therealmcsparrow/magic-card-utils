@@ -4,6 +4,14 @@ All notable changes to Magic Card Utils are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use calendar versioning (`YYYY.MM.NN`).
 
+## [Unreleased]
+
+### Changed
+
+- The panel content uses the same buttons, fields, notices, icon buttons and chips as the Magic Card editor. They come from `www/mc-ui-kit.js`, generated from Magic Card. The Home Assistant header and page tabs are unchanged.
+- Dialogs follow the kit: larger corners, the kit shadow and scrim, a close icon button instead of a text cross, and labelled fields with help text under them.
+- Errors and warnings in the panel show as inline notices with an icon, not coloured bars. Table action buttons share one neutral colour and each has an accessible name.
+
 ## [2026.10.09] - 2026-10-17
 
 ### Added

@@ -27,3 +27,41 @@ sha256sum lit-core.min.js
 
 esbuild output can differ between platforms or minor versions. The SHA-256
 above is the checksum of the committed file.
+
+# Generated: Magic Card UI kit (CSS only)
+
+`mc-ui-kit.js` is the panel's copy of the Magic Card UI kit (contract
+`ui-kit` 1.0.0, revision 2). It is generated, never edited by hand. It holds
+the kit's CSS as one Lit `css` template (editor tokens, kit tokens, card editor
+primitives, notices, chips, empty state, toast) and the few Material Design
+Icons paths the panel draws. It has no templates and no custom elements, so the
+panel needs no other Magic Card file to load.
+
+| Field | Value |
+| --- | --- |
+| File | `mc-ui-kit.js` |
+| Magic Card version | `2026.10.11-beta.1` (`MC_UI_KIT_VERSION`) |
+| Magic Card commit | `5b96ea1` (branch `aico/svg-and-shape-editors`), clean tree |
+| SHA-256 | `c158228ac826b0236a45477bcffef3b74447951adb18f208a3321855aef76f93` |
+| Icons | `@mdi/js` 7.4.47, Apache-2.0 (https://github.com/Templarian/MaterialDesign-JS) |
+| Imports | `lit-core.min.js` (`css`, `html`) |
+
+The panel uses the kit for everything inside its content area: buttons, fields,
+notices, icon buttons, chips and the empty state. The page header and the page
+tab bar are Home Assistant's own chrome and keep HA's variables. The dialogs
+keep a layout of their own (they cannot rely on the `mc-ui-window` element, which
+exists only after a Magic Card chunk has loaded) but take size, radius, shadow
+and scrim from the kit tokens.
+
+Regenerate from a clean checkout of the Magic Card repo, so work in progress
+does not reach this file. From the Magic Card repo:
+
+```sh
+git archive HEAD | tar -x -C <empty dir inside the repo>
+node <empty dir>/tools/export-ui-kit.mjs <this repo>/custom_components/magic_card_utils/www/mc-ui-kit.js
+sha256sum <this repo>/custom_components/magic_card_utils/www/mc-ui-kit.js
+```
+
+`node tools/export-ui-kit.mjs --check <file>` exits 1 when the file differs from
+a fresh export. The output has no date and no path, so the same sources give the
+same SHA-256. After regenerating, update the three rows above.
