@@ -1,7 +1,7 @@
 # Magic Card Utils
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/therealmcsparrow/magic-card-utils/main/custom_components/magic_card_utils/brand/logo@2x.png" alt="Magic Card logo" width="240">
+  <img src="https://raw.githubusercontent.com/therealmcsparrow/magic-card-utils/main/custom_components/magic_card_utils/brand/logo@2x.png" alt="Magic Card logo" width="160">
 </p>
 
 [![HACS][hacs-badge]][hacs-url]
@@ -26,7 +26,7 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 ## Requirements
 
 - Home Assistant **2024.7** or newer.
-- The integration icon and logo show in Home Assistant and HACS from Home Assistant **2026.3**. Older versions show a placeholder.
+- The integration icon and logo show in Home Assistant from **2026.3**, and in the HACS/Marketplace list from **2026.11**. Older versions show a placeholder.
 - [Magic Card](https://github.com/therealmcsparrow/magic-card), installed with HACS (or added as a dashboard resource of type JavaScript module). The panel uses the installed Magic Card; Magic Card Utils doesn't ship its own copy.
 - Magic Card **2026.10.01** or newer for the Animations tab.
 - Magic Card **2026.10.06** or newer for the Themes tab.
@@ -34,6 +34,10 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 ## Installation
 
 ### HACS (recommended)
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=therealmcsparrow&repository=magic-card-utils&category=integration)
+
+Click the button above to open the repository in HACS, then click **Download** and restart Home Assistant. Or add it by hand:
 
 1. Open HACS in Home Assistant.
 2. Open the menu (⋮) in the top right and select **Custom repositories**.
@@ -94,7 +98,6 @@ The MIT License covers the source code. It does not cover the brand assets (the 
 ### Third-party
 
 - **Lit 3.3.3** (BSD-3-Clause): the panel uses a local copy in `www/` instead of loading it from unpkg.com.
-- **Montserrat** (SIL Open Font License 1.1): used in the Magic Card logo, `images/magic-card-logo.svg`.
 
 
 [hacs-badge]: https://img.shields.io/badge/HACS-Custom-41BDF5.svg

@@ -1,15 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 850" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="225 135 350 460" width="100%" height="100%">
   <defs>
-    <!-- Font Import for clean geometric typography -->
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@800&amp;display=swap');
-      .brand-text {
-        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        font-weight: 800;
-        font-size: 92px;
-        letter-spacing: 2px;
-      }
-    </style>
 
     <!-- Background & Frame Gradients -->
     <linearGradient id="outerBorderGrad" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -55,16 +45,6 @@
       <stop offset="0%" stop-color="#7b2cbf" />
       <stop offset="60%" stop-color="#4ea8de" />
       <stop offset="100%" stop-color="#80ffdb" />
-    </linearGradient>
-
-    <!-- Text Galaxy Gradient -->
-    <linearGradient id="magicTextGrad" x1="0%" y1="0%" x2="100%" y2="20%">
-      <stop offset="0%" stop-color="#1d1849" />
-      <stop offset="28%" stop-color="#7b2cbf" />
-      <stop offset="42%" stop-color="#e0aaff" />
-      <stop offset="55%" stop-color="#5e60ce" />
-      <stop offset="78%" stop-color="#48cae4" />
-      <stop offset="100%" stop-color="#1b265e" />
     </linearGradient>
 
     <!-- Glow Filters -->
@@ -198,13 +178,5 @@
       <circle cx="496" cy="538" r="4.5" fill="#11092e" />
       <circle cx="524" cy="532" r="4.5" fill="#11092e" />
     </g>
-  </g>
-
-  <!-- ================= TYPOGRAPHY ================= -->
-  <g id="logo-text" transform="translate(400, 695)" text-anchor="middle">
-    <text class="brand-text">
-      <tspan fill="url(#magicTextGrad)">MAGIC </tspan>
-      <tspan fill="#11113a">CARD</tspan>
-    </text>
   </g>
 </svg>
