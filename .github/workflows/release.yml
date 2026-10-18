@@ -91,3 +91,8 @@ jobs:
 
       - name: Upload assets to the release
         run: gh release upload "$TAG" magic_card_utils.zip magic_card_utils.sbom.cdx.json --clobber
+
+      - name: Keep a hyphenated tag a pre-release
+        # 2026.10.11-beta.1 / -rc.1: force the pre-release flag on and keep the Latest badge off, whatever the release was created with
+        if: ${{ contains(github.event.release.tag_name, '-') }}
+        run: gh release edit "$TAG" --prerelease --latest=false
