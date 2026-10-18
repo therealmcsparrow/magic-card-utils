@@ -272,6 +272,161 @@ function _siblingUrl(cardUrl, file) {
   return m ? `${m[1]}${file}${m[2] || ""}` : null;
 }
 
+// ---- Shapes tab thumbnails. The card's builder is a lazy chunk the panel does not load for a list, so the list
+// draws a small outline itself from the stored options (contract custom-shape 1.0.0): a 160 x 100 nominal box,
+// free paths with their handles, corner mode with its corner types. It is a hint of the shape, not the exact
+// outline (the editor shows that).
+const THUMB_W = 160;
+const THUMB_H = 100;
+
+/** A coordinate or length: number = px, '<n>', '<n>px', '<p>%', '<p>%+<n>', '<p>%-<n>'; NaN when it is none of them. */
+function _shapeLen(v, size) {
+  if (typeof v === "number") return Number.isFinite(v) ? v : NaN;
+  if (typeof v !== "string") return NaN;
+  const m = /^\s*(?:(-?\d+(?:\.\d+)?)%(?:\s*([+-])\s*(\d+(?:\.\d+)?)(?:px)?)?|(-?\d+(?:\.\d+)?)(?:px)?)\s*$/.exec(v);
+  if (!m) return NaN;
+  if (m[4] !== undefined) return Number(m[4]);
+  return (Number(m[1]) / 100) * size + (m[3] === undefined ? 0 : (m[2] === "-" ? -1 : 1) * Number(m[3]));
+}
+
+const _r1 = (n) => Math.round(n * 10) / 10;
+
+function _freeOutline(points) {
+  const pts = [];
+  for (const q of points) {
+    if (!q || typeof q !== "object") return "";
+    const x = _shapeLen(q.x, THUMB_W);
+    const y = _shapeLen(q.y, THUMB_H);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return "";
+    const h = (a) => (Array.isArray(a) && Number.isFinite(a[0]) && Number.isFinite(a[1]) && (a[0] || a[1]) ? a : null);
+    pts.push({ x: Math.min(THUMB_W, Math.max(0, x)), y: Math.min(THUMB_H, Math.max(0, y)), in: h(q.in), out: h(q.out) });
+  }
+  if (pts.length < 3) return "";
+  const c = (n, max) => _r1(Math.min(max, Math.max(0, n)));
+  const seg = (a, b) =>
+    a.out || b.in
+      ? `C${c(a.x + (a.out ? a.out[0] : 0), THUMB_W)} ${c(a.y + (a.out ? a.out[1] : 0), THUMB_H)} ${c(b.x + (b.in ? b.in[0] : 0), THUMB_W)} ${c(b.y + (b.in ? b.in[1] : 0), THUMB_H)} ${_r1(b.x)} ${_r1(b.y)}`
+      : `L${_r1(b.x)} ${_r1(b.y)}`;
+  let d = `M${_r1(pts[0].x)} ${_r1(pts[0].y)}`;
+  for (let i = 1; i < pts.length; i++) d += seg(pts[i - 1], pts[i]);
+  const last = pts[pts.length - 1];
+  if (last.out || pts[0].in) d += seg(last, pts[0]);
+  return d + "Z";
+}
+
+function _cornerOutline(o) {
+  const w = THUMB_W;
+  const h = THUMB_H;
+  const base = o.corner === undefined ? NaN : _shapeLen(o.corner, Math.min(w, h));
+  const baseType = typeof o.corner_type === "string" ? o.corner_type : "";
+  const one = (key) => {
+    const raw = o.corners && typeof o.corners === "object" ? o.corners[key] : undefined;
+    let type = baseType;
+    let size = base;
+    if (typeof raw === "string" && /^[a-z]+$/.test(raw)) type = raw;
+    else if (typeof raw === "number" || typeof raw === "string") size = _shapeLen(raw, Math.min(w, h));
+    else if (raw && typeof raw === "object") {
+      if (typeof raw.type === "string") type = raw.type;
+      if (raw.size !== undefined) size = _shapeLen(raw.size, Math.min(w, h));
+    }
+    if (!Number.isFinite(size)) size = type ? 16 : 0;
+    return { type: type || "round", s: Math.max(0, size) };
+  };
+  const k = { tl: one("tl"), tr: one("tr"), br: one("br"), bl: one("bl") };
+  const f = Math.min(1, w / ((k.tl.s + k.tr.s) || 1), w / ((k.bl.s + k.br.s) || 1), h / ((k.tl.s + k.bl.s) || 1), h / ((k.tr.s + k.br.s) || 1));
+  for (const c of Object.values(k)) c.s = _r1(c.s * f);
+  let d = "";
+  let cx = NaN;
+  let cy = NaN;
+  const go = (cmd, x, y) => {
+    x = _r1(x);
+    y = _r1(y);
+    if (cmd !== "M" && x === cx && y === cy) return;
+    d += `${cmd}${x} ${y}`;
+    cx = x;
+    cy = y;
+  };
+  const corner = (c, ax, ay, bx, by, ix, iy, kx, ky) => {
+    go("L", ax, ay);
+    if (c.type === "bevel") go("L", bx, by);
+    else if (c.type === "notch") (go("L", ix, iy), go("L", bx, by));
+    else if (c.type === "square" || !c.s) (go("L", kx, ky), go("L", bx, by));
+    else {
+      d += `A${c.s} ${c.s} 0 0 ${c.type === "scoop" ? 0 : 1} ${_r1(bx)} ${_r1(by)}`;
+      cx = _r1(bx);
+      cy = _r1(by);
+    }
+  };
+  go("M", 0, k.tl.s);
+  corner(k.tl, 0, k.tl.s, k.tl.s, 0, k.tl.s, k.tl.s, 0, 0);
+  corner(k.tr, w - k.tr.s, 0, w, k.tr.s, w - k.tr.s, k.tr.s, w, 0);
+  corner(k.br, w, h - k.br.s, w - k.br.s, h, w - k.br.s, h - k.br.s, w, h);
+  corner(k.bl, k.bl.s, h, 0, h - k.bl.s, k.bl.s, h - k.bl.s, 0, h);
+  return d + "Z";
+}
+
+/** { d, count }: an SVG path in a 160 x 100 box ('' when the options cannot be drawn) and the number of free-path points (0 in corner mode). */
+function _shapeOutline(o) {
+  if (!o || typeof o !== "object") return { d: "", count: 0 };
+  try {
+    if (o.points !== undefined) {
+      return Array.isArray(o.points) ? { d: _freeOutline(o.points), count: o.points.length } : { d: "", count: 0 };
+    }
+    return { d: _cornerOutline(o), count: 0 };
+  } catch (e) {
+    return { d: "", count: 0 };
+  }
+}
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+/** The row thumbnail: decorative, in the text colour. */
+function _shapeThumb(id, d) {
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${THUMB_W} ${THUMB_H}`);
+  svg.setAttribute("width", "48");
+  svg.setAttribute("height", "30");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  svg.setAttribute("class", "mcu-thumb");
+  svg.setAttribute("data-id", id);
+  svg.setAttribute("style", "flex:none;margin-inline-end:10px;color:var(--secondary-text-color,#727272)");
+  const path = document.createElementNS(SVG_NS, "path");
+  path.setAttribute("d", d);
+  path.setAttribute("fill", "currentColor");
+  path.setAttribute("fill-opacity", "0.18");
+  path.setAttribute("stroke", "currentColor");
+  path.setAttribute("stroke-width", "6");
+  path.setAttribute("stroke-linejoin", "round");
+  svg.appendChild(path);
+  return svg;
+}
+
+/** Put the outline and the point count into every row of the Library view that shows a saved shape. Idempotent. */
+function _decorateShapeRows(root, byId) {
+  for (const rowEl of root.querySelectorAll(".row")) {
+    const nameEl = rowEl.querySelector(".name");
+    const idEl = nameEl && nameEl.querySelector("small:not(.mcu-pts)");
+    const id = idEl ? idEl.textContent.trim() : "";
+    const shape = id ? byId.get(id) : null;
+    if (!shape) continue;
+    const { d, count } = _shapeOutline(shape);
+    const old = rowEl.querySelector(".mcu-thumb");
+    if (d && (!old || old.getAttribute("data-id") !== id)) {
+      if (old) old.remove();
+      rowEl.insertBefore(_shapeThumb(id, d), nameEl);
+    }
+    const label = count ? tr("{n, plural, one {# point} other {# points}}", { n: count }) : tr("Corner shape");
+    let pts = nameEl.querySelector(".mcu-pts");
+    if (!pts) {
+      pts = document.createElement("small");
+      pts.className = "mcu-pts";
+      nameEl.appendChild(pts);
+    }
+    if (pts.textContent !== label) pts.textContent = label;
+  }
+}
+
 /** The newest `limit` items by updated_at (ISO strings sort as text); anything that is not an item is skipped. */
 function _recentItems(list, limit) {
   if (!Array.isArray(list)) return [];
@@ -331,6 +486,7 @@ class MagicCardUtilsPanel extends LitElement {
       _libraryMessage: { type: String, state: true },
       _shapesStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _shapesMessage: { type: String, state: true },
+      _shapeSavedNote: { type: Boolean, state: true },
       _editorOpen: { type: Boolean, state: true },
       _editorBusy: { type: Boolean, state: true },
       _editorNotice: { type: String, state: true },
@@ -379,6 +535,7 @@ class MagicCardUtilsPanel extends LitElement {
     this._libraryStale = false;
     this._shapesStatus = "";
     this._shapesMessage = "";
+    this._shapeSavedNote = false;
     this._shapesEl = null;
     this._editorOpen = false;
     this._editorBusy = false;
@@ -825,6 +982,7 @@ class MagicCardUtilsPanel extends LitElement {
   _setTab(tab) {
     if (this._tab === tab) return;
     this._tab = tab;
+    this._shapeSavedNote = false;
     _lastTab = tab;
     this._syncTabQuery(tab);
   }
@@ -1256,6 +1414,7 @@ class MagicCardUtilsPanel extends LitElement {
     }
     this._editorBusy = true;
     this._editorNotice = "";
+    this._shapeSavedNote = false;
     try {
       const status = await this._ensureEditors(kind);
       if (!status.ok) {
@@ -1303,6 +1462,7 @@ class MagicCardUtilsPanel extends LitElement {
       this._editorFocusKey = rawKey && FOCUS_KEY_RE.test(rawKey) ? rawKey : "";
       this._editorOpener = opener || null;
       this._editorEl = el;
+      this._editorKind = kind;
       this._editorOpen = true;
       await this.updateComplete;
       this._attachEditor();
@@ -1322,6 +1482,7 @@ class MagicCardUtilsPanel extends LitElement {
 
   /** A save keeps the editor open; the lists behind it are refreshed. */
   _onEditorSaved() {
+    if (this._editorKind === "shape") this._shapeSavedNote = true;
     this._libraryStale = true;
     this._loadRecent();
   }
@@ -1440,6 +1601,7 @@ class MagicCardUtilsPanel extends LitElement {
     this._shapesStatus = "ready";
     await this.updateComplete;
     this._attachShapesView();
+    this._watchShapeThumbs(el);
   }
 
   _attachShapesView() {
@@ -1447,6 +1609,67 @@ class MagicCardUtilsPanel extends LitElement {
     if (!host || !this._shapesEl || this._shapesEl.parentNode === host) return;
     host.innerHTML = "";
     host.appendChild(this._shapesEl);
+  }
+
+  /** What an edit of a saved shape does to cards, as the card resolves it (a ref follows the library, an own copy stays). */
+  _shapeCopyNote() {
+    return tr(
+      "Cards that picked this shape from the library follow your changes. A card that holds its own copy, such as a shape drawn in the card editor, keeps its points. To use this version there, pick the shape again under My shapes in the card editor."
+    );
+  }
+
+  /** After a shape save, on the tab the user returns to (the editor covers the whole page, so a line inside the shell would be hidden). */
+  _shapeSavedText() {
+    return tr(
+      "Saved to the library. Cards with their own copy of this shape keep it. To use this version in such a card, pick the shape again under My shapes in the card editor."
+    );
+  }
+
+  _renderShapeNote(text, role) {
+    return html`<div class="notice info shape-note" role=${role}>
+      ${glyph("info", 20)}
+      <div class="body"><p>${text}</p></div>
+    </div>`;
+  }
+
+  /** Outline and point count in the rows of the Shapes tab view (the Library view has no thumbnail slot for shapes yet). */
+  async _watchShapeThumbs(el) {
+    if (this._thumbObserver) this._thumbObserver.disconnect();
+    this._thumbObserver = null;
+    const byId = new Map();
+    let asked = 0;
+    const refresh = async () => {
+      if (Date.now() - asked < 1000) return;
+      asked = Date.now();
+      try {
+        const res = await this.hass.callWS({ type: CMD_SHAPES_LIST });
+        byId.clear();
+        for (const it of Array.isArray(res && res.shapes) ? res.shapes : []) {
+          if (it && typeof it.id === "string") byId.set(it.id, it.shape);
+        }
+      } catch (e) {
+        /* rows stay as they are */
+      }
+    };
+    const run = async () => {
+      const root = el.shadowRoot;
+      if (!root) return;
+      if (!byId.size || [...root.querySelectorAll(".row .name small:not(.mcu-pts)")].some((n) => !byId.has(n.textContent.trim()))) await refresh();
+      _decorateShapeRows(root, byId);
+    };
+    await el.updateComplete;
+    if (!el.shadowRoot || typeof MutationObserver !== "function") return;
+    let queued = false;
+    this._thumbObserver = new MutationObserver(() => {
+      if (queued) return;
+      queued = true;
+      Promise.resolve().then(() => {
+        queued = false;
+        return run();
+      });
+    });
+    this._thumbObserver.observe(el.shadowRoot, { childList: true, subtree: true });
+    await run();
   }
 
   _retryShapes() {
@@ -1488,6 +1711,7 @@ class MagicCardUtilsPanel extends LitElement {
   _renderLibraryTab() {
     return html`
       ${this._renderEditorNotice()}
+      ${this._shapeSavedNote ? this._renderShapeNote(this._shapeSavedText(), "status") : ""}
       ${this._libraryStatus === "loading" || this._libraryStatus === ""
         ? html`<div class="studio-status"><ha-circular-progress active></ha-circular-progress></div>`
         : ""}
@@ -1523,6 +1747,7 @@ class MagicCardUtilsPanel extends LitElement {
             </div>
           </div>`
         : ""}
+      ${this._shapesStatus === "ready" ? this._renderShapeNote(this._shapeSavedNote ? this._shapeSavedText() : this._shapeCopyNote(), this._shapeSavedNote ? "status" : "note") : ""}
       <div class="shapes-host" ?hidden=${this._shapesStatus !== "ready"}></div>
     `;
   }
@@ -1616,6 +1841,8 @@ class MagicCardUtilsPanel extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    if (this._thumbObserver) this._thumbObserver.disconnect();
+    this._thumbObserver = null;
     const animPending = this._animUnsubPromise;
     this._animUnsubPromise = undefined;
     this._animReady = undefined;
@@ -2134,6 +2361,9 @@ class MagicCardUtilsPanel extends LitElement {
       .editor-notice {
         margin: 16px;
       }
+      .shape-note {
+        margin: 16px 16px 0;
+      }
       .editors-tab {
         gap: 12px;
       }
@@ -2403,6 +2633,8 @@ if (!customElements.get("magic-card-utils-panel")) {
 
 // Test hooks (tests/panel_editors.test.mjs); nothing in Home Assistant reads them.
 export const _testing = {
+  shapeOutline: _shapeOutline,
+  decorateShapeRows: _decorateShapeRows,
   createPresetBackend: _createPresetBackend,
   compareCalVer: _compareCalVer,
   recentItems: _recentItems,

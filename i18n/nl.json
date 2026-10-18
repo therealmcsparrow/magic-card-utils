@@ -80,5 +80,9 @@
   "{n, plural, one {Cannot delete — still linked to # card.} other {Cannot delete — still linked to # cards.}}": "{n, plural, one {Kan niet verwijderen: nog gekoppeld aan # kaart.} other {Kan niet verwijderen: nog gekoppeld aan # kaarten.}}",
   "{n, plural, one {This template is still linked to # card and cannot be deleted. Remove the bindings first.} other {This template is still linked to # cards and cannot be deleted. Remove the bindings first.}}": "{n, plural, one {Dit sjabloon is nog gekoppeld aan # kaart en kan niet worden verwijderd. Verwijder eerst de koppelingen.} other {Dit sjabloon is nog gekoppeld aan # kaarten en kan niet worden verwijderd. Verwijder eerst de koppelingen.}}",
   "{name} (copy {n})": "{name} (kopie {n})",
-  "{name} (copy)": "{name} (kopie)"
+  "{name} (copy)": "{name} (kopie)",
+  "Cards that picked this shape from the library follow your changes. A card that holds its own copy, such as a shape drawn in the card editor, keeps its points. To use this version there, pick the shape again under My shapes in the card editor.": "Kaarten die deze vorm uit de bibliotheek hebben gekozen volgen je wijzigingen. Een kaart met een eigen kopie, bijvoorbeeld een vorm die in de kaarteditor is getekend, houdt zijn eigen punten. Kies de vorm daar opnieuw onder Mijn vormen in de kaarteditor om deze versie te gebruiken.",
+  "Saved to the library. Cards with their own copy of this shape keep it. To use this version in such a card, pick the shape again under My shapes in the card editor.": "Opgeslagen in de bibliotheek. Kaarten met een eigen kopie van deze vorm houden die. Kies de vorm in zo'n kaart opnieuw onder Mijn vormen in de kaarteditor om deze versie te gebruiken.",
+  "{n, plural, one {# point} other {# points}}": "{n, plural, one {# punt} other {# punten}}",
+  "Corner shape": "Hoekvorm"
 }
