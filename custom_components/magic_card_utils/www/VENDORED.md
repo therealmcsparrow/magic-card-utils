@@ -43,8 +43,8 @@ panel needs no other Magic Card file to load.
 | --- | --- |
 | File | `mc-ui-kit.js` |
 | Magic Card version | `2026.10.11-beta.1` (`MC_UI_KIT_VERSION`) |
-| Magic Card commit | `0f298bb` (branch `aico/svg-and-shape-editors`), exported from a clean `git archive` of that commit |
-| SHA-256 | `0f82d2d66e79ad4995dbd737acc4adf060964bd7668c89d3401b2998dfcb5247` |
+| Magic Card commit | `1ab607c` (branch `aico/svg-and-shape-editors`), exported from a clean `git archive` of that commit |
+| SHA-256 | `fef4d7e87023a05ee2ec914a3630f6f29fe5fd5e2cfe4ca628c9d793617ddc31` |
 | Icons | `@mdi/js` 7.4.47, Apache-2.0 (https://github.com/Templarian/MaterialDesign-JS), licence text in `LICENSE-mdi.txt` |
 | Imports | `lit-core.min.js` (`css`, `html`) |
 
@@ -78,7 +78,7 @@ The panel imports them as `i18nFor('mcu-panel', tables)` and writes `tr('British
 | Field | Value |
 | --- | --- |
 | Files | `mc-i18n.js`, `mc-i18n-panel.js` |
-| Magic Card commit | `0f298bb` (branch `aico/svg-and-shape-editors`), exported from a clean `git archive` of that commit |
+| Magic Card commit | `1ab607c` (branch `aico/svg-and-shape-editors`), exported from a clean `git archive` of that commit |
 | SHA-256 `mc-i18n.js` | `f1a042bc2bb7873aaf453980f91923e17432e32bb9a19eb8226b29829f72e500` |
 | SHA-256 `mc-i18n-panel.js` | `ad7ec6f4af50ab4848483b2b40f5c7b75b5c90761fbd99249d2b0251106499a4` |
 | Sources in this repo | `magic_card_utils_panel.js` (the `tr()` calls), `i18n/nl.json` (written by hand), `i18n/en-US.json` (generated) |
