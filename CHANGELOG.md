@@ -6,8 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- The panel speaks English (UK), English (US) and Dutch, following your Home Assistant profile language. Any other language shows English (UK). The messages are in `www/mc-i18n-panel.js`, generated from Magic Card together with the runtime `www/mc-i18n.js`.
+- The setup screen has text: `translations/en.json`, `en-GB.json` and `nl.json`. Home Assistant reads these for a custom integration, not `strings.json`, so the setup screen shows its title, description and option label.
+
 ### Changed
 
+- `www/mc-ui-kit.js` is regenerated from Magic Card 2026.10.11-beta.1 (commit 0f298bb), which brings the movable and resizable window, the new slider and row options and the library view changes.
 - The panel content uses the same buttons, fields, notices, icon buttons and chips as the Magic Card editor. They come from `www/mc-ui-kit.js`, generated from Magic Card. The Home Assistant header and page tabs are unchanged.
 - Dialogs follow the kit: larger corners, the kit shadow and scrim, a close icon button instead of a text cross, and labelled fields with help text under them.
 - Errors and warnings in the panel show as inline notices with an icon, not coloured bars. Table action buttons share one neutral colour and each has an accessible name.

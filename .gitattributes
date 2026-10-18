@@ -1,2 +1,4 @@
 custom_components/magic_card_utils/www/mc-ui-kit.js text eol=lf
 custom_components/magic_card_utils/www/lit-core.min.js text eol=lf
+custom_components/magic_card_utils/www/mc-i18n.js text eol=lf
+custom_components/magic_card_utils/www/mc-i18n-panel.js text eol=lf

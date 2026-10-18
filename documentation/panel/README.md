@@ -19,3 +19,4 @@ Everything in the panel updates live. When a template or animation changes anywh
 - [Templates](templates.md): the table, the template view with YAML and live preview, editing a template, the studio, duplicate and delete.
 - [Animations](animations.md): what the tab needs, loading, saving and deleting animations, and the `?animation=` link.
 - [Themes](themes.md): what the tab needs, how the editor loads, the `?theme=` link, and which files it reads and writes.
+- [Languages](languages.md): English (UK), English (US) and Dutch, and what follows your profile language.

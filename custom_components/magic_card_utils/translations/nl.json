@@ -1,0 +1,16 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Magic Card Utils",
+        "description": "Deze integratie biedt gedeelde opslag voor sjablonen voor de Magic Card-frontend. Kies Verzenden om te installeren.",
+        "data": {
+          "show_side_panel": "Zijbalkpaneel tonen"
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Magic Card Utils is al geconfigureerd."
+    }
+  }
+}

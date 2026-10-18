@@ -4,6 +4,12 @@ import {
   css,
 } from "./lit-core.min.js";
 import { mcUiKit, glyph } from "./mc-ui-kit.js";
+import { i18nFor, setI18nLocale } from "./mc-i18n.js";
+import tables from "./mc-i18n-panel.js";
+
+// Messages of the panel (namespace "mcu-panel", contract i18n 1.0.0 r3). The id is the British text; the
+// tables are generated (tools/i18n-export.mjs in the Magic Card repository, see VENDORED.md).
+const { t: tr, tx: trx, locale } = i18nFor("mcu-panel", tables);
 
 function _padStr(n) {
   return " ".repeat(n);
@@ -120,11 +126,11 @@ const CMD_ICONS_LIST = "magic_card_utils/icons_list";
 const CMD_SHAPES_LIST = "magic_card_utils/shapes_list";
 const LIBRARY_ID_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 const FOCUS_KEY_RE = /^[A-Za-z0-9_.:-]{1,96}$/;
-const MSG_NO_CARD = "Install Magic Card to draw icons and shapes here.";
+const msgNoCard = () => tr("Install Magic Card to draw icons and shapes here.");
 // The only message about a Magic Card that is too old. Every cause (version, missing loader, contractRevision) ends here.
-const MSG_UPDATE_CARD = `Drawing icons and shapes here needs Magic Card ${MIN_MAGIC_CARD_FOR_EDITORS} or newer. Update Magic Card in HACS.`;
-const MSG_ADMIN_ONLY = "Only administrators can create or change icons and shapes.";
-const MSG_EDITOR_LOAD = "The editor files could not be loaded from Magic Card. Reload the page and try again.";
+const msgUpdateCard = () => tr("Drawing icons and shapes here needs Magic Card {version} or newer. Update Magic Card in HACS.", { version: MIN_MAGIC_CARD_FOR_EDITORS });
+const msgAdminOnly = () => tr("Only administrators can create or change icons and shapes.");
+const msgEditorLoad = () => tr("The editor files could not be loaded from Magic Card. Reload the page and try again.");
 /**
  * Compare two Magic Card versions: `YYYY.M.N` with an optional `-pre.release` suffix (and `+build`, ignored).
  * Returns <0, 0, >0, or null when either side is not a version.
@@ -156,11 +162,11 @@ function _compareCalVer(a, b) {
   return x.pre.length - y.pre.length;
 }
 const TABS = [
-  ["templates", "Templates"],
-  ["animations", "Animations"],
-  ["themes", "Themes"],
-  ["library", "Library"],
-  ["editors", "Editors"],
+  ["templates", () => tr("Templates")],
+  ["animations", () => tr("Animations")],
+  ["themes", () => tr("Themes")],
+  ["library", () => tr("Library")],
+  ["editors", () => tr("Editors")],
 ];
 // Kept for the page's lifetime: the editor holds the draft and the dashboard trial, and the trial
 // bar's "Back to theme editor" re-opens the panel, which builds a new panel element.
@@ -185,7 +191,7 @@ function _toThemeBackendError(err) {
       ? src.message
       : typeof err === "string"
       ? err
-      : "Request failed"
+      : tr("Request failed")
   );
   out.code = typeof src.code === "string" && src.code ? src.code : "unknown";
   const list = [src.errors, src.error && src.error.errors, src.data && src.data.errors].find(Array.isArray);
@@ -471,7 +477,7 @@ class MagicCardUtilsPanel extends LitElement {
 
     const config = this._viewRow?.raw?.config || this._viewRow?.raw || null;
     if (!config || typeof config !== "object") {
-      this._previewError = "No config to preview.";
+      this._previewError = tr("No config to preview.");
       return;
     }
     const card_type = this._viewRow?.card_type || "";
@@ -483,14 +489,14 @@ class MagicCardUtilsPanel extends LitElement {
         : null;
     if (!renderConfig) {
       this._previewError =
-        "No card type available — neither the config nor the template carries a `type`.";
+        tr("No card type available — neither the config nor the template carries a `type`.");
       return;
     }
     // Card helpers only exist once a dashboard has loaded; magic-card can be built directly.
     const isMagicCard = renderConfig.type === "custom:magic-card";
     if (!isMagicCard && typeof window.loadCardHelpers !== "function") {
       this._previewError =
-        "Lovelace card helpers are unavailable until a dashboard has been opened.";
+        tr("Lovelace card helpers are unavailable until a dashboard has been opened.");
       return;
     }
     try {
@@ -513,7 +519,7 @@ class MagicCardUtilsPanel extends LitElement {
       if (build !== this._previewBuild) return;
       console.error("[magic_card_utils] preview failed", err);
       this._previewError =
-        (err && (err.message || String(err))) || "Failed to render preview.";
+        (err && (err.message || String(err))) || tr("Failed to render preview.");
     }
   }
 
@@ -575,8 +581,8 @@ class MagicCardUtilsPanel extends LitElement {
       return {
         ok: false,
         message: this._magicCardUrl
-          ? `Magic Card could not be loaded from ${this._magicCardUrl}.`
-          : "Magic Card isn't installed. Install it from HACS and add it as a dashboard resource.",
+          ? tr("Magic Card could not be loaded from {url}.", { url: this._magicCardUrl })
+          : tr("Magic Card isn't installed. Install it from HACS and add it as a dashboard resource."),
       };
     }
     const api = window.MagicCard;
@@ -584,8 +590,7 @@ class MagicCardUtilsPanel extends LitElement {
       return {
         ok: false,
         message:
-          `Magic Card ${api.version || ""} is too old for Magic Card Utils ` +
-          `(needs API version ${MIN_MAGIC_CARD_API} or newer). Update Magic Card.`,
+          tr("Magic Card {version} is too old for Magic Card Utils (needs API version {min} or newer). Update Magic Card.", { version: String(api.version || ""), min: String(MIN_MAGIC_CARD_API) }),
       };
     }
     return { ok: true };
@@ -621,7 +626,7 @@ class MagicCardUtilsPanel extends LitElement {
         el = await customElements.get(CARD_TAG).getConfigElement();
       } catch (err) {
         console.error("[magic_card_utils] failed to create the Magic Card editor", err);
-        message = "The Magic Card editor could not be loaded.";
+        message = tr("The Magic Card editor could not be loaded.");
       }
     }
     const host = this.shadowRoot.querySelector(".editor-host");
@@ -672,12 +677,12 @@ class MagicCardUtilsPanel extends LitElement {
     const meta = this._editMeta;
     const name = (meta.name || "").trim();
     if (!name) {
-      this._editError = "Name is required.";
+      this._editError = tr("Name is required.");
       return;
     }
     const renamed = this._viewRow && name !== this._viewRow.name;
     if (renamed && this._templates.some((t) => t.name === name)) {
-      this._editError = `A template named '${name}' already exists.`;
+      this._editError = tr("A template named '{name}' already exists.", { name });
       return;
     }
     const payload = {
@@ -697,7 +702,7 @@ class MagicCardUtilsPanel extends LitElement {
       this._closeOverlay();
     } catch (err) {
       console.error("[magic_card_utils] save failed", err);
-      this._editError = this._wsErrorMessage(err, "The template could not be saved.");
+      this._editError = this._wsErrorMessage(err, tr("The template could not be saved."));
     } finally {
       this._submitting = false;
     }
@@ -726,10 +731,10 @@ class MagicCardUtilsPanel extends LitElement {
 
   _uniqueCopyName(base) {
     const existing = new Set(this._templates.map((t) => t.name));
-    let candidate = `${base} (copy)`;
+    let candidate = tr("{name} (copy)", { name: base });
     let i = 2;
     while (existing.has(candidate)) {
-      candidate = `${base} (copy ${i})`;
+      candidate = tr("{name} (copy {n})", { name: base, n: i });
       i += 1;
     }
     return candidate;
@@ -745,11 +750,11 @@ class MagicCardUtilsPanel extends LitElement {
     if (!row) return;
     const newName = (this._duplicateName || "").trim();
     if (!newName) {
-      this._actionError = "Name is required.";
+      this._actionError = tr("Name is required.");
       return;
     }
     if (this._templates.some((t) => t.name === newName)) {
-      this._actionError = `A template named '${newName}' already exists.`;
+      this._actionError = tr("A template named '{name}' already exists.", { name: newName });
       return;
     }
     const raw = row.raw && typeof row.raw === "object" ? row.raw : {};
@@ -771,7 +776,7 @@ class MagicCardUtilsPanel extends LitElement {
     } catch (err) {
       console.error("[magic_card_utils] duplicate failed", err);
       this._actionError =
-        (err && (err.message || err.code)) || "Duplicate failed";
+        (err && (err.message || err.code)) || tr("Duplicate failed");
       this._submitting = false;
     }
   }
@@ -781,7 +786,7 @@ class MagicCardUtilsPanel extends LitElement {
     const row = this._actionRow;
     if (!row) return;
     if (row.linked_cards > 0) {
-      this._actionError = `Cannot delete — still linked to ${row.linked_cards} card(s).`;
+      this._actionError = tr("{n, plural, one {Cannot delete — still linked to # card.} other {Cannot delete — still linked to # cards.}}", { n: row.linked_cards });
       return;
     }
     this._submitting = true;
@@ -795,7 +800,7 @@ class MagicCardUtilsPanel extends LitElement {
     } catch (err) {
       console.error("[magic_card_utils] delete failed", err);
       this._actionError =
-        (err && (err.message || err.code)) || "Delete failed";
+        (err && (err.message || err.code)) || tr("Delete failed");
       this._submitting = false;
     }
   }
@@ -870,8 +875,7 @@ class MagicCardUtilsPanel extends LitElement {
       return {
         ok: false,
         message:
-          `The animation studio could not be loaded. It ships with Magic Card as ${STUDIO_FILE}: ` +
-          "update Magic Card to a version that includes it.",
+          tr("The animation studio could not be loaded. It ships with Magic Card as {file}: update Magic Card to a version that includes it.", { file: STUDIO_FILE }),
       };
     }
     return { ok: true };
@@ -886,7 +890,7 @@ class MagicCardUtilsPanel extends LitElement {
     } catch (err) {
       console.error("[magic_card_utils] animation library unavailable", err);
       this._animStatus = "error";
-      this._animMessage = "The animation library could not be loaded.";
+      this._animMessage = tr("The animation library could not be loaded.");
       return;
     }
     const status = await this._ensureAnimationStudio();
@@ -996,7 +1000,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (e.detail) e.detail.result = result;
     result.catch((err) => {
       console.error("[magic_card_utils] save animation failed", err);
-      this._animError = this._wsErrorMessage(err, "The animation could not be saved");
+      this._animError = this._wsErrorMessage(err, tr("The animation could not be saved"));
     });
   }
 
@@ -1012,7 +1016,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (e.detail) e.detail.result = result;
     result.catch((err) => {
       console.error("[magic_card_utils] delete animation failed", err);
-      this._animError = this._wsErrorMessage(err, "The animation could not be deleted");
+      this._animError = this._wsErrorMessage(err, tr("The animation could not be deleted"));
     });
   }
 
@@ -1038,7 +1042,7 @@ class MagicCardUtilsPanel extends LitElement {
             <div class="notice error" role="alert">
               ${glyph("error", 20)}
               <div class="body"><p>${this._animError}</p></div>
-              <button type="button" class="icon-btn sm close-btn" aria-label="Dismiss" title="Dismiss" @click=${() => (this._animError = "")}>${glyph("close")}</button>
+              <button type="button" class="icon-btn sm close-btn" aria-label=${tr("Dismiss")} title=${tr("Dismiss")} @click=${() => (this._animError = "")}>${glyph("close")}</button>
             </div>
           </div>`
         : ""}
@@ -1051,7 +1055,7 @@ class MagicCardUtilsPanel extends LitElement {
               ${glyph("error", 20)}
               <div class="body">
                 <p>${this._animMessage}</p>
-                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._mountAnimationStudio()}>Try again</button></div>
+                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._mountAnimationStudio()}>${tr("Try again")}</button></div>
               </div>
             </div>
           </div>`
@@ -1089,8 +1093,7 @@ class MagicCardUtilsPanel extends LitElement {
       return {
         ok: false,
         message:
-          `The theme editor could not be loaded. It ships with Magic Card as ${THEME_EDITOR_FILE}: ` +
-          "update Magic Card to 2026.10.06 or newer.",
+          tr("The theme editor could not be loaded. It ships with Magic Card as {file}: update Magic Card to {version} or newer.", { file: THEME_EDITOR_FILE, version: "2026.10.06" }),
       };
     }
     const major = parseInt(String(ctor.contractVersion || "").split(".")[0], 10);
@@ -1098,8 +1101,7 @@ class MagicCardUtilsPanel extends LitElement {
       return {
         ok: false,
         message:
-          "This Magic Card Utils version doesn't match the theme editor in Magic Card. " +
-          "Update both to their latest versions.",
+          tr("This Magic Card Utils version doesn't match the theme editor in Magic Card. Update both to their latest versions."),
       };
     }
     return { ok: true };
@@ -1162,7 +1164,7 @@ class MagicCardUtilsPanel extends LitElement {
               ${glyph("error", 20)}
               <div class="body">
                 <p>${this._themeMessage}</p>
-                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryThemes()}>Try again</button></div>
+                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryThemes()}>${tr("Try again")}</button></div>
               </div>
             </div>
           </div>`
@@ -1186,29 +1188,29 @@ class MagicCardUtilsPanel extends LitElement {
     const card = await this._ensureMagicCard();
     if (!card.ok) {
       // Not registered: not installed (no resource) or a genuine load failure (its own plain message).
-      if (!customElements.get(CARD_TAG)) return { ok: false, message: this._magicCardUrl ? card.message : MSG_NO_CARD };
-      return { ok: false, message: MSG_UPDATE_CARD }; // there, but too old to speak the panel contract
+      if (!customElements.get(CARD_TAG)) return { ok: false, message: this._magicCardUrl ? card.message : msgNoCard() };
+      return { ok: false, message: msgUpdateCard() }; // there, but too old to speak the panel contract
     }
     // The one version gate. A Magic Card that exposes no version predates the editors.
     const cmp = _compareCalVer(window.MagicCard && window.MagicCard.version, MIN_MAGIC_CARD_FOR_EDITORS);
-    if (cmp === null || cmp < 0) return { ok: false, message: MSG_UPDATE_CARD };
-    if (typeof window.MagicCard.loadEditor !== "function") return { ok: false, message: MSG_UPDATE_CARD };
+    if (cmp === null || cmp < 0) return { ok: false, message: msgUpdateCard() };
+    if (typeof window.MagicCard.loadEditor !== "function") return { ok: false, message: msgUpdateCard() };
     const loader = what === "library" ? "loadTransfer" : what === "shape" ? "loadShapeEditor" : "loadSvgEditor";
     try {
-      if (!(await window.MagicCard.loadEditor())) return { ok: false, message: MSG_EDITOR_LOAD };
+      if (!(await window.MagicCard.loadEditor())) return { ok: false, message: msgEditorLoad() };
       // The editor chunk adds the loaders to window.MagicCard: read it again, never keep the object from before.
       const mc = window.MagicCard;
-      if (!mc || typeof mc[loader] !== "function") return { ok: false, message: MSG_UPDATE_CARD };
-      if (!(await mc[loader]())) return { ok: false, message: MSG_EDITOR_LOAD };
+      if (!mc || typeof mc[loader] !== "function") return { ok: false, message: msgUpdateCard() };
+      if (!(await mc[loader]())) return { ok: false, message: msgEditorLoad() };
     } catch (err) {
       console.warn("[magic_card_utils] editor chunk not loaded", err);
-      return { ok: false, message: MSG_EDITOR_LOAD };
+      return { ok: false, message: msgEditorLoad() };
     }
     const tag = what === "library" ? LIBRARY_VIEW_TAG : what === "shape" ? SHAPE_STUDIO_TAG : SVG_EDITOR_TAG;
     const ctor = customElements.get(tag);
-    if (!ctor) return { ok: false, message: MSG_EDITOR_LOAD };
+    if (!ctor) return { ok: false, message: msgEditorLoad() };
     // Internal sanity check, never worded as a revision: an element without contractRevision >= 5 is an old build.
-    if (!(Number(ctor.contractRevision) >= EDITORS_MIN_CONTRACT_REVISION)) return { ok: false, message: MSG_UPDATE_CARD };
+    if (!(Number(ctor.contractRevision) >= EDITORS_MIN_CONTRACT_REVISION)) return { ok: false, message: msgUpdateCard() };
     return { ok: true };
   }
 
@@ -1238,7 +1240,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (id !== undefined && !(typeof id === "string" && LIBRARY_ID_RE.test(id))) return;
     if (!this._isAdmin()) {
       // The save commands are admin-only; the Library view shows its buttons to everyone.
-      this._editorNotice = MSG_ADMIN_ONLY;
+      this._editorNotice = msgAdminOnly();
       return;
     }
     this._editorBusy = true;
@@ -1255,12 +1257,12 @@ class MagicCardUtilsPanel extends LitElement {
         try {
           res = await this.hass.callWS({ type: CMD_SHAPES_LIST });
         } catch (_err) {
-          this._editorNotice = "That shape could not be read. Try again.";
+          this._editorNotice = tr("That shape could not be read. Try again.");
           return;
         }
         const item = Array.isArray(res && res.shapes) ? res.shapes.find((s) => s && s.id === id) : null;
         if (!item) {
-          this._editorNotice = "That shape no longer exists.";
+          this._editorNotice = tr("That shape no longer exists.");
           this._loadRecent();
           return;
         }
@@ -1379,7 +1381,7 @@ class MagicCardUtilsPanel extends LitElement {
       this._recentError = "";
     } catch (err) {
       console.warn("[magic_card_utils] recent items not loaded", err);
-      this._recentError = "Your saved icons and shapes could not be loaded.";
+      this._recentError = tr("Your saved icons and shapes could not be loaded.");
     }
   }
 
@@ -1447,7 +1449,7 @@ class MagicCardUtilsPanel extends LitElement {
               ${glyph("error", 20)}
               <div class="body">
                 <p>${this._libraryMessage}</p>
-                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryLibrary()}>Try again</button></div>
+                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryLibrary()}>${tr("Try again")}</button></div>
               </div>
             </div>
           </div>`
@@ -1461,7 +1463,7 @@ class MagicCardUtilsPanel extends LitElement {
       <section class="recent-section">
       <div class="group-head"><h3>${title}</h3></div>
       ${items.length === 0
-        ? html`<div class="empty"><strong>Nothing saved yet.</strong></div>`
+        ? html`<div class="empty"><strong>${tr("Nothing saved yet.")}</strong></div>`
         : html`<ul class="recent-list">
             ${items.map(
               (item) => html`<li>
@@ -1469,11 +1471,11 @@ class MagicCardUtilsPanel extends LitElement {
                 <button
                   class="btn btn-secondary btn-sm"
                   data-focus-key=${`edit-${kind}-${item.id}`}
-                  aria-label=${`Edit ${item.name || item.id}`}
+                  aria-label=${tr("Edit {name}", { name: item.name || item.id })}
                   ?disabled=${this._editorBusy || !this._isAdmin()}
                   @click=${(e) => this._openEditor({ kind, id: item.id, opener: e.currentTarget })}
                 >
-                  Edit
+                  ${tr("Edit")}
                 </button>
               </li>`
             )}
@@ -1491,7 +1493,7 @@ class MagicCardUtilsPanel extends LitElement {
           : ""}
         ${this._isAdmin()
           ? ""
-          : html`<div class="notice info" role="status">${glyph("info", 20)}<div class="body"><p>${MSG_ADMIN_ONLY}</p></div></div>`}
+          : html`<div class="notice info" role="status">${glyph("info", 20)}<div class="body"><p>${msgAdminOnly()}</p></div></div>`}
         <div class="editor-actions">
           <button
             class="btn btn-primary"
@@ -1499,7 +1501,7 @@ class MagicCardUtilsPanel extends LitElement {
             ?disabled=${this._editorBusy || !this._isAdmin()}
             @click=${(e) => this._openEditor({ kind: "icon", opener: e.currentTarget })}
           >
-            New icon
+            ${tr("New icon")}
           </button>
           <button
             class="btn btn-primary"
@@ -1507,12 +1509,12 @@ class MagicCardUtilsPanel extends LitElement {
             ?disabled=${this._editorBusy || !this._isAdmin()}
             @click=${(e) => this._openEditor({ kind: "shape", opener: e.currentTarget })}
           >
-            New shape
+            ${tr("New shape")}
           </button>
         </div>
-        ${this._renderRecent("Recent icons", "icon", this._recent.icons)}
-        ${this._renderRecent("Recent shapes", "shape", this._recent.shapes)}
-        <button class="btn btn-secondary see-all" @click=${() => this._seeAllInLibrary()}>See all in Library</button>
+        ${this._renderRecent(tr("Recent icons"), "icon", this._recent.icons)}
+        ${this._renderRecent(tr("Recent shapes"), "shape", this._recent.shapes)}
+        <button class="btn btn-secondary see-all" @click=${() => this._seeAllInLibrary()}>${tr("See all in Library")}</button>
       </div>
     `;
   }
@@ -1583,6 +1585,14 @@ class MagicCardUtilsPanel extends LitElement {
     }
   }
 
+  willUpdate(changed) {
+    // One locale for the panel and every Magic Card element it hosts (they read the same hass).
+    if (changed.has("hass") && this.hass) {
+      setI18nLocale(this.hass);
+      this.setAttribute("lang", locale());
+    }
+  }
+
   render() {
     if (!this.hass) {
       return html`<ha-circular-progress active></ha-circular-progress>`;
@@ -1599,7 +1609,7 @@ class MagicCardUtilsPanel extends LitElement {
 
       ${this._editorOpen
         ? html`<div class="editor-host"></div>`
-        : html`<div class="tabs" role="tablist" aria-label="Magic Card Utils" @keydown=${this._onTabKeydown}>
+        : html`<div class="tabs" role="tablist" aria-label=${tr("Magic Card Utils")} @keydown=${this._onTabKeydown}>
               ${TABS.map(
                 ([tab, label]) => html`<button
                   class="tab"
@@ -1609,7 +1619,7 @@ class MagicCardUtilsPanel extends LitElement {
                   tabindex=${this._tab === tab ? "0" : "-1"}
                   @click=${() => this._setTab(tab)}
                 >
-                  ${label}
+                  ${label()}
                 </button>`
               )}
             </div>
@@ -1633,17 +1643,17 @@ class MagicCardUtilsPanel extends LitElement {
           ? html`<div class="notice error" role="alert">${glyph("error", 20)}<div class="body"><p>${this._error}</p></div></div>`
           : ""}
         ${this._templates.length === 0
-          ? html`<div class="empty"><strong>No templates saved yet.</strong></div>`
+          ? html`<div class="empty"><strong>${tr("No templates saved yet.")}</strong></div>`
           : html`
               <table class="templates-table">
                 <thead>
                   <tr>
-                    <th class="col-name">Name</th>
-                    <th class="col-type">Card Type</th>
-                    <th class="col-linked">Linked Cards</th>
-                    <th class="col-date">Created</th>
-                    <th class="col-date">Last Updated</th>
-                    <th class="col-actions">Actions</th>
+                    <th class="col-name">${tr("Name")}</th>
+                    <th class="col-type">${tr("Card Type")}</th>
+                    <th class="col-linked">${tr("Linked Cards")}</th>
+                    <th class="col-date">${tr("Created")}</th>
+                    <th class="col-date">${tr("Last Updated")}</th>
+                    <th class="col-actions">${tr("Actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1667,8 +1677,8 @@ class MagicCardUtilsPanel extends LitElement {
                             <button
                               type="button"
                               class="icon-btn sm action-btn studio"
-                              title="Open in studio"
-                              aria-label=${`Open ${row.name} in studio`}
+                              title=${tr("Open in studio")}
+                              aria-label=${tr("Open {name} in studio", { name: row.name })}
                               @click=${() => this._openStudio(row)}
                             >
                               ${glyph("fullscreen")}
@@ -1676,8 +1686,8 @@ class MagicCardUtilsPanel extends LitElement {
                             <button
                               type="button"
                               class="icon-btn sm action-btn edit"
-                              title="Edit"
-                              aria-label=${`Edit ${row.name}`}
+                              title=${tr("Edit")}
+                              aria-label=${tr("Edit {name}", { name: row.name })}
                               @click=${() => this._openTemplate(row)}
                             >
                               ${glyph("pencil")}
@@ -1685,8 +1695,8 @@ class MagicCardUtilsPanel extends LitElement {
                             <button
                               type="button"
                               class="icon-btn sm action-btn duplicate"
-                              title="Duplicate"
-                              aria-label=${`Duplicate ${row.name}`}
+                              title=${tr("Duplicate")}
+                              aria-label=${tr("Duplicate {name}", { name: row.name })}
                               @click=${() => this._openDuplicate(row)}
                             >
                               ${glyph("copy")}
@@ -1695,11 +1705,11 @@ class MagicCardUtilsPanel extends LitElement {
                               type="button"
                               class="icon-btn sm danger action-btn"
                               title=${row.linked_cards > 0
-                                ? `Cannot delete — ${row.linked_cards} linked card(s)`
-                                : "Delete"}
+                                ? tr("Cannot delete — {n, plural, one {# linked card} other {# linked cards}}", { n: row.linked_cards })
+                                : tr("Delete")}
                               aria-label=${row.linked_cards > 0
-                                ? `Cannot delete ${row.name}: ${row.linked_cards} linked card(s)`
-                                : `Delete ${row.name}`}
+                                ? tr("Cannot delete {name}: {n, plural, one {# linked card} other {# linked cards}}", { name: row.name, n: row.linked_cards })
+                                : tr("Delete {name}", { name: row.name })}
                               ?disabled=${row.linked_cards > 0}
                               @click=${() => this._openDelete(row)}
                             >
@@ -1727,7 +1737,7 @@ class MagicCardUtilsPanel extends LitElement {
               <div
                 class="dialog"
                 role="dialog"
-                aria-label=${this._viewMode === "edit" ? "Edit Template" : "Template Preview"}
+                aria-label=${this._viewMode === "edit" ? tr("Edit Template") : tr("Template Preview")}
                 @click=${(e) => e.stopPropagation()}
               >
                 <div class="dialog-header">
@@ -1739,35 +1749,35 @@ class MagicCardUtilsPanel extends LitElement {
                   </div>
                   <div class="dialog-header-actions">
                     ${this._viewMode === "yaml"
-                      ? html`<button type="button" class="icon-btn sm" title="Edit" aria-label="Edit template" @click=${() => this._openEditTemplate(this._viewRow)}>
+                      ? html`<button type="button" class="icon-btn sm" title=${tr("Edit")} aria-label=${tr("Edit template")} @click=${() => this._openEditTemplate(this._viewRow)}>
                           ${glyph("pencil")}
                         </button>`
                       : ""}
-                    <button type="button" class="icon-btn sm close-btn" @click=${this._closeOverlay} title="Close" aria-label="Close">${glyph("close")}</button>
+                    <button type="button" class="icon-btn sm close-btn" @click=${this._closeOverlay} title=${tr("Close")} aria-label=${tr("Close")}>${glyph("close")}</button>
                   </div>
                 </div>
                 <div class="dialog-body">
                   ${this._viewMode === "edit"
                     ? html`
                         <div class="pane metadata-pane">
-                          <div class="pane-header">Template</div>
+                          <div class="pane-header">${tr("Template")}</div>
                           <div class="meta-body">
                             <div class="field">
-                              <div class="field-head"><label for="mcu-meta-name">Name</label></div>
+                              <div class="field-head"><label for="mcu-meta-name">${tr("Name")}</label></div>
                               <input id="mcu-meta-name" class="input" type="text" .value=${this._editMeta.name}
                                 @input=${(e) => (this._editMeta = { ...this._editMeta, name: e.target.value })} />
                             </div>
                             <div class="field">
-                              <div class="field-head"><label for="mcu-meta-description">Description</label></div>
+                              <div class="field-head"><label for="mcu-meta-description">${tr("Description")}</label></div>
                               <input id="mcu-meta-description" class="input" type="text" .value=${this._editMeta.description}
                                 @input=${(e) => (this._editMeta = { ...this._editMeta, description: e.target.value })} />
                             </div>
                             <div class="field">
-                              <div class="field-head"><label for="mcu-meta-type">Card Type</label></div>
-                              <input id="mcu-meta-type" class="input mono" type="text" placeholder="custom:magic-card" .value=${this._editMeta.card_type}
+                              <div class="field-head"><label for="mcu-meta-type">${tr("Card Type")}</label></div>
+                              <input id="mcu-meta-type" class="input mono" type="text" placeholder=${"custom:magic-card"} .value=${this._editMeta.card_type}
                                 @input=${(e) => (this._editMeta = { ...this._editMeta, card_type: e.target.value })} />
                             </div>
-                            <p class="help">Edit the card using the editor on the right. Its changes are captured live.</p>
+                            <p class="help">${tr("Edit the card using the editor on the right. Its changes are captured live.")}</p>
                           </div>
                         </div>
                       `
@@ -1778,7 +1788,7 @@ class MagicCardUtilsPanel extends LitElement {
                         </div>
                       `}
                   <div class="pane editor-pane">
-                    <div class="pane-header">${this._viewMode === "edit" ? "Editor" : "Preview"}</div>
+                    <div class="pane-header">${this._viewMode === "edit" ? tr("Editor") : tr("Preview")}</div>
                     ${this._viewMode === "edit"
                       ? html`<div class="editor-host" @config-changed=${this._onEditorConfigChanged}></div>`
                       : html`
@@ -1796,8 +1806,8 @@ class MagicCardUtilsPanel extends LitElement {
                     ${this._editError
                       ? html`<div class="footer-note"><div class="notice error" role="alert">${glyph("error", 20)}<div class="body"><p>${this._editError}</p></div></div></div>`
                       : ""}
-                    <button type="button" class="btn btn-secondary" @click=${this._closeOverlay}>Cancel</button>
-                    <button type="button" class="btn btn-primary" @click=${this._saveEditedTemplate} ?disabled=${this._submitting}>${this._submitting ? "Saving…" : "Save"}</button>
+                    <button type="button" class="btn btn-secondary" @click=${this._closeOverlay}>${tr("Cancel")}</button>
+                    <button type="button" class="btn btn-primary" @click=${this._saveEditedTemplate} ?disabled=${this._submitting}>${this._submitting ? tr("Saving…") : tr("Save")}</button>
                   </div>
                 ` : ""}
               </div>
@@ -1830,8 +1840,8 @@ class MagicCardUtilsPanel extends LitElement {
             <div class="dialog-title">
               <span class="dialog-title-name">
                 ${this._actionMode === "duplicate"
-                  ? "Duplicate template"
-                  : "Delete template"}
+                  ? tr("Duplicate template")
+                  : tr("Delete template")}
               </span>
               <span class="chip mono">${row.name}</span>
             </div>
@@ -1840,8 +1850,8 @@ class MagicCardUtilsPanel extends LitElement {
               class="icon-btn sm close-btn"
               @click=${this._closeAction}
               ?disabled=${this._submitting}
-              title="Close"
-              aria-label="Close"
+              title=${tr("Close")}
+              aria-label=${tr("Close")}
             >
               ${glyph("close")}
             </button>
@@ -1864,7 +1874,7 @@ class MagicCardUtilsPanel extends LitElement {
               @click=${this._closeAction}
               ?disabled=${this._submitting}
             >
-              Cancel
+              ${tr("Cancel")}
             </button>
             ${this._actionMode === "duplicate"
               ? html`<button
@@ -1873,7 +1883,7 @@ class MagicCardUtilsPanel extends LitElement {
                   @click=${this._submitDuplicate}
                   ?disabled=${this._submitting}
                 >
-                  ${this._submitting ? "Duplicating…" : "Duplicate"}
+                  ${this._submitting ? tr("Duplicating…") : tr("Duplicate")}
                 </button>`
               : ""}
             ${this._actionMode === "delete"
@@ -1883,7 +1893,7 @@ class MagicCardUtilsPanel extends LitElement {
                   @click=${this._submitDelete}
                   ?disabled=${this._submitting || row.linked_cards > 0}
                 >
-                  ${this._submitting ? "Deleting…" : "Delete"}
+                  ${this._submitting ? tr("Deleting…") : tr("Delete")}
                 </button>`
               : ""}
           </div>
@@ -1895,7 +1905,7 @@ class MagicCardUtilsPanel extends LitElement {
   _renderDuplicateForm() {
     return html`
       <div class="field">
-        <div class="field-head"><label for="mcu-duplicate-name">New template name</label></div>
+        <div class="field-head"><label for="mcu-duplicate-name">${tr("New template name")}</label></div>
         <input
           id="mcu-duplicate-name"
           class="input"
@@ -1904,10 +1914,7 @@ class MagicCardUtilsPanel extends LitElement {
           @input=${(e) => (this._duplicateName = e.target.value)}
           ?disabled=${this._submitting}
         />
-        <p class="help">
-          Copies the config, description, and card type. Created and updated
-          timestamps reset to now.
-        </p>
+        <p class="help">${tr("Copies the config, description, and card type. Created and updated timestamps reset to now.")}</p>
       </div>
     `;
   }
@@ -1918,18 +1925,13 @@ class MagicCardUtilsPanel extends LitElement {
         <div class="notice warn" role="status">
           ${glyph("warn", 20)}
           <div class="body">
-            <p>
-              This template is still linked to ${row.linked_cards} card(s) and
-              cannot be deleted. Remove the bindings first.
-            </p>
+            <p>${tr("{n, plural, one {This template is still linked to # card and cannot be deleted. Remove the bindings first.} other {This template is still linked to # cards and cannot be deleted. Remove the bindings first.}}", { n: row.linked_cards })}</p>
           </div>
         </div>
       `;
     }
     return html`
-      <div>
-        Delete <strong>${row.name}</strong>? This action cannot be undone.
-      </div>
+      <div>${trx("Delete {name}? This action cannot be undone.", { name: html`<strong>${row.name}</strong>` })}</div>
     `;
   }
 
