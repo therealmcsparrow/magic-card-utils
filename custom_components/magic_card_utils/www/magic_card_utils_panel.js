@@ -402,29 +402,19 @@ function _shapeThumb(id, d) {
   return svg;
 }
 
-/** Put the outline and the point count into every row of the Library view that shows a saved shape. Idempotent. */
-function _decorateShapeRows(root, byId) {
-  for (const rowEl of root.querySelectorAll(".row")) {
-    const nameEl = rowEl.querySelector(".name");
-    const idEl = nameEl && nameEl.querySelector("small:not(.mcu-pts)");
-    const id = idEl ? idEl.textContent.trim() : "";
-    const shape = id ? byId.get(id) : null;
-    if (!shape) continue;
-    const { d, count } = _shapeOutline(shape);
-    const old = rowEl.querySelector(".mcu-thumb");
-    if (d && (!old || old.getAttribute("data-id") !== id)) {
-      if (old) old.remove();
-      rowEl.insertBefore(_shapeThumb(id, d), nameEl);
-    }
-    const label = count ? tr("{n, plural, one {# point} other {# points}}", { n: count }) : tr("Corner shape");
-    let pts = nameEl.querySelector(".mcu-pts");
-    if (!pts) {
-      pts = document.createElement("small");
-      pts.className = "mcu-pts";
-      nameEl.appendChild(pts);
-    }
-    if (pts.textContent !== label) pts.textContent = label;
-  }
+/** The row extra for <mc-library-view>.rowExtra: the outline thumbnail and the point count of a saved shape. `cache` keeps one node per id and shape. */
+function _shapeRowExtra(byId, cache, kind, id) {
+  const shape = kind === "shape" ? byId.get(id) : null;
+  if (!shape) return undefined;
+  const hit = cache.get(id);
+  if (hit && hit.shape === shape) return hit.extra;
+  const { d, count } = _shapeOutline(shape);
+  const extra = {
+    thumb: d ? _shapeThumb(id, d) : undefined,
+    meta: count ? tr("{n, plural, one {# point} other {# points}}", { n: count }) : tr("Corner shape"),
+  };
+  cache.set(id, { shape, extra });
+  return extra;
 }
 
 /** The newest `limit` items by updated_at (ISO strings sort as text); anything that is not an item is skipped. */
@@ -1601,7 +1591,7 @@ class MagicCardUtilsPanel extends LitElement {
     this._shapesStatus = "ready";
     await this.updateComplete;
     this._attachShapesView();
-    this._watchShapeThumbs(el);
+    this._wireShapeRows(el);
   }
 
   _attachShapesView() {
@@ -1632,44 +1622,43 @@ class MagicCardUtilsPanel extends LitElement {
     </div>`;
   }
 
-  /** Outline and point count in the rows of the Shapes tab view (the Library view has no thumbnail slot for shapes yet). */
-  async _watchShapeThumbs(el) {
-    if (this._thumbObserver) this._thumbObserver.disconnect();
-    this._thumbObserver = null;
-    const byId = new Map();
-    let asked = 0;
-    const refresh = async () => {
-      if (Date.now() - asked < 1000) return;
-      asked = Date.now();
+  /** Outline and point count in the rows of the Shapes tab view, through the view's public `rowExtra`. */
+  async _wireShapeRows(el) {
+    this._stopShapeRows();
+    const cache = new Map();
+    let byId = new Map();
+    const publish = () => {
+      el.rowExtra = (kind, id) => _shapeRowExtra(byId, cache, kind, id);
+    };
+    const load = async () => {
       try {
         const res = await this.hass.callWS({ type: CMD_SHAPES_LIST });
-        byId.clear();
+        byId = new Map();
         for (const it of Array.isArray(res && res.shapes) ? res.shapes : []) {
           if (it && typeof it.id === "string") byId.set(it.id, it.shape);
         }
+        publish();
       } catch (e) {
-        /* rows stay as they are */
+        /* rows stay without a thumbnail */
       }
     };
-    const run = async () => {
-      const root = el.shadowRoot;
-      if (!root) return;
-      if (!byId.size || [...root.querySelectorAll(".row .name small:not(.mcu-pts)")].some((n) => !byId.has(n.textContent.trim()))) await refresh();
-      _decorateShapeRows(root, byId);
+    let timer = 0;
+    const onChanged = (e) => {
+      if (!e || !e.detail || e.detail.kind !== "shapes") return;
+      clearTimeout(timer);
+      timer = setTimeout(load, 300);
     };
-    await el.updateComplete;
-    if (!el.shadowRoot || typeof MutationObserver !== "function") return;
-    let queued = false;
-    this._thumbObserver = new MutationObserver(() => {
-      if (queued) return;
-      queued = true;
-      Promise.resolve().then(() => {
-        queued = false;
-        return run();
-      });
-    });
-    this._thumbObserver.observe(el.shadowRoot, { childList: true, subtree: true });
-    await run();
+    window.addEventListener("mcu-library-changed", onChanged);
+    this._shapeRowsStop = () => {
+      clearTimeout(timer);
+      window.removeEventListener("mcu-library-changed", onChanged);
+    };
+    await load();
+  }
+
+  _stopShapeRows() {
+    if (this._shapeRowsStop) this._shapeRowsStop();
+    this._shapeRowsStop = null;
   }
 
   _retryShapes() {
@@ -1841,8 +1830,7 @@ class MagicCardUtilsPanel extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    if (this._thumbObserver) this._thumbObserver.disconnect();
-    this._thumbObserver = null;
+    this._stopShapeRows();
     const animPending = this._animUnsubPromise;
     this._animUnsubPromise = undefined;
     this._animReady = undefined;
@@ -2322,7 +2310,7 @@ class MagicCardUtilsPanel extends LitElement {
         color: var(--primary-text-color);
       }
       .tab[aria-selected="true"] {
-        color: var(--primary-color);
+        color: var(--mc-accent-ink, var(--primary-color));
         border-bottom-color: var(--primary-color);
       }
       .tab:focus-visible {
@@ -2634,7 +2622,7 @@ if (!customElements.get("magic-card-utils-panel")) {
 // Test hooks (tests/panel_editors.test.mjs); nothing in Home Assistant reads them.
 export const _testing = {
   shapeOutline: _shapeOutline,
-  decorateShapeRows: _decorateShapeRows,
+  shapeRowExtra: _shapeRowExtra,
   createPresetBackend: _createPresetBackend,
   compareCalVer: _compareCalVer,
   recentItems: _recentItems,
