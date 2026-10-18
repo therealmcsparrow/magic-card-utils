@@ -1,18 +1,24 @@
 """Contract: mcu-library 1.0.0 (Architect-owned). Saved icons, shapes and theme presets for Magic Card.
 
 TypeScript mirror (same version, field names and rules): magic-card
-src/contracts/mcu-library.ts. Decision records: magic-card docs/adr/0018, 0020 and 0022.
+src/contracts/mcu-library.ts. Decision records: magic-card docs/adr/0018, 0020, 0022 and 0027.
 Revision 2 (2026-10-18, before any implementation): spike S1 passed, provider rules added below;
 the command and storage part is unchanged.
 Revision 3 (2026-10-18, epic C, nothing released yet, ADR 0020): theme presets store and
 commands; optional author / description on icons, shapes and theme presets; the panel's theme
 backend adapter gains `presets`. Animations stay in animations.py (no migration, no new command).
+Revision 4 (2026-10-18, epic E1, CEO 2026-10-18: entry points in the Library view AND an "Editors"
+tab; nothing released yet, ADR 0020 / 0027): the panel gets "Library" and "Editors" tabs that host
+Magic Card's SVG editor and shape editor without a card (section "Editors in the panel"). No new
+command, no storage change, no Python change. The theme presets adapter shape is settled: the panel
+side changes (section "Theme editor backend adapter").
 
 Implementation: library.py (Store, validation, commands) and
 www/magic_card_utils_library.js (frontend provider), registered in __init__.py with
 homeassistant.components.frontend.add_extra_js_url(hass, PROVIDER_URL) so it loads on every page.
 The panel gets a "Library" tab later (list, rename, delete); not part of 1.0.0 (the card editor's
 library view covers icons, shapes and animations; the theme editor covers theme presets).
+(r4) Superseded: the "Library" tab is in scope now, see "Editors in the panel".
 
 Storage: Store(hass, STORAGE_VERSION, STORAGE_KEY_ICONS) -> {"icons": {id: SavedIcon}},
 Store(hass, STORAGE_VERSION, STORAGE_KEY_SHAPES) -> {"shapes": {id: SavedShape}} and (r3)
@@ -52,7 +58,8 @@ Validation (defence in depth; Magic Card sanitises every SVG again before use):
   1..DESCRIPTION_MAX_CHARS after strip. On icons, shapes and theme presets. Stored stripped.
 - icon.svg: str, <= ICON_MAX_BYTES UTF-8, stripped text starts with "<svg"; every element name
   (regex <\\s*([A-Za-z][\\w:.-]*)) in SVG_ELEMENTS (case-insensitive); no attribute matching
-  ATTR_DENY_RE; none of TEXT_DENY (case-insensitive); every url( is url(#...).
+  ATTR_DENY_RE; none of TEXT_DENY (case-insensitive); every url( is url(#...). (r4) Nested <g>
+  (up to 4 levels from the SVG editor) passes unchanged; depth is not checked.
 - icon.path / icon.secondary_path: str matching PATH_RE, <= ICON_MAX_BYTES. view_box: four finite
   numbers, width and height > 0. An empty path is valid (a lines-only icon, or an imported icon
   not yet opened in the SVG editor; the editor warns).
@@ -73,6 +80,34 @@ the Themes tab sets backend.presets = {list, save, remove} on top of the three t
 commands (list -> theme_presets; save(input, base_updated_at?) -> theme_preset; remove(id)), and
 rejects with an Error carrying `code` (and `errors`) as the other adapter methods do. The panel
 sets `presets` only when this integration registers the commands (always, from this version on).
+(r4) Shape of record = magic-card ThemePresetStore: list() resolves the LIST itself
+(res.theme_presets, [] when absent), save() resolves the ITEM itself (res.theme_preset), remove()
+resolves nothing. _createPresetBackend changes from {theme_presets: [...]} / {theme_preset: {...}}
+to that. Magic Card keeps reading both shapes, so the change is safe in any update order. The same
+adapter object is passed to the Library tab's <mc-library-view> as `presets`.
+
+Editors in the panel (r4, www/magic_card_utils_panel.js; magic-card svg-editor 1.0.0 r5 "Hosts",
+preset-transfer 1.0.0 r2 context 'mcu-panel'):
+- Tabs PANEL_TABS: Templates, Animations, Themes, Library, Editors.
+- Loading: _ensureMagicCard() as the other tabs do, then window.MagicCard.loadEditor(), then
+  window.MagicCard.loadSvgEditor() / loadShapeEditor() on first use, and loadTransfer() for the
+  Library tab. No new file in Magic Card; nothing from another host; no card element.
+- Version gate: no Magic Card -> "Install Magic Card to draw icons and shapes here."; loaders missing
+  or customElements.get(tag).contractRevision < EDITORS_MIN_CONTRACT_REVISION -> "Drawing icons and
+  shapes here needs Magic Card <MIN_MAGIC_CARD_FOR_EDITORS> or newer. Update Magic Card." The Lead
+  sets MIN_MAGIC_CARD_FOR_EDITORS (a panel JS constant) to the Magic Card release that ships E.
+- Shell _openEditor({kind, id?, opener}): hides the tab bar and content, mounts <mc-svg-editor
+  host="mcu"> (source blank or {kind: "library", id}, savedId) or <mc-shape-studio host="mcu"> (value
+  from shapes_list for Edit, unset for New) in a host filling the content area; keeps hass current;
+  focuses the element; refreshes lists on mc-svg-save / mc-shape-save; on mc-svg-close /
+  mc-shape-close removes it, shows the tab and returns focus to the opener (or its data-focus-key
+  replacement).
+- Library tab: <mc-library-view> with context "mcu-panel", hass, presets; its "New icon", "New shape"
+  and row "Edit" fire mc-library-open {kind, id?} -> _openEditor.
+- Editors tab (panel markup only): "New icon", "New shape", "Recent icons" / "Recent shapes" (the
+  RECENT_ITEMS newest by updated_at, each with "Edit"), "See all in Library"; "Nothing saved yet."
+  when empty.
+- Accessibility: tablist pattern as today, real buttons >= 24 x 24 CSS px, focus return, 200 % zoom.
 
 Frontend provider (www/magic_card_utils_library.js, rules from spike S1 on HA core 2026.10.2):
 - ESM, whole body in try/catch, no DOM writes, no innerHTML, <= PROVIDER_MAX_BYTES unminified.
@@ -98,7 +133,7 @@ import re
 from typing import Literal, NotRequired, TypedDict
 
 MCU_LIBRARY_CONTRACT_VERSION = "1.0.0"
-MCU_LIBRARY_CONTRACT_REVISION = 3
+MCU_LIBRARY_CONTRACT_REVISION = 4
 PROVIDER_API_VERSION = 1
 
 STORAGE_VERSION = 1
@@ -112,6 +147,12 @@ PROVIDER_MAX_BYTES = 6 * 1024
 CONNECTION_POLL_MS = 50
 CONNECTION_WAIT_MS = 30_000
 ICON_PREFIX = "mcu"
+
+# (r4) Panel side, mirrored as constants in www/magic_card_utils_panel.js (the panel is plain JS).
+PANEL_TABS = ("templates", "animations", "themes", "library", "editors")
+RECENT_ITEMS = 8
+# magic-card svg-editor SVG_EDITOR_MCU_MIN_REVISION: the element revision that has host "mcu".
+EDITORS_MIN_CONTRACT_REVISION = 5
 
 CMD_ICONS_LIST = "magic_card_utils/icons_list"
 CMD_ICONS_GET = "magic_card_utils/icons_get"
