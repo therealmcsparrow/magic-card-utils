@@ -9,6 +9,7 @@ from homeassistant.components.http import StaticPathConfig
 
 from .const import DOMAIN, PANEL_ICON, PANEL_TITLE, PANEL_URL, STATIC_URL
 from .animations import async_setup_animations
+from .library import async_setup_library
 from .themes import async_setup_themes
 from .websocket import async_register_websocket
 
@@ -25,6 +26,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up from a config entry."""
     await async_register_websocket(hass)
     await async_setup_animations(hass)
+    await async_setup_library(hass)
     await async_setup_themes(hass)
 
     if not hass.data.get(f"{DOMAIN}_static_path_registered", False):
