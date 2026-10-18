@@ -101,6 +101,10 @@ The [documentation](https://github.com/therealmcsparrow/magic-card-utils/tree/ma
 
 The [changelog](https://github.com/therealmcsparrow/magic-card-utils/blob/main/CHANGELOG.md) lists what changed in each release.
 
+## Privacy
+
+Magic Card Utils has no telemetry and makes no requests to other websites. What you save stays in your own Home Assistant, in `config/.storage/` and, for themes, in `config/themes`. Nothing is sent to the author. A file you import can point to another website; the import window tells you before you confirm. See [Importing a theme file](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/library.md#importing-a-theme-file).
+
 ## Support
 
 If you have any issues with this integration, please [open an issue on GitHub](https://github.com/therealmcsparrow/magic-card-utils/issues). The [troubleshooting page](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/troubleshooting/README.md#reporting-a-problem) lists what to include.
@@ -121,7 +125,7 @@ The MIT License covers the source code. It does not cover the brand assets (the 
 
 ### Third-party
 
-- **Lit 3.3.3** (BSD-3-Clause): the panel uses a local copy in `www/` instead of loading it from unpkg.com.
+- **Lit 3.3.3** (BSD-3-Clause): the panel uses a local copy in `custom_components/magic_card_utils/www/` instead of loading it from unpkg.com. The licence text is in `custom_components/magic_card_utils/www/LICENSE-lit.txt`.
 - **Material Design Icons, @mdi/js 7.4.47** (Apache-2.0): a few icon paths are built into `custom_components/magic_card_utils/www/mc-ui-kit.js`. The licence text is in `custom_components/magic_card_utils/www/LICENSE-mdi.txt`.
 
 

@@ -24,11 +24,11 @@ The Themes tab reads and writes only files in `/config/themes`. It never writes 
 
 ## Importing a theme file
 
-Theme files are imported in the Themes tab, and the Library's Import window accepts them too. Magic Card reads the file on your computer. It does not download anything while you read it, and it sends nothing to us.
+Theme files are imported in the Themes tab, and the Library's Import window accepts them too. Magic Card reads the file on your computer. It downloads nothing while it reads, and it sends nothing to the author.
 
-Some theme files point to a picture or font on another website, or contain card-mod lines. If a file does, Magic Card lists each setting and the website before you confirm. If you choose **Import anyway**, every browser that shows a dashboard with this theme asks that website for the file, and the website can see the visitor's IP address. Lines that start with `card-mod-` only work when card-mod is installed, and they can restyle any card.
+Some theme files point to a picture or font on another website, or contain card-mod lines. If a file does, the import window lists each setting and the website before you confirm. If you choose **Import anyway**, every browser that shows a dashboard with this theme asks that website for the file, and the website can see the visitor's IP address. Lines that start with `card-mod-` only work when card-mod is installed, and they can restyle any card.
 
-Only import files from people you trust. To avoid this, choose **Cancel**, or delete those lines from the file and import it again.
+Only import files from people you trust. To avoid all of this, choose **Cancel**, or delete those lines from the file and import it again.
 
 See [Library](library.md#import-and-export) for the size limit and what an import checks.
 

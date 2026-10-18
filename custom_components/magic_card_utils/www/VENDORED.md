@@ -1,7 +1,9 @@
 # Vendored: Lit 3.3.3
 
 `lit-core.min.js` is the only third-party code the panel loads. It is served
-from this folder, so the panel needs no CDN and no network access.
+from this folder, so the panel needs no CDN and no network access. The panel
+also draws a few icon paths from Material Design Icons; those are built into
+`mc-ui-kit.js` (see "Generated: Magic Card UI kit" below) and are not code.
 
 | Field | Value |
 | --- | --- |

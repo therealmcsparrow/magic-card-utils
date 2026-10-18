@@ -1,6 +1,6 @@
 # Languages
 
-The panel and the setup screen follow the language of your Home Assistant profile. Three languages are complete: English (UK), English (US) and Dutch. Any other language shows English (UK). The Dutch texts were drafted by machine and are still being reviewed by a Dutch speaker; if a text reads wrongly, report it on [GitHub](https://github.com/therealmcsparrow/magic-card-utils/issues).
+The panel and the setup screen follow the language of your Home Assistant profile. Three languages are complete: English (UK), English (US) and Dutch. Any other language shows English (UK). The Dutch texts were drafted with machine help and have not been checked by a professional translator; if a text reads wrongly, report it on [GitHub](https://github.com/therealmcsparrow/magic-card-utils/issues).
 
 | Profile language | What you see |
 | --- | --- |
