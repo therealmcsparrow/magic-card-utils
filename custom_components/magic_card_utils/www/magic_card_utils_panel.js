@@ -120,8 +120,9 @@ const LIBRARY_ID_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 const FOCUS_KEY_RE = /^[A-Za-z0-9_.:-]{1,96}$/;
 const MSG_NO_CARD = "Install Magic Card to draw icons and shapes here.";
 const MSG_UPDATE_CARD = `Drawing icons and shapes here needs Magic Card ${MIN_MAGIC_CARD_FOR_EDITORS} or newer. Update Magic Card.`;
+const MSG_NO_API = "This Magic Card does not offer the icon and shape editors. Reload the page; if it stays, update Magic Card.";
 const MSG_ADMIN_ONLY = "Only administrators can create or change icons and shapes.";
-const MSG_EDITOR_LOAD = "The editor could not be loaded from Magic Card. Try again.";
+const MSG_EDITOR_LOAD = "The editor files could not be loaded from Magic Card. Reload the page and try again.";
 const TABS = [
   ["templates", "Templates"],
   ["animations", "Animations"],
@@ -1146,12 +1147,13 @@ class MagicCardUtilsPanel extends LitElement {
       const missing = !customElements.get(CARD_TAG) && !this._magicCardUrl;
       return { ok: false, message: missing ? MSG_NO_CARD : card.message };
     }
-    const mc = window.MagicCard;
-    if (!mc || typeof mc.loadEditor !== "function") return { ok: false, message: MSG_UPDATE_CARD };
+    if (!window.MagicCard || typeof window.MagicCard.loadEditor !== "function") return { ok: false, message: MSG_NO_API };
     const loader = what === "library" ? "loadTransfer" : what === "shape" ? "loadShapeEditor" : "loadSvgEditor";
     try {
-      if (!(await mc.loadEditor())) return { ok: false, message: MSG_EDITOR_LOAD };
-      if (typeof mc[loader] !== "function") return { ok: false, message: MSG_UPDATE_CARD };
+      if (!(await window.MagicCard.loadEditor())) return { ok: false, message: MSG_EDITOR_LOAD };
+      // The editor chunk adds the loaders to window.MagicCard: read it again, never keep the object from before.
+      const mc = window.MagicCard;
+      if (!mc || typeof mc[loader] !== "function") return { ok: false, message: MSG_NO_API };
       if (!(await mc[loader]())) return { ok: false, message: MSG_EDITOR_LOAD };
     } catch (err) {
       console.warn("[magic_card_utils] editor chunk not loaded", err);
@@ -1160,19 +1162,8 @@ class MagicCardUtilsPanel extends LitElement {
     const tag = what === "library" ? LIBRARY_VIEW_TAG : what === "shape" ? SHAPE_STUDIO_TAG : SVG_EDITOR_TAG;
     const ctor = customElements.get(tag);
     if (!ctor) return { ok: false, message: MSG_EDITOR_LOAD };
-    let revision = Number(ctor.contractRevision);
-    if (what === "library" && !Number.isFinite(revision)) {
-      // The view carries no revision of its own: judge by the SVG editor of the same Magic Card.
-      try {
-        if (typeof mc.loadSvgEditor === "function" && (await mc.loadSvgEditor())) {
-          const svg = customElements.get(SVG_EDITOR_TAG);
-          revision = Number(svg && svg.contractRevision);
-        }
-      } catch (_err) {
-        revision = NaN;
-      }
-    }
-    if (!(revision >= EDITORS_MIN_CONTRACT_REVISION)) return { ok: false, message: MSG_UPDATE_CARD };
+    // Every element carries static contractRevision; one without it comes from a Magic Card before revision 5.
+    if (!(Number(ctor.contractRevision) >= EDITORS_MIN_CONTRACT_REVISION)) return { ok: false, message: MSG_UPDATE_CARD };
     return { ok: true };
   }
 

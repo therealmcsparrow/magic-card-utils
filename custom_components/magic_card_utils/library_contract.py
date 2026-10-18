@@ -92,9 +92,13 @@ preset-transfer 1.0.0 r2 context 'mcu-panel'):
 - Loading: _ensureMagicCard() as the other tabs do, then window.MagicCard.loadEditor(), then
   window.MagicCard.loadSvgEditor() / loadShapeEditor() on first use, and loadTransfer() for the
   Library tab. No new file in Magic Card; nothing from another host; no card element.
-- Version gate: no Magic Card -> "Install Magic Card to draw icons and shapes here."; loaders missing
-  or customElements.get(tag).contractRevision < EDITORS_MIN_CONTRACT_REVISION -> "Drawing icons and
-  shapes here needs Magic Card <MIN_MAGIC_CARD_FOR_EDITORS> or newer. Update Magic Card." The Lead
+- Version gate, one message per cause: no Magic Card -> "Install Magic Card to draw icons and shapes
+  here."; a loader missing (read from window.MagicCard again after loadEditor(), which adds them to it)
+  -> "This Magic Card does not offer the icon and shape editors..." (no version); loader false, thrown
+  or the element not defined -> "The editor files could not be loaded from Magic Card..." (no
+  version); customElements.get(tag).contractRevision (also <mc-library-view>) missing or <
+  EDITORS_MIN_CONTRACT_REVISION -> "Drawing icons and shapes here needs Magic Card
+  <MIN_MAGIC_CARD_FOR_EDITORS> or newer. Update Magic Card." (the only one naming a version). The Lead
   sets MIN_MAGIC_CARD_FOR_EDITORS (a panel JS constant) to the Magic Card release that ships E.
 - Shell _openEditor({kind, id?, opener}): hides the tab bar and content, mounts <mc-svg-editor
   host="mcu"> (source blank or {kind: "library", id}, savedId) or <mc-shape-studio host="mcu"> (value
