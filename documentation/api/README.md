@@ -33,6 +33,8 @@ unsubscribe(); // when your element disconnects
 | `get_animations`, `subscribe_animations` | Any signed-in user |
 | `save_animation`, `delete_animation` | Admin users |
 | `themes_list`, `themes_get`, `themes_save`, `themes_delete` | Admin users |
+| `icons_list`, `icons_get`, `shapes_list`, `theme_presets_list`, `subscribe_library` | Any signed-in user |
+| `icons_save`, `icons_delete`, `shapes_save`, `shapes_delete`, `theme_presets_save`, `theme_presets_delete` | Admin users |
 
 A non-admin user calling an admin command gets Home Assistant's `unauthorized` error.
 
@@ -40,7 +42,31 @@ A non-admin user calling an admin command gets Home Assistant's `unauthorized` e
 
 The Library, Shapes and Editors tabs and the icon picker use the icon and shape library, which is stored in Home Assistant. Saving, renaming, deleting and importing icons and shapes are admin-only. A saved icon is named `mcu:` followed by its id in Home Assistant's icon picker; see [Using icons in Home Assistant](../panel/library.md#using-icons-in-home-assistant).
 
-The command names for the icon and shape library are not listed on this page yet.
+All these commands have the prefix `magic_card_utils/`, for example `magic_card_utils/icons_list`.
+
+| Command | Fields | What it does |
+| --- | --- | --- |
+| `icons_list` | none | Lists the saved icons |
+| `icons_get` | `ids`, up to 100 | Gets the icons with those ids |
+| `icons_save` | `icon`, optional `base_updated_at` | Saves an icon |
+| `icons_delete` | `icon_id` | Deletes an icon |
+| `shapes_list` | none | Lists the saved shapes |
+| `shapes_save` | `shape`, optional `base_updated_at` | Saves a shape |
+| `shapes_delete` | `shape_id` | Deletes a shape |
+| `theme_presets_list` | none | Lists the theme presets |
+| `theme_presets_save` | `theme_preset`, optional `base_updated_at` | Saves a theme preset |
+| `theme_presets_delete` | `theme_preset_id` | Deletes a theme preset |
+| `subscribe_library` | none | Sends `saved` and `deleted` events for icons, shapes and theme presets |
+
+Limits:
+
+-   500 icons, each up to 32 KiB.
+-   200 shapes, each up to 8 KiB, with 3 to 64 points.
+-   100 theme presets, each up to 32 KiB.
+
+A dashboard loads the shape list only when a card on it uses a library shape. A dashboard with no such card sends only the `subscribe_library` subscription.
+
+The names come from the command constants in `custom_components/magic_card_utils/library_contract.py`.
 
 ## Errors
 

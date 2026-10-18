@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- The 2026.10.09 entry said the Third-party section lists Montserrat. The README lists Lit and @mdi/js only, and the integration ships no font file.
+
 ## [2026.10.11-beta.1] - 2026-10-18 (pre-release)
 
 Pre-release for testing. HACS hides pre-releases unless you turn on **Show beta versions**. Install the matching Magic Card pre-release (2026.10.11-beta.1 or newer) as well.
@@ -15,6 +19,8 @@ Pre-release for testing. HACS hides pre-releases unless you turn on **Show beta 
 - A Library tab in the panel: your saved icons, shapes, animations and theme presets, with New icon, New shape, Edit, Rename, Delete, Export and Import. Only admin users can change the library.
 - A Shapes tab next to Library lists your saved shapes with New shape, Edit, Rename, Delete and Export on each row. Shapes still show in Library too.
 - An Editors tab to draw a new icon or shape without a card, with your most recent icons and shapes to reopen.
+- Shapes tab rows show a thumbnail of the outline and the point count, such as "10 points", or "Corner shape" for a shape made of corners.
+- A note at the top of the Shapes tab says which cards follow a change to a shape, and which keep their own copy.
 - Saved icons appear in Home Assistant's icon picker after a reload. Magic Card draws them in full colour; Home Assistant's own cards show a one-colour silhouette.
 - Import and export of icons, shapes, animations and theme presets as files. Imports are limited to 1 MB and checked before anything is saved.
 - Save as my preset in the Themes tab keeps a theme in your shared library.
@@ -26,6 +32,8 @@ Pre-release for testing. HACS hides pre-releases unless you turn on **Show beta 
 - Needs Magic Card 2026.10.11-beta.1 or newer for the Library, Shapes and Editors tabs. An older Magic Card shows a message in place of the editors.
 - The panel uses the same buttons, fields, notices, icon buttons and chips as the Magic Card editor. The Home Assistant header and page tabs are unchanged.
 - Dialogs follow the Magic Card look: larger corners, the same shadow and background dimming, a close button with an icon, and labelled fields with help text under them.
+- The shape list loads only when a card on the page uses a library shape. A dashboard with no such card does not load it.
+- After you save a shape, a status line on the Shapes and Library tabs says the shape was saved. It clears when you change tab.
 - Errors and warnings in the panel show as inline notices with an icon, not coloured bars. Table action buttons share one neutral colour and each has an accessible name.
 
 ## [2026.10.09] - 2026-10-17

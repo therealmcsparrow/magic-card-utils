@@ -10,7 +10,7 @@ The panel has six tabs:
 | [Animations](animations.md) | Build and manage the shared animation library in the Magic Card animation studio |
 | [Themes](themes.md) | Create, edit, save and delete Home Assistant themes in the Magic Card theme editor, and save a theme as your preset |
 | [Library](library.md) | Browse your saved icons, shapes, animations and theme presets. New icon, New shape, Edit, Rename, Delete, Export and Import |
-| [Shapes](library.md#the-shapes-tab) | Your saved shapes: New shape, Edit, Rename, Delete and Export |
+| [Shapes](library.md#the-shapes-tab) | Your saved shapes, with a thumbnail and point count: New shape, Edit, Rename, Delete and Export |
 | [Editors](library.md#the-editors-tab) | Draw a new icon or shape without a card, and reopen your recent ones |
 
 Click a tab, or move between them with the arrow keys when a tab has focus. The panel opens on the Templates tab, unless the URL has `?animation=<id>` (see [Open one animation directly](animations.md#open-one-animation-directly)) or `?theme=<name>` (see [Themes](themes.md#deep-link)).

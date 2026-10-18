@@ -38,6 +38,15 @@ An empty kind shows a short message and the New button above it, for example "No
 
 The Shapes tab shows only your shapes, with the same buttons: New shape, Edit, Rename, Delete and Export. Shapes also still appear in the Library tab.
 
+Each row has a small outline thumbnail and its point count, such as "10 points", or "Corner shape" for a shape made of corners. The thumbnail is a hint of the outline, not the editor's exact output.
+
+A note at the top of the Shapes tab explains how cards use a shape:
+
+-   Cards that picked the shape from the library follow your changes.
+-   A card that holds its own copy, such as a shape drawn in the card editor, keeps its points. To use this version there, pick the shape again under **My shapes** in the card editor.
+
+After you save a shape, the editor stays open over the page, and a status line starts with "Saved to the library." It shows on the Shapes tab and on the Library tab when you come back, and it clears when you change tab.
+
 Magic Card versions older than 2026.10.11-beta.1 do not know this tab's filter, so they show all four kinds in it.
 
 ## The Editors tab

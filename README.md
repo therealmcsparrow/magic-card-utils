@@ -77,7 +77,7 @@ The **Magic Card Templates** panel then appears in the sidebar of admin users. I
 - **Animations:** the Magic Card animation studio, with the shared animation library.
 - **Themes:** the Magic Card theme editor. It lists the theme files in `/config/themes`, and creates, edits, saves and deletes them. Saving needs the include lines in `configuration.yaml`, which the tab shows when they are missing. The [Magic Card theme documentation](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/themes/README.md) covers the editor itself.
 - **Library:** your saved icons, shapes, animations and theme presets, with New icon, New shape, Edit, Rename, Delete, Export and Import.
-- **Shapes:** your saved shapes, with New shape, Edit, Rename, Delete and Export.
+- **Shapes:** your saved shapes, each with a thumbnail and its point count, and with New shape, Edit, Rename, Delete and Export.
 - **Editors:** draw a new icon or shape without a card, and reopen your most recent ones.
 
 Only admin users can create, change, rename, delete or import library items.
