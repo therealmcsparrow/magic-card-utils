@@ -5,11 +5,13 @@ from pathlib import Path
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.components import panel_custom
+from homeassistant.components.frontend import add_extra_js_url
 from homeassistant.components.http import StaticPathConfig
 
 from .const import DOMAIN, PANEL_ICON, PANEL_TITLE, PANEL_URL, STATIC_URL
 from .animations import async_setup_animations
 from .library import async_setup_library
+from .library_contract import PROVIDER_URL
 from .themes import async_setup_themes
 from .websocket import async_register_websocket
 
@@ -40,6 +42,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             ]
         )
         hass.data[f"{DOMAIN}_static_path_registered"] = True
+
+    if not hass.data.get(f"{DOMAIN}_provider_registered", False):
+        # Loads on every Home Assistant page; the version query busts the browser cache.
+        version = await hass.async_add_executor_job(_load_manifest_version)
+        add_extra_js_url(hass, f"{PROVIDER_URL}?v={version}")
+        hass.data[f"{DOMAIN}_provider_registered"] = True
 
     if entry.data.get("show_side_panel", True):
         await async_register_panel(hass)
