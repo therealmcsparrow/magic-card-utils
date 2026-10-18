@@ -78,7 +78,7 @@ The panel imports them as `i18nFor('mcu-panel', tables)` and writes `tr('British
 | Files | `mc-i18n.js`, `mc-i18n-panel.js` |
 | Magic Card commit | `0f298bb` (branch `aico/svg-and-shape-editors`), exported from a clean `git archive` of that commit |
 | SHA-256 `mc-i18n.js` | `f1a042bc2bb7873aaf453980f91923e17432e32bb9a19eb8226b29829f72e500` |
-| SHA-256 `mc-i18n-panel.js` | `ed80b34a4cc0638827fb2ded4484d244470199fb4763b128faedf97b66d6b00d` |
+| SHA-256 `mc-i18n-panel.js` | `adfc613ba17a6547b38e922a6ea23000a9e5501fa381cfd7c1dc2a47a1b2b27a` |
 | Sources in this repo | `magic_card_utils_panel.js` (the `tr()` calls), `i18n/nl.json` (written by hand), `i18n/en-US.json` (generated) |
 
 The exporter reads the panel source and runs the drift checks: every message is a literal, has an en-US and a nl

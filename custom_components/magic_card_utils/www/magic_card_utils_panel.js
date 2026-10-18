@@ -166,6 +166,7 @@ const TABS = [
   ["animations", () => tr("Animations")],
   ["themes", () => tr("Themes")],
   ["library", () => tr("Library")],
+  ["shapes", () => tr("Shapes")],
   ["editors", () => tr("Editors")],
 ];
 // Kept for the page's lifetime: the editor holds the draft and the dashboard trial, and the trial
@@ -328,6 +329,8 @@ class MagicCardUtilsPanel extends LitElement {
       // library and editors tabs
       _libraryStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _libraryMessage: { type: String, state: true },
+      _shapesStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
+      _shapesMessage: { type: String, state: true },
       _editorOpen: { type: Boolean, state: true },
       _editorBusy: { type: Boolean, state: true },
       _editorNotice: { type: String, state: true },
@@ -374,6 +377,9 @@ class MagicCardUtilsPanel extends LitElement {
     this._libraryMessage = "";
     this._libraryEl = null;
     this._libraryStale = false;
+    this._shapesStatus = "";
+    this._shapesMessage = "";
+    this._shapesEl = null;
     this._editorOpen = false;
     this._editorBusy = false;
     this._editorNotice = "";
@@ -537,6 +543,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (changedProps.has("hass") && this.hass) {
       this._syncEditorHass();
       if (this._libraryEl) this._libraryEl.hass = this.hass;
+      if (this._shapesEl) this._shapesEl.hass = this.hass;
     }
     if (this._editorOpen) {
       this._attachEditor();
@@ -545,6 +552,10 @@ class MagicCardUtilsPanel extends LitElement {
         this._mountLibraryView();
       }
       if (this._tab === "library" && this._libraryStatus === "ready") this._attachLibraryView();
+      if (this._tab === "shapes" && this.hass && !this._shapesEl && this._shapesStatus === "") {
+        this._mountShapesView();
+      }
+      if (this._tab === "shapes" && this._shapesStatus === "ready") this._attachShapesView();
       if (this._tab === "editors" && this.hass && !this._recentLoaded) this._loadRecent();
     }
     if (this._tab === "themes" && this.hass && !this._themeEl && this._themeStatus === "") {
@@ -1332,6 +1343,8 @@ class MagicCardUtilsPanel extends LitElement {
       this._libraryStale = false;
       this._libraryEl = null;
       if (this._libraryStatus !== "error") this._libraryStatus = "";
+      this._shapesEl = null;
+      if (this._shapesStatus !== "error") this._shapesStatus = "";
     }
     await this.updateComplete;
     await this._restoreFocus(opener, key);
@@ -1406,6 +1419,41 @@ class MagicCardUtilsPanel extends LitElement {
     this._attachLibraryView();
   }
 
+  /** The Shapes tab: the same Library view, narrowed to the shapes kind (it keeps New shape, Edit, Rename, Delete, Export). */
+  async _mountShapesView() {
+    if (this._shapesEl || this._shapesStatus === "loading") return;
+    this._shapesStatus = "loading";
+    this._shapesMessage = "";
+    const status = await this._ensureEditors("library");
+    if (!status.ok) {
+      this._shapesStatus = "error";
+      this._shapesMessage = status.message;
+      return;
+    }
+    const el = document.createElement(LIBRARY_VIEW_TAG);
+    el.context = "mcu-panel";
+    el.kinds = ["shape"];
+    el.hass = this.hass;
+    el.presets = _createPresetBackend(_makeCall(() => this.hass));
+    el.addEventListener("mc-library-open", (e) => this._onLibraryOpen(e));
+    this._shapesEl = el;
+    this._shapesStatus = "ready";
+    await this.updateComplete;
+    this._attachShapesView();
+  }
+
+  _attachShapesView() {
+    const host = this.shadowRoot.querySelector(".shapes-host");
+    if (!host || !this._shapesEl || this._shapesEl.parentNode === host) return;
+    host.innerHTML = "";
+    host.appendChild(this._shapesEl);
+  }
+
+  _retryShapes() {
+    this._shapesStatus = "";
+    this._shapesMessage = "";
+  }
+
   _attachLibraryView() {
     const host = this.shadowRoot.querySelector(".library-host");
     if (!host || !this._libraryEl || this._libraryEl.parentNode === host) return;
@@ -1455,6 +1503,27 @@ class MagicCardUtilsPanel extends LitElement {
           </div>`
         : ""}
       <div class="library-host" ?hidden=${this._libraryStatus !== "ready"}></div>
+    `;
+  }
+
+  _renderShapesTab() {
+    return html`
+      ${this._renderEditorNotice()}
+      ${this._shapesStatus === "loading" || this._shapesStatus === ""
+        ? html`<div class="studio-status"><ha-circular-progress active></ha-circular-progress></div>`
+        : ""}
+      ${this._shapesStatus === "error"
+        ? html`<div class="content">
+            <div class="notice error" role="alert">
+              ${glyph("error", 20)}
+              <div class="body">
+                <p>${this._shapesMessage}</p>
+                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryShapes()}>${tr("Try again")}</button></div>
+              </div>
+            </div>
+          </div>`
+        : ""}
+      <div class="shapes-host" ?hidden=${this._shapesStatus !== "ready"}></div>
     `;
   }
 
@@ -1564,6 +1633,8 @@ class MagicCardUtilsPanel extends LitElement {
     this._libraryEl = null;
     this._libraryStale = false;
     if (this._libraryStatus !== "error") this._libraryStatus = "";
+    this._shapesEl = null;
+    if (this._shapesStatus !== "error") this._shapesStatus = "";
     this._recentLoaded = false;
     if (this._themeStatus !== "error") this._themeStatus = "";
     if (this._animStatus !== "error") this._animStatus = "";
@@ -1630,6 +1701,8 @@ class MagicCardUtilsPanel extends LitElement {
               ? this._renderThemesTab()
               : this._tab === "library"
               ? this._renderLibraryTab()
+              : this._tab === "shapes"
+              ? this._renderShapesTab()
               : this._tab === "editors"
               ? this._renderEditorsTab()
               : this._renderTemplatesTab()}`}
@@ -2044,11 +2117,13 @@ class MagicCardUtilsPanel extends LitElement {
       .theme-host[hidden] {
         display: none;
       }
-      .library-host {
+      .library-host,
+      .shapes-host {
         display: block;
         padding: 16px;
       }
-      .library-host[hidden] {
+      .library-host[hidden],
+      .shapes-host[hidden] {
         display: none;
       }
       .editor-host {

@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- A Shapes tab next to Library lists your saved shapes with New shape, Edit, Rename, Delete and Export on each row. Shapes still show in Library too. It needs a Magic Card that includes the Shapes view; an older one shows all kinds in that tab.
+
 - The panel speaks English (UK), English (US) and Dutch, following your Home Assistant profile language. Any other language shows English (UK). The messages are in `www/mc-i18n-panel.js`, generated from Magic Card together with the runtime `www/mc-i18n.js`.
 - The setup screen has text: `translations/en.json`, `en-GB.json` and `nl.json`. Home Assistant reads these for a custom integration, not `strings.json`, so the setup screen shows its title, description and option label.
 
@@ -21,6 +23,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [2026.10.09] - 2026-10-17
 
 ### Added
+
+- A Shapes tab next to Library lists your saved shapes with New shape, Edit, Rename, Delete and Export on each row. Shapes still show in Library too. It needs a Magic Card that includes the Shapes view; an older one shows all kinds in that tab.
 
 - Brand images in `custom_components/magic_card_utils/brand/` (`icon`, `logo` and `dark_logo` PNGs, 1x and `@2x`). Home Assistant and HACS show the integration icon and logo from Home Assistant 2026.3. Older versions show a placeholder. The README header shows the logo.
 - `SECURITY.md`: how to report a vulnerability privately.
@@ -45,6 +49,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- A Shapes tab next to Library lists your saved shapes with New shape, Edit, Rename, Delete and Export on each row. Shapes still show in Library too. It needs a Magic Card that includes the Shapes view; an older one shows all kinds in that tab.
+
 - **Themes** tab in the Magic Card Templates panel. It loads the Magic Card theme editor (`magic-card-theme-editor.js`, next to `magic-card.js`) when you open it, and lists the theme files in `/config/themes`. It needs Magic Card 2026.10.06 or newer; the tab says so when the editor is missing.
 - Four admin-only WebSocket commands for the theme editor: `magic_card_utils/themes_list`, `themes_get`, `themes_save` and `themes_delete`. A save writes only `/config/themes/<name>.yaml`, then reloads Home Assistant's themes. Names that could point outside that folder are refused. Files the editor cannot safely rewrite are listed read only, with a reason.
 - A save is refused with `themes_not_included` until `configuration.yaml` loads themes from `/config/themes`, or a theme from that folder is already loaded (for example from a package).
@@ -61,6 +67,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [2026.10.06] - 2026-10-16
 
 ### Added
+
+- A Shapes tab next to Library lists your saved shapes with New shape, Edit, Rename, Delete and Export on each row. Shapes still show in Library too. It needs a Magic Card that includes the Shapes view; an older one shows all kinds in that tab.
 
 - Documentation in the `documentation` folder: getting started, the panel, concepts (templates and linking, the animation library, storage), the WebSocket API, Magic Card compatibility and troubleshooting.
 
@@ -87,6 +95,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [2026.10.04] - 2026-10-15
 
 ### Added
+
+- A Shapes tab next to Library lists your saved shapes with New shape, Edit, Rename, Delete and Export on each row. Shapes still show in Library too. It needs a Magic Card that includes the Shapes view; an older one shows all kinds in that tab.
 
 - Animation library: a shared store for the custom animations made in the Magic Card animation studio. Every card can use them as `preset: custom:<id>`.
 - WebSocket commands `get_animations`, `subscribe_animations`, `save_animation` and `delete_animation`. Any signed-in user can read the library; saving and deleting need an admin.
@@ -121,6 +131,8 @@ First stable release.
 
 ### Added
 
+- A Shapes tab next to Library lists your saved shapes with New shape, Edit, Rename, Delete and Export on each row. Shapes still show in Library too. It needs a Magic Card that includes the Shapes view; an older one shows all kinds in that tab.
+
 - Edit a template's card configuration directly in the templates panel, using the Magic Card editor.
 - **Open in studio** action in the templates table: opens a template straight into the full-screen Magic Card studio.
 - **Card Type** column in the templates table.
@@ -146,6 +158,8 @@ First stable release.
 ## initial build - 2026-05-25
 
 ### Added
+
+- A Shapes tab next to Library lists your saved shapes with New shape, Edit, Rename, Delete and Export on each row. Shapes still show in Library too. It needs a Magic Card that includes the Shapes view; an older one shows all kinds in that tab.
 
 - Shared template storage for Magic Card, with a WebSocket API (`get_templates`, `subscribe_templates`, `save_template`, `delete_template`).
 - Linked-card counting across all dashboards; templates that are still linked can't be deleted.

@@ -9,6 +9,7 @@ The panel has three tabs:
 | [Templates](templates.md) | List, view, edit, open in the studio, duplicate and delete templates |
 | [Animations](animations.md) | Build and manage the shared animation library in the Magic Card animation studio |
 | [Themes](themes.md) | Create, edit, save and delete Home Assistant themes in the Magic Card theme editor |
+| Shapes | Your saved shapes: New shape, Edit, Rename, Delete and Export. Edit and New shape open the shape editor from Magic Card, for admin users |
 
 Click a tab, or move between them with the arrow keys when a tab has focus. The panel opens on the Templates tab, unless the URL has `?animation=<id>` (see [Open one animation directly](animations.md#open-one-animation-directly)) or `?theme=<name>` (see [Themes](themes.md#deep-link)).
 
