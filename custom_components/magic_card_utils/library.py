@@ -122,7 +122,7 @@ def _json_size(value: Any) -> int | None:
 
 def _validate_common(item: dict, errors: Errors) -> None:
     item_id = item.get("id")
-    if not isinstance(item_id, str) or not LIBRARY_ID_RE.match(item_id):
+    if not isinstance(item_id, str) or not LIBRARY_ID_RE.fullmatch(item_id):
         errors.append(
             _err("id", "Use 1-64 lowercase letters, digits, '_' or '-', starting with a letter or digit")
         )
@@ -278,7 +278,7 @@ def _theme_vars_error(variables: Any, allow_modes: bool) -> str | None:
     for key, value in variables.items():
         if allow_modes and key == "modes":
             continue
-        if not isinstance(key, str) or not THEME_VAR_RE.match(key):
+        if not isinstance(key, str) or not THEME_VAR_RE.fullmatch(key):
             return f"{str(key)[:40]!r} is not a valid variable name"
         if not _theme_value_ok(value):
             return (
@@ -657,7 +657,7 @@ async def _delete(
         _not_loaded(connection, msg["id"])
         return
     item_id = msg[key]
-    if not LIBRARY_ID_RE.match(item_id):
+    if not LIBRARY_ID_RE.fullmatch(item_id):
         _send_invalid(
             connection, msg["id"], f"Invalid {key}", [_err(key, "Invalid id")]
         )

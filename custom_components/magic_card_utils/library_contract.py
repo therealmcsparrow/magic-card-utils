@@ -174,7 +174,7 @@ CMD_THEME_PRESETS_SAVE = "magic_card_utils/theme_presets_save"
 CMD_THEME_PRESETS_DELETE = "magic_card_utils/theme_presets_delete"
 CMD_SUBSCRIBE = "magic_card_utils/subscribe_library"
 
-LIBRARY_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
+LIBRARY_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}\Z")
 MAX_NAME_LENGTH = 80
 MAX_KEYWORDS = 10
 MAX_GET_IDS = 100
@@ -188,8 +188,8 @@ MAX_SHAPE_POINTS = 64
 MAX_THEME_PRESETS = 100
 THEME_PRESET_MAX_BYTES = 32 * 1024
 THEME_VALUE_MAX_CHARS = 1024
-# Same pattern as magic-card src/contracts/theme-catalogue.ts THEME_VAR_RE.
-THEME_VAR_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,99}$")
+# Same pattern as magic-card src/contracts/theme-catalogue.ts THEME_VAR_RE. \Z, not $: "$" also matches before a trailing newline.
+THEME_VAR_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,99}\Z")
 THEME_MODES = frozenset({"light", "dark"})
 
 SVG_ELEMENTS = frozenset(
