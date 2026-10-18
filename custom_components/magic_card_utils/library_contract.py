@@ -92,14 +92,18 @@ preset-transfer 1.0.0 r2 context 'mcu-panel'):
 - Loading: _ensureMagicCard() as the other tabs do, then window.MagicCard.loadEditor(), then
   window.MagicCard.loadSvgEditor() / loadShapeEditor() on first use, and loadTransfer() for the
   Library tab. No new file in Magic Card; nothing from another host; no card element.
-- Version gate, one message per cause: no Magic Card -> "Install Magic Card to draw icons and shapes
-  here."; a loader missing (read from window.MagicCard again after loadEditor(), which adds them to it)
-  -> "This Magic Card does not offer the icon and shape editors..." (no version); loader false, thrown
-  or the element not defined -> "The editor files could not be loaded from Magic Card..." (no
-  version); customElements.get(tag).contractRevision (also <mc-library-view>) missing or <
-  EDITORS_MIN_CONTRACT_REVISION -> "Drawing icons and shapes here needs Magic Card
-  <MIN_MAGIC_CARD_FOR_EDITORS> or newer. Update Magic Card." (the only one naming a version). The Lead
-  sets MIN_MAGIC_CARD_FOR_EDITORS (a panel JS constant) to the Magic Card release that ships E.
+- Version gate, one rule and one message: window.MagicCard.version (a card that exposes none is too old)
+  is compared with MIN_MAGIC_CARD_FOR_EDITORS (a panel JS constant, YYYY.M.N with an optional -pre.release).
+  The three numbers decide first; with equal numbers a release is newer than its pre-releases and two
+  pre-releases compare field by field (numbers numerically), so 2026.10.11-beta.1 and 2026.10.11 both
+  satisfy a minimum of 2026.10.11-beta.1. Too old -> "Drawing icons and shapes here needs Magic Card
+  <MIN_MAGIC_CARD_FOR_EDITORS> or newer. Update Magic Card in HACS." Internal sanity checks fail into that
+  same message without naming a cause: loadEditor or a loader missing (read from window.MagicCard again
+  after loadEditor(), which adds them to it), and customElements.get(tag).contractRevision (also
+  <mc-library-view>) missing or < EDITORS_MIN_CONTRACT_REVISION. Two plain messages remain: no Magic Card
+  -> "Install Magic Card to draw icons and shapes here."; a genuine load failure (resource URL import
+  failed, loader false or thrown, element not defined) -> "The editor files could not be loaded from
+  Magic Card. Reload the page and try again." Neither talks about versions.
 - Shell _openEditor({kind, id?, opener}): hides the tab bar and content, mounts <mc-svg-editor
   host="mcu"> (source blank or {kind: "library", id}, savedId) or <mc-shape-studio host="mcu"> (value
   from shapes_list for Edit, unset for New) in a host filling the content area; keeps hass current;

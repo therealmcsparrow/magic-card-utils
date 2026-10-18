@@ -111,18 +111,49 @@ const SVG_EDITOR_TAG = "mc-svg-editor";
 const SHAPE_STUDIO_TAG = "mc-shape-studio";
 const LIBRARY_VIEW_TAG = "mc-library-view";
 const EDITORS_MIN_CONTRACT_REVISION = 5; // svg-editor SVG_EDITOR_MCU_MIN_REVISION
-// PLACEHOLDER: the Lead sets this to the Magic Card release that ships the editors in the panel (epic E).
-const MIN_MAGIC_CARD_FOR_EDITORS = "2026.10.11";
+// The one gate for the editors: the oldest Magic Card (window.MagicCard.version) that ships them in the panel.
+// PROPOSED, the CEO confirms: the planned pre-release. See _compareCalVer for how versions are ordered.
+const MIN_MAGIC_CARD_FOR_EDITORS = "2026.10.11-beta.1";
 const RECENT_ITEMS = 8;
 const CMD_ICONS_LIST = "magic_card_utils/icons_list";
 const CMD_SHAPES_LIST = "magic_card_utils/shapes_list";
 const LIBRARY_ID_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 const FOCUS_KEY_RE = /^[A-Za-z0-9_.:-]{1,96}$/;
 const MSG_NO_CARD = "Install Magic Card to draw icons and shapes here.";
-const MSG_UPDATE_CARD = `Drawing icons and shapes here needs Magic Card ${MIN_MAGIC_CARD_FOR_EDITORS} or newer. Update Magic Card.`;
-const MSG_NO_API = "This Magic Card does not offer the icon and shape editors. Reload the page; if it stays, update Magic Card.";
+// The only message about a Magic Card that is too old. Every cause (version, missing loader, contractRevision) ends here.
+const MSG_UPDATE_CARD = `Drawing icons and shapes here needs Magic Card ${MIN_MAGIC_CARD_FOR_EDITORS} or newer. Update Magic Card in HACS.`;
 const MSG_ADMIN_ONLY = "Only administrators can create or change icons and shapes.";
 const MSG_EDITOR_LOAD = "The editor files could not be loaded from Magic Card. Reload the page and try again.";
+/**
+ * Compare two Magic Card versions: `YYYY.M.N` with an optional `-pre.release` suffix (and `+build`, ignored).
+ * Returns <0, 0, >0, or null when either side is not a version.
+ * Rule: the three numbers decide first. With equal numbers a release is newer than any pre-release of it
+ * (2026.10.11 > 2026.10.11-beta.1), and two pre-releases compare field by field split on dots: numbers
+ * numerically, other text alphabetically, a number below text, a shorter list below a longer one.
+ * So 2026.10.11-beta.1 and 2026.10.11 both satisfy a minimum of 2026.10.11-beta.1.
+ */
+function _compareCalVer(a, b) {
+  const parse = (v) => {
+    const m = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/.exec(typeof v === "string" ? v : "");
+    return m ? { n: [+m[1], +m[2], +m[3]], pre: m[4] ? m[4].split(".") : null } : null;
+  };
+  const x = parse(a);
+  const y = parse(b);
+  if (!x || !y) return null;
+  for (let i = 0; i < 3; i++) if (x.n[i] !== y.n[i]) return x.n[i] - y.n[i];
+  if (!x.pre || !y.pre) return x.pre ? -1 : y.pre ? 1 : 0;
+  for (let i = 0; i < Math.min(x.pre.length, y.pre.length); i++) {
+    const p = x.pre[i];
+    const q = y.pre[i];
+    if (p === q) continue;
+    const pn = /^\d+$/.test(p);
+    const qn = /^\d+$/.test(q);
+    if (pn && qn) return +p - +q;
+    if (pn !== qn) return pn ? -1 : 1;
+    return p < q ? -1 : 1;
+  }
+  return x.pre.length - y.pre.length;
+}
 const TABS = [
   ["templates", "Templates"],
   ["animations", "Animations"],
@@ -1144,16 +1175,20 @@ class MagicCardUtilsPanel extends LitElement {
   async _ensureEditors(what) {
     const card = await this._ensureMagicCard();
     if (!card.ok) {
-      const missing = !customElements.get(CARD_TAG) && !this._magicCardUrl;
-      return { ok: false, message: missing ? MSG_NO_CARD : card.message };
+      // Not registered: not installed (no resource) or a genuine load failure (its own plain message).
+      if (!customElements.get(CARD_TAG)) return { ok: false, message: this._magicCardUrl ? card.message : MSG_NO_CARD };
+      return { ok: false, message: MSG_UPDATE_CARD }; // there, but too old to speak the panel contract
     }
-    if (!window.MagicCard || typeof window.MagicCard.loadEditor !== "function") return { ok: false, message: MSG_NO_API };
+    // The one version gate. A Magic Card that exposes no version predates the editors.
+    const cmp = _compareCalVer(window.MagicCard && window.MagicCard.version, MIN_MAGIC_CARD_FOR_EDITORS);
+    if (cmp === null || cmp < 0) return { ok: false, message: MSG_UPDATE_CARD };
+    if (typeof window.MagicCard.loadEditor !== "function") return { ok: false, message: MSG_UPDATE_CARD };
     const loader = what === "library" ? "loadTransfer" : what === "shape" ? "loadShapeEditor" : "loadSvgEditor";
     try {
       if (!(await window.MagicCard.loadEditor())) return { ok: false, message: MSG_EDITOR_LOAD };
       // The editor chunk adds the loaders to window.MagicCard: read it again, never keep the object from before.
       const mc = window.MagicCard;
-      if (!mc || typeof mc[loader] !== "function") return { ok: false, message: MSG_NO_API };
+      if (!mc || typeof mc[loader] !== "function") return { ok: false, message: MSG_UPDATE_CARD };
       if (!(await mc[loader]())) return { ok: false, message: MSG_EDITOR_LOAD };
     } catch (err) {
       console.warn("[magic_card_utils] editor chunk not loaded", err);
@@ -1162,7 +1197,7 @@ class MagicCardUtilsPanel extends LitElement {
     const tag = what === "library" ? LIBRARY_VIEW_TAG : what === "shape" ? SHAPE_STUDIO_TAG : SVG_EDITOR_TAG;
     const ctor = customElements.get(tag);
     if (!ctor) return { ok: false, message: MSG_EDITOR_LOAD };
-    // Every element carries static contractRevision; one without it comes from a Magic Card before revision 5.
+    // Internal sanity check, never worded as a revision: an element without contractRevision >= 5 is an old build.
     if (!(Number(ctor.contractRevision) >= EDITORS_MIN_CONTRACT_REVISION)) return { ok: false, message: MSG_UPDATE_CARD };
     return { ok: true };
   }
@@ -2483,6 +2518,7 @@ if (!customElements.get("magic-card-utils-panel")) {
 // Test hooks (tests/panel_editors.test.mjs); nothing in Home Assistant reads them.
 export const _testing = {
   createPresetBackend: _createPresetBackend,
+  compareCalVer: _compareCalVer,
   recentItems: _recentItems,
   FOCUS_KEY_RE,
   MIN_MAGIC_CARD_FOR_EDITORS,
