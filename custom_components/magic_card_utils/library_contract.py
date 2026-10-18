@@ -88,7 +88,7 @@ adapter object is passed to the Library tab's <mc-library-view> as `presets`.
 
 Editors in the panel (r4, www/magic_card_utils_panel.js; magic-card svg-editor 1.0.0 r5 "Hosts",
 preset-transfer 1.0.0 r2 context 'mcu-panel'):
-- Tabs PANEL_TABS: Templates, Animations, Themes, Library, Editors.
+- Tabs PANEL_TABS: Templates, Animations, Themes, Library, Shapes, Editors.
 - Loading: _ensureMagicCard() as the other tabs do, then window.MagicCard.loadEditor(), then
   window.MagicCard.loadSvgEditor() / loadShapeEditor() on first use, and loadTransfer() for the
   Library tab. No new file in Magic Card; nothing from another host; no card element.
@@ -157,7 +157,7 @@ CONNECTION_WAIT_MS = 30_000
 ICON_PREFIX = "mcu"
 
 # (r4) Panel side, mirrored as constants in www/magic_card_utils_panel.js (the panel is plain JS).
-PANEL_TABS = ("templates", "animations", "themes", "library", "editors")
+PANEL_TABS = ("templates", "animations", "themes", "library", "shapes", "editors")
 RECENT_ITEMS = 8
 # magic-card svg-editor SVG_EDITOR_MCU_MIN_REVISION: the element revision that has host "mcu".
 EDITORS_MIN_CONTRACT_REVISION = 5
