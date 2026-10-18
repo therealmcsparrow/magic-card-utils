@@ -118,17 +118,31 @@ try {
     } catch (e) { /* ignore */ }
   };
 
-  // Subscribe first so nothing is missed, then read the shapes. Empty library on any failure.
+  // Subscribe first so nothing is missed. The shapes (up to 1.6 MB) are NOT read here: this script runs on
+  // every HA page for every user, so they load on the first shapes.get / shapes.ids (a card with a ref).
   const ready = (async () => {
     try {
       const conn = await getConn();
       if (!conn) return;
       await conn.subscribeMessage(onEvent, { type: CMD + "subscribe_library" });
-      const r = await conn.sendMessagePromise({ type: CMD + "shapes_list" });
-      shapes = new Map((r.shapes || []).map((s) => [s.id, s.shape]));
-      announce("shapes", []);
     } catch (e) { /* keep an empty library */ }
   })();
+
+  // Once per page (no retry storm after a failure): the list is read after the subscription, so nothing is missed.
+  let shapesLoad = null;
+  const loadShapes = () => {
+    if (shapesLoad) return;
+    shapesLoad = (async () => {
+      try {
+        await ready;
+        const conn = await getConn();
+        if (!conn) return;
+        const r = await conn.sendMessagePromise({ type: CMD + "shapes_list" });
+        shapes = new Map((r.shapes || []).map((s) => [s.id, s.shape]));
+        announce("shapes", []);
+      } catch (e) { /* keep an empty library */ }
+    })();
+  };
 
   // Synchronous registration. Merge into an existing object, never replace it.
   window.customIcons = window.customIcons || {};
@@ -137,8 +151,8 @@ try {
     apiVersion: 1,
     ready,
     shapes: {
-      get: (id) => shapes.get(id),
-      ids: () => [...shapes.keys()],
+      get: (id) => (loadShapes(), shapes.get(id)),
+      ids: () => (loadShapes(), [...shapes.keys()]),
     },
   };
   getConn();

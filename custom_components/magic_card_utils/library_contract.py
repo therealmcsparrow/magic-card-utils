@@ -132,6 +132,9 @@ Frontend provider (www/magic_card_utils_library.js, rules from spike S1 on HA co
 - Events on window after first load and every change: "iconset-registered" and
   "mcu-library-changed" {kind, ids} for icons and shapes. (r3) theme_presets events are ignored
   by the provider (cards never use theme presets).
+- (r5) The shapes are read lazily: `ready` covers the subscription only; the first shapes.get / shapes.ids
+  sends shapes_list once per page (undefined until the answer, then mcu-library-changed kind shapes, ids []).
+  A page with no card that uses a shape ref never downloads the shapes (up to MAX_SHAPES x SHAPE_MAX_BYTES).
 - Safe mode skips the script; companion apps and ingress are not verified.
 """
 
