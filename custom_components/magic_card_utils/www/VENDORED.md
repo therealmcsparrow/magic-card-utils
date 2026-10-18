@@ -43,7 +43,7 @@ panel needs no other Magic Card file to load.
 | Magic Card version | `2026.10.11-beta.1` (`MC_UI_KIT_VERSION`) |
 | Magic Card commit | `0f298bb` (branch `aico/svg-and-shape-editors`), exported from a clean `git archive` of that commit |
 | SHA-256 | `0f82d2d66e79ad4995dbd737acc4adf060964bd7668c89d3401b2998dfcb5247` |
-| Icons | `@mdi/js` 7.4.47, Apache-2.0 (https://github.com/Templarian/MaterialDesign-JS) |
+| Icons | `@mdi/js` 7.4.47, Apache-2.0 (https://github.com/Templarian/MaterialDesign-JS), licence text in `LICENSE-mdi.txt` |
 | Imports | `lit-core.min.js` (`css`, `html`) |
 
 The panel uses the kit for everything inside its content area: buttons, fields,

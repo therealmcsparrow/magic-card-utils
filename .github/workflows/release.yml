@@ -19,6 +19,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
       LIT_VERSION: "3.3.3"
+      MDI_VERSION: "7.4.47"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -64,6 +65,22 @@ jobs:
           }
           if lit_files:
               lit_comp["hashes"] = [{"alg": "SHA-256", "content": hashlib.sha256(open(lit_files[0], "rb").read()).hexdigest()}]
+          mdi = os.environ["MDI_VERSION"]
+          kit = f"{www}/mc-ui-kit.js"
+          mdi_comp = {
+              "type": "library",
+              "bom-ref": f"pkg:npm/%40mdi/js@{mdi}",
+              "name": "@mdi/js",
+              "version": mdi,
+              "purl": f"pkg:npm/%40mdi/js@{mdi}",
+              "licenses": [{"license": {"id": "Apache-2.0"}}],
+              "externalReferences": [{"type": "website", "url": "https://pictogrammers.com/library/mdi/"}],
+              "properties": [{"name": "vendored-in", "value": kit}, {"name": "licence-text", "value": f"{www}/LICENSE-mdi.txt"}],
+          }
+          if os.path.exists(kit):
+              mdi_comp["hashes"] = [{"alg": "SHA-256", "content": hashlib.sha256(open(kit, "rb").read()).hexdigest()}]
+          else:
+              print(f"::warning::{kit} not found; SBOM lists @mdi/js {mdi} anyway")
           app = {
               "type": "application",
               "bom-ref": f"pkg:github/{os.environ['GH_REPO']}@{tag}",
@@ -82,8 +99,12 @@ jobs:
                   "component": app,
                   "tools": {"components": [{"type": "application", "name": "release.yml inline generator"}]},
               },
-              "components": [lit_comp],
-              "dependencies": [{"ref": app["bom-ref"], "dependsOn": [lit_comp["bom-ref"]]}, {"ref": lit_comp["bom-ref"], "dependsOn": []}],
+              "components": [lit_comp, mdi_comp],
+              "dependencies": [
+                  {"ref": app["bom-ref"], "dependsOn": [lit_comp["bom-ref"], mdi_comp["bom-ref"]]},
+                  {"ref": lit_comp["bom-ref"], "dependsOn": []},
+                  {"ref": mdi_comp["bom-ref"], "dependsOn": []},
+              ],
           }
           json.dump(bom, open("magic_card_utils.sbom.cdx.json", "w"), indent=2)
           PY
