@@ -1,6 +1,6 @@
-"""Saved icons and shapes for Magic Card: storage, validation and WebSocket API.
+"""Saved icons, shapes and theme presets for Magic Card: storage, validation and WebSocket API.
 
-Implements mcu-library 1.0.0 (revision 2), see library_contract.py. The frontend
+Implements mcu-library 1.0.0 (revision 3), see library_contract.py. The frontend
 provider (T6) is not part of this module. Magic Card sanitises every SVG again before
 use; the checks here are defence in depth and size/shape limits.
 """
@@ -35,6 +35,11 @@ from .library_contract import (
     CMD_SHAPES_LIST,
     CMD_SHAPES_SAVE,
     CMD_SUBSCRIBE,
+    CMD_THEME_PRESETS_DELETE,
+    CMD_THEME_PRESETS_LIST,
+    CMD_THEME_PRESETS_SAVE,
+    AUTHOR_MAX_CHARS,
+    DESCRIPTION_MAX_CHARS,
     ERR_CONFLICT,
     ERR_INVALID_FORMAT,
     ERR_LIBRARY_FULL,
@@ -48,15 +53,21 @@ from .library_contract import (
     MAX_NAME_LENGTH,
     MAX_SHAPE_POINTS,
     MAX_SHAPES,
+    MAX_THEME_PRESETS,
     PATH_RE,
     SHAPE_KEYS,
     SHAPE_MAX_BYTES,
     SIGNAL_LIBRARY_UPDATED,
     STORAGE_KEY_ICONS,
     STORAGE_KEY_SHAPES,
+    STORAGE_KEY_THEME_PRESETS,
     STORAGE_VERSION,
     SVG_ELEMENTS,
     TEXT_DENY,
+    THEME_MODES,
+    THEME_PRESET_MAX_BYTES,
+    THEME_VALUE_MAX_CHARS,
+    THEME_VAR_RE,
     IconSummary,
     Kind,
 )
@@ -67,8 +78,13 @@ DATA_LIBRARY = f"{DOMAIN}_library"
 
 KEYWORD_MAX_LENGTH = 32
 ICON_INPUT_KEYS = frozenset(
-    {"id", "name", "keywords", "svg", "path", "secondary_path", "view_box"}
+    {
+        "id", "name", "author", "description", "keywords", "svg", "path", "secondary_path",
+        "view_box",
+    }
 )
+SHAPE_INPUT_KEYS = frozenset({"id", "name", "author", "description", "shape"})
+PRESET_INPUT_KEYS = frozenset({"id", "name", "author", "description", "doc"})
 # A client may echo a SavedIcon back; the server owns these two, so they are ignored.
 SERVER_KEYS = frozenset({"created_at", "updated_at"})
 
@@ -115,6 +131,19 @@ def _validate_common(item: dict, errors: Errors) -> None:
         errors.append(_err("name", "A name is required"))
     elif len(name.strip()) > MAX_NAME_LENGTH:
         errors.append(_err("name", f"At most {MAX_NAME_LENGTH} characters"))
+    _validate_text(item, "author", AUTHOR_MAX_CHARS, errors)
+    _validate_text(item, "description", DESCRIPTION_MAX_CHARS, errors)
+
+
+def _validate_text(item: dict, key: str, limit: int, errors: Errors) -> None:
+    """Optional free text: a str of 1..limit characters after strip."""
+    if key not in item:
+        return
+    value = item[key]
+    if not isinstance(value, str) or not value.strip():
+        errors.append(_err(key, "Must be some text, or left out"))
+    elif len(value.strip()) > limit:
+        errors.append(_err(key, f"At most {limit} characters"))
 
 
 def _validate_keywords(keywords: Any, errors: Errors) -> None:
@@ -208,7 +237,7 @@ def validate_shape(item: Any) -> Errors:
     errors: Errors = []
     _validate_common(item, errors)
     for key in item:
-        if key not in {"id", "name", "shape"} and key not in SERVER_KEYS:
+        if key not in SHAPE_INPUT_KEYS and key not in SERVER_KEYS:
             errors.append(_err(str(key), "Unknown field"))
 
     shape = item.get("shape")
@@ -233,6 +262,70 @@ def validate_shape(item: Any) -> Errors:
     return errors
 
 
+def _theme_value_ok(value: Any) -> bool:
+    if isinstance(value, bool):
+        return False
+    if isinstance(value, str):
+        return len(value) <= THEME_VALUE_MAX_CHARS
+    if isinstance(value, (int, float)):
+        return math.isfinite(value)
+    return False
+
+
+def _theme_vars_error(variables: Any, allow_modes: bool) -> str | None:
+    if not isinstance(variables, dict):
+        return "Must be an object"
+    for key, value in variables.items():
+        if allow_modes and key == "modes":
+            continue
+        if not isinstance(key, str) or not THEME_VAR_RE.match(key):
+            return f"{str(key)[:40]!r} is not a valid variable name"
+        if not _theme_value_ok(value):
+            return (
+                f"The value of {key} must be text (at most {THEME_VALUE_MAX_CHARS} "
+                "characters) or a number"
+            )
+    return None
+
+
+def _theme_doc_error(doc: Any) -> str | None:
+    """Rules of revision 3. External urls and card-mod-* keys are accepted on purpose."""
+    message = _theme_vars_error(doc, True)
+    if message:
+        return message
+    if "modes" in doc:
+        modes = doc["modes"]
+        if not isinstance(modes, dict):
+            return "modes must be an object"
+        for mode, variables in modes.items():
+            if mode not in THEME_MODES:
+                return "modes may only contain light and dark"
+            message = _theme_vars_error(variables, False)
+            if message:
+                return f"modes.{mode}: {message}"
+    size = _json_size(doc)
+    if size is None:
+        return "Is not valid JSON"
+    if size > THEME_PRESET_MAX_BYTES:
+        return f"Too large ({size} bytes, at most {THEME_PRESET_MAX_BYTES})"
+    return None
+
+
+def validate_theme_preset(item: Any) -> Errors:
+    """Check a SavedThemePresetInput; returns ``{path, message}`` errors (empty when valid)."""
+    if not isinstance(item, dict):
+        return [_err("", "The theme preset must be an object")]
+    errors: Errors = []
+    _validate_common(item, errors)
+    for key in item:
+        if key not in PRESET_INPUT_KEYS and key not in SERVER_KEYS:
+            errors.append(_err(str(key), "Unknown field"))
+    message = _theme_doc_error(item.get("doc"))
+    if message:
+        errors.append(_err("doc", message))
+    return errors
+
+
 # --------------------------------------------------------------------- storage
 
 
@@ -253,14 +346,16 @@ def _stored_ok(doc: Any, key: str, errors: Errors) -> bool:
 
 
 class Library:
-    """In-memory icon and shape library backed by two Home Assistant Stores."""
+    """In-memory icon, shape and theme preset library backed by three Home Assistant Stores."""
 
     def __init__(self, hass: HomeAssistant) -> None:
         self.hass = hass
         self.icon_store: Store = Store(hass, STORAGE_VERSION, STORAGE_KEY_ICONS)
         self.shape_store: Store = Store(hass, STORAGE_VERSION, STORAGE_KEY_SHAPES)
+        self.theme_preset_store: Store = Store(hass, STORAGE_VERSION, STORAGE_KEY_THEME_PRESETS)
         self.icons: dict[str, dict] = {}
         self.shapes: dict[str, dict] = {}
+        self.theme_presets: dict[str, dict] = {}
 
     async def async_load(self) -> None:
         """Load both stores; entries that no longer pass validation are dropped."""
@@ -269,6 +364,13 @@ class Library:
         )
         self.shapes = self._clean(
             await self.shape_store.async_load(), "shapes", "shape", validate_shape, MAX_SHAPES
+        )
+        self.theme_presets = self._clean(
+            await self.theme_preset_store.async_load(),
+            "theme_presets",
+            "theme preset",
+            validate_theme_preset,
+            MAX_THEME_PRESETS,
         )
 
     @staticmethod
@@ -290,7 +392,9 @@ class Library:
     def _table(self, kind: Kind) -> tuple[dict[str, dict], Store, int]:
         if kind == "icons":
             return self.icons, self.icon_store, MAX_ICONS
-        return self.shapes, self.shape_store, MAX_SHAPES
+        if kind == "shapes":
+            return self.shapes, self.shape_store, MAX_SHAPES
+        return self.theme_presets, self.theme_preset_store, MAX_THEME_PRESETS
 
     def check_save(self, kind: Kind, item_id: str, base_updated_at: str | None) -> str | None:
         """Return an error code when the save must be refused, else None."""
@@ -326,14 +430,19 @@ class Library:
             raise
         if kind == "icons":
             change: dict = {"action": "saved", "kind": kind, "icon": _icon_summary(doc)}
-        else:
+        elif kind == "shapes":
             change = {"action": "saved", "kind": kind, "shape": doc}
+        else:
+            change = {"action": "saved", "kind": kind, "theme_preset": doc}
         async_dispatcher_send(self.hass, SIGNAL_LIBRARY_UPDATED, change)
         return doc
 
     @staticmethod
     def _build(kind: Kind, item: dict, created_at: str, updated_at: str) -> dict:
         doc: dict[str, Any] = {"id": item["id"], "name": item["name"].strip()}
+        for key in ("author", "description"):
+            if key in item:
+                doc[key] = item[key].strip()
         if kind == "icons":
             if "keywords" in item:
                 doc["keywords"] = list(item["keywords"])
@@ -342,8 +451,10 @@ class Library:
             if "secondary_path" in item:
                 doc["secondary_path"] = item["secondary_path"]
             doc["view_box"] = item["view_box"]
-        else:
+        elif kind == "shapes":
             doc["shape"] = json.loads(json.dumps(item["shape"]))
+        else:
+            doc["doc"] = json.loads(json.dumps(item["doc"]))
         doc["created_at"] = created_at
         doc["updated_at"] = updated_at
         return doc
@@ -402,6 +513,9 @@ async def async_setup_library(hass: HomeAssistant) -> None:
         ws_shapes_list,
         ws_shapes_save,
         ws_shapes_delete,
+        ws_theme_presets_list,
+        ws_theme_presets_save,
+        ws_theme_presets_delete,
         ws_subscribe_library,
     ):
         websocket_api.async_register_command(hass, command)
@@ -457,6 +571,21 @@ def ws_shapes_list(
     connection.send_result(msg["id"], {"shapes": list(library.shapes.values())})
 
 
+@websocket_api.websocket_command({vol.Required("type"): CMD_THEME_PRESETS_LIST})
+@callback
+def ws_theme_presets_list(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict
+) -> None:
+    """Return every theme preset in full (at most 100). Any authenticated user."""
+    library = _get_library(hass)
+    if library is None:
+        _not_loaded(connection, msg["id"])
+        return
+    connection.send_result(
+        msg["id"], {"theme_presets": list(library.theme_presets.values())}
+    )
+
+
 @websocket_api.websocket_command({vol.Required("type"): CMD_SUBSCRIBE})
 @callback
 def ws_subscribe_library(
@@ -497,7 +626,7 @@ async def _save(
         return
     code = library.check_save(kind, item["id"], msg.get("base_updated_at"))
     if code == ERR_LIBRARY_FULL:
-        limit = MAX_ICONS if kind == "icons" else MAX_SHAPES
+        limit = {"icons": MAX_ICONS, "shapes": MAX_SHAPES}.get(kind, MAX_THEME_PRESETS)
         connection.send_error(
             msg["id"], code, f"The library is full (at most {limit} {kind})"
         )
@@ -603,3 +732,36 @@ async def ws_shapes_delete(
 ) -> None:
     """Delete a shape by id; deleting an unknown id succeeds. Admin only."""
     await _delete(hass, connection, msg, "shapes", "shape_id")
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): CMD_THEME_PRESETS_SAVE,
+        vol.Required("theme_preset"): dict,
+        vol.Optional("base_updated_at"): str,
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_theme_presets_save(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict
+) -> None:
+    """Create or replace a theme preset by id. Admin only."""
+    await _save(
+        hass, connection, msg, "theme_presets", "theme_preset", validate_theme_preset
+    )
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): CMD_THEME_PRESETS_DELETE,
+        vol.Required("theme_preset_id"): str,
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_theme_presets_delete(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict
+) -> None:
+    """Delete a theme preset by id; deleting an unknown id succeeds. Admin only."""
+    await _delete(hass, connection, msg, "theme_presets", "theme_preset_id")

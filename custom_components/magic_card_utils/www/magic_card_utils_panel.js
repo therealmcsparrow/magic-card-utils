@@ -103,6 +103,9 @@ const CMD_THEMES_LIST = "magic_card_utils/themes_list";
 const CMD_THEMES_GET = "magic_card_utils/themes_get";
 const CMD_THEMES_SAVE = "magic_card_utils/themes_save";
 const CMD_THEMES_DELETE = "magic_card_utils/themes_delete";
+const CMD_PRESETS_LIST = "magic_card_utils/theme_presets_list";
+const CMD_PRESETS_SAVE = "magic_card_utils/theme_presets_save";
+const CMD_PRESETS_DELETE = "magic_card_utils/theme_presets_delete";
 const TABS = [
   ["templates", "Templates"],
   ["animations", "Animations"],
@@ -143,6 +146,25 @@ function _toThemeBackendError(err) {
   return out;
 }
 
+/** ThemeBackend.presets (theme-editor 1.1.0, mcu-library revision 3) on the theme_presets commands. */
+function _createPresetBackend(call) {
+  return {
+    list: async () => {
+      const res = await call({ type: CMD_PRESETS_LIST });
+      return { theme_presets: Array.isArray(res && res.theme_presets) ? res.theme_presets : [] };
+    },
+    save: async (preset, baseUpdatedAt) => {
+      const msg = { type: CMD_PRESETS_SAVE, theme_preset: preset };
+      if (typeof baseUpdatedAt === "string") msg.base_updated_at = baseUpdatedAt;
+      const res = await call(msg);
+      return { theme_preset: res.theme_preset };
+    },
+    remove: async (id) => {
+      await call({ type: CMD_PRESETS_DELETE, theme_preset_id: id });
+    },
+  };
+}
+
 /** ThemeBackend (theme-editor contract) on top of the theme-files websocket commands. */
 function _createThemeBackend(getHass) {
   const call = async (msg) => {
@@ -164,6 +186,7 @@ function _createThemeBackend(getHass) {
     remove: async (name) => {
       await call({ type: CMD_THEMES_DELETE, name });
     },
+    presets: _createPresetBackend(call),
   };
 }
 
