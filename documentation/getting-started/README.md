@@ -28,11 +28,11 @@
 
 ## Install the pre-release
 
-Version 2026.10.11-beta.1 is a pre-release for testing. HACS hides it until you turn on **Show beta versions**.
+Version 2026.10.11-beta.2 is a pre-release for testing. HACS hides it until you turn on **Show beta versions**.
 
-1. Install the matching Magic Card pre-release (2026.10.11-beta.1 or newer) first.
+1. Install the matching Magic Card pre-release (2026.10.11-beta.2 or newer) first.
 2. In HACS, open **Settings** and turn on **Show beta versions**.
-3. Open **Magic Card Utils**, choose **Redownload** from the menu (⋮), and select `2026.10.11-beta.1`.
+3. Open **Magic Card Utils**, choose **Redownload** from the menu (⋮), and select `2026.10.11-beta.2`.
 4. Restart Home Assistant.
 
 To go back to the last stable release, use **Redownload** again and pick the newest version without `-beta`.

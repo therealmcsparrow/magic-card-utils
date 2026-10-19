@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2026.10.11-beta.2] - 2026-10-19 (pre-release)
+
+Pre-release for testing. HACS hides pre-releases unless you turn on **Show beta versions**. Install Magic Card 2026.10.11-beta.2 or newer as well: non-admin users see template cards only when both are updated.
+
 ### Added
 
 - Two read commands, `magic_card_utils/template_get` and `magic_card_utils/subscribe_template`, that any signed-in user can use. They return one template by name, with its `config`, `card_type` and `last_updated` only. Cards can now show a shared template to non-admin users, and a saved, renamed or deleted template reaches an open card straight away. Saving and deleting still need an admin, and `get_templates` and `subscribe_templates` stay admin-only, because their answers include how many cards link to each template. Non-admin users need this version of Magic Card Utils and the Magic Card release that uses the new commands.
@@ -184,7 +188,8 @@ First stable release.
 - Templates side panel with YAML view and preview, plus rename, duplicate and delete actions.
 - Config flow with an option to show or hide the side panel.
 
-[Unreleased]: https://github.com/therealmcsparrow/magic-card-utils/compare/2026.10.09...HEAD
+[Unreleased]: https://github.com/therealmcsparrow/magic-card-utils/compare/2026.10.11-beta.2...HEAD
+[2026.10.11-beta.2]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.11-beta.2
 [2026.10.09]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.09
 [2026.10.08]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.08
 [2026.10.07]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.07

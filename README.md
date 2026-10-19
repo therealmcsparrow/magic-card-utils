@@ -36,6 +36,7 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 - Magic Card **2026.10.01** or newer for the Animations tab.
 - Magic Card **2026.10.06** or newer for the Themes tab.
 - Magic Card **2026.10.11-beta.1** or newer for the Library, Icons and Shapes tabs and for icons in Home Assistant's icon picker.
+- Magic Card **2026.10.11-beta.2** or newer for template cards that non-admin users can see.
 
 ## Installation
 
@@ -53,10 +54,10 @@ Click the button above to open the repository in HACS, then click **Download** a
 
 ### Pre-release (beta)
 
-HACS hides pre-releases unless you turn on **Show beta versions**. Use a test system first, and install the matching Magic Card pre-release (2026.10.11-beta.1 or newer) too.
+HACS hides pre-releases unless you turn on **Show beta versions**. Use a test system first, and install the matching Magic Card pre-release (2026.10.11-beta.2 or newer) too.
 
 1. In HACS, open **Settings** and turn on **Show beta versions**.
-2. Open **Magic Card Utils**, choose **Redownload** from the menu (⋮), and select `2026.10.11-beta.1`.
+2. Open **Magic Card Utils**, choose **Redownload** from the menu (⋮), and select `2026.10.11-beta.2`.
 3. Restart Home Assistant.
 
 Report problems on [GitHub](https://github.com/therealmcsparrow/magic-card-utils/issues).
