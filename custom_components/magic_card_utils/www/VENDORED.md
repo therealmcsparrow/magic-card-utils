@@ -78,7 +78,7 @@ The panel imports them as `i18nFor('mcu-panel', tables)` and writes `tr('British
 | Field | Value |
 | --- | --- |
 | Files | `mc-i18n.js`, `mc-i18n-panel.js` |
-| Magic Card commit | `1ab607c` (branch `aico/svg-and-shape-editors`), exported from a clean `git archive` of that commit |
+| Magic Card commit | `1ab607c` (branch `aico/svg-and-shape-editors`) for `mc-i18n.js`; `mc-i18n-panel.js` was re-exported on 2026-10-19 with `tools/i18n-export.mjs --mcu` from Magic Card `bfc32ac` (branch `aico/fix-notice-overlay`) for the Icons tab strings |
 | SHA-256 `mc-i18n.js` | `f1a042bc2bb7873aaf453980f91923e17432e32bb9a19eb8226b29829f72e500` |
 | SHA-256 `mc-i18n-panel.js` | `33b34c106f590c2d9dcd20842abd9dca1d6b46524940b19f3688a83f7064cfd2` |
 | Sources in this repo | `magic_card_utils_panel.js` (the `tr()` calls), `i18n/nl.json` (written by hand), `i18n/en-US.json` (generated) |

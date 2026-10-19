@@ -14,7 +14,7 @@ command, no storage change, no Python change. The theme presets adapter shape is
 side changes (section "Theme editor backend adapter").
 Revision line 2026-10-19 (contract change approved at the Plan Gate, CEO: "The editors tab in magic card
 utils should be the icons tab and only be for icons. And it should be ordered before the shape tab"):
-PANEL_TABS is now Templates, Animations, Themes, Library, Icons, Shapes. The "Editors" tab is gone; the
+PANEL_TABS was Templates, Animations, Themes, Library, Icons, Shapes (superseded by the next line). The "Editors" tab is gone; the
 Icons tab hosts <mc-library-view context="mcu-panel" kinds=["icon"]> (saved icons with New icon, Edit,
 Rename, Delete, Export) and replaces the recent lists. The recent-items constant is removed. No command, storage or
 revision number change.

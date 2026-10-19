@@ -40,8 +40,6 @@ The Icons tab shows only your saved icons. It sits before the Shapes tab. Each r
 
 When you have no icons yet, the tab says "No icons here yet." with New icon above it. New shape is not on this tab; use the Shapes tab for that.
 
-Magic Card versions older than 2026.10.11-beta.1 do not know this tab's filter, so they show all four kinds in it.
-
 ## The Shapes tab
 
 The Shapes tab shows only your shapes, with the same buttons: New shape, Edit, Rename, Delete and Export. Shapes also still appear in the Library tab.
@@ -54,8 +52,6 @@ A note at the top of the Shapes tab explains how cards use a shape:
 -   A card that holds its own copy, such as a shape drawn in the card editor, keeps its points. To use this version there, pick the shape again under **My shapes** in the card editor.
 
 After you save a shape, the editor stays open over the page, and a status line starts with "Saved to the library." It shows on the Shapes tab and on the Library tab when you come back, and it clears when you change tab.
-
-Magic Card versions older than 2026.10.11-beta.1 do not know this tab's filter, so they show all four kinds in it.
 
 When you close an editor after saving, the lists in the Library, Icons and Shapes tabs refresh to show the change.
 
