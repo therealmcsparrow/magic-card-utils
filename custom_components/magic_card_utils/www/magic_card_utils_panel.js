@@ -119,7 +119,7 @@ const SHAPE_STUDIO_TAG = "mc-shape-studio";
 const LIBRARY_VIEW_TAG = "mc-library-view";
 const EDITORS_MIN_CONTRACT_REVISION = 5; // svg-editor SVG_EDITOR_MCU_MIN_REVISION
 // The one gate for the editors: the oldest Magic Card (window.MagicCard.version) that ships them in the panel.
-// PROPOSED, the CEO confirms: the planned pre-release. See _compareCalVer for how versions are ordered.
+// Minimum Magic Card for the editors (CEO 2026-10-19). See _compareCalVer for how versions are ordered.
 const MIN_MAGIC_CARD_FOR_EDITORS = "2026.10.11-beta.1";
 const RECENT_ITEMS = 8;
 const CMD_ICONS_LIST = "magic_card_utils/icons_list";
