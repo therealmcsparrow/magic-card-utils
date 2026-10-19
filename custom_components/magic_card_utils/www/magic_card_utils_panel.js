@@ -681,6 +681,7 @@ class MagicCardUtilsPanel extends LitElement {
       this._syncEditorHass();
       if (this._libraryEl) this._libraryEl.hass = this.hass;
       if (this._shapesEl) this._shapesEl.hass = this.hass;
+      if (this._iconsEl) this._iconsEl.hass = this.hass;
     }
     if (this._editorOpen) {
       this._attachEditor();
