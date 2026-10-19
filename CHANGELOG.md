@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Two read commands, `magic_card_utils/template_get` and `magic_card_utils/subscribe_template`, that any signed-in user can use. They return one template by name, with its `config`, `card_type` and `last_updated` only. Cards can now show a shared template to non-admin users, and a saved, renamed or deleted template reaches an open card straight away. Saving and deleting still need an admin, and `get_templates` and `subscribe_templates` stay admin-only, because their answers include how many cards link to each template. Non-admin users need this version of Magic Card Utils and the Magic Card release that uses the new commands.
+
+### Changed
+
+- The Editors tab is now the Icons tab and sits before Shapes. The Library tab now sits directly after Templates. The tab order is Templates, Library, Animations, Themes, Icons, Shapes, and the arrow keys follow it. The Icons tab lists only your saved icons, with New icon, Edit, Rename, Delete and Export on each row. It replaces the recent lists, the New shape button and the See all in Library button. New shape stays on the Shapes tab. The Library tab still shows all four kinds. Dutch name: Pictogrammen.
+
 ### Fixed
 
 - The 2026.10.09 entry said the Third-party section lists Montserrat. The README lists Lit and @mdi/js only, and the integration ships no font file.

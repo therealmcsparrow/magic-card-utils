@@ -48,13 +48,17 @@ A breaking change to the contract raises `apiVersion`; Magic Card Utils then rai
 | Open in studio | A version with the studio |
 | Animations tab | 2026.10.01 or newer, with `magic-card-animation-studio.js` next to `magic-card.js` |
 | Themes tab | 2026.10.06 or newer, with `magic-card-theme-editor.js` next to `magic-card.js` |
-| Library, Shapes and Editors tabs, and icons in Home Assistant's icon picker | 2026.10.11-beta.1 or newer |
+| Library, Icons and Shapes tabs, and icons in Home Assistant's icon picker | 2026.10.11-beta.1 or newer |
+
+| Shared templates on cards for non-admin users | The Magic Card release that reads templates with `template_get` and `subscribe_template`, together with this version of Magic Card Utils or newer |
+
+Non-admin users need both sides updated. With an older Magic Card Utils, a new Magic Card still shows templates to admin users but tells non-admin users the template couldn't be loaded. With an older Magic Card, admin users see templates as before and non-admin users still don't.
 
 Use the newest Magic Card release where you can. Magic Card's own documentation lists which version added what.
 
 ### Which version the editors need
 
-The Library, Shapes and Editors tabs check the installed Magic Card's `window.MagicCard.version` against 2026.10.11-beta.1. Version numbers are compared like this:
+The Library, Icons and Shapes tabs check the installed Magic Card's `window.MagicCard.version` against 2026.10.11-beta.1. Version numbers are compared like this:
 
 - The three numbers (2026.10.11) decide first.
 - A release is newer than its own pre-releases, so 2026.10.11 satisfies a minimum of 2026.10.11-beta.1.

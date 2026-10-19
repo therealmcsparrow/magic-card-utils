@@ -121,7 +121,6 @@ const EDITORS_MIN_CONTRACT_REVISION = 5; // svg-editor SVG_EDITOR_MCU_MIN_REVISI
 // The one gate for the editors: the oldest Magic Card (window.MagicCard.version) that ships them in the panel.
 // Minimum Magic Card for the editors (CEO 2026-10-19). See _compareCalVer for how versions are ordered.
 const MIN_MAGIC_CARD_FOR_EDITORS = "2026.10.11-beta.1";
-const RECENT_ITEMS = 8;
 const CMD_ICONS_LIST = "magic_card_utils/icons_list";
 const CMD_SHAPES_LIST = "magic_card_utils/shapes_list";
 const LIBRARY_ID_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
@@ -163,11 +162,11 @@ function _compareCalVer(a, b) {
 }
 const TABS = [
   ["templates", () => tr("Templates")],
+  ["library", () => tr("Library")],
   ["animations", () => tr("Animations")],
   ["themes", () => tr("Themes")],
-  ["library", () => tr("Library")],
+  ["icons", () => tr("Icons")],
   ["shapes", () => tr("Shapes")],
-  ["editors", () => tr("Editors")],
 ];
 // Kept for the page's lifetime: the editor holds the draft and the dashboard trial, and the trial
 // bar's "Back to theme editor" re-opens the panel, which builds a new panel element.
@@ -417,15 +416,6 @@ function _shapeRowExtra(byId, cache, kind, id) {
   return extra;
 }
 
-/** The newest `limit` items by updated_at (ISO strings sort as text); anything that is not an item is skipped. */
-function _recentItems(list, limit) {
-  if (!Array.isArray(list)) return [];
-  return list
-    .filter((i) => i && typeof i === "object" && typeof i.id === "string" && i.id)
-    .sort((a, b) => String(b.updated_at || "").localeCompare(String(a.updated_at || "")))
-    .slice(0, limit);
-}
-
 /** First element with this data-focus-key, looking through open shadow roots. */
 function _deepFindByFocusKey(root, key) {
   if (!root || !FOCUS_KEY_RE.test(key)) return null;
@@ -471,7 +461,7 @@ class MagicCardUtilsPanel extends LitElement {
       // themes tab
       _themeStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _themeMessage: { type: String, state: true },
-      // library and editors tabs
+      // library, icons and shapes tabs
       _libraryStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _libraryMessage: { type: String, state: true },
       _shapesStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
@@ -480,8 +470,8 @@ class MagicCardUtilsPanel extends LitElement {
       _editorOpen: { type: Boolean, state: true },
       _editorBusy: { type: Boolean, state: true },
       _editorNotice: { type: String, state: true },
-      _recent: { type: Object, state: true },
-      _recentError: { type: String, state: true },
+      _iconsStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
+      _iconsMessage: { type: String, state: true },
     };
   }
 
@@ -518,7 +508,7 @@ class MagicCardUtilsPanel extends LitElement {
     this._animMessage = "";
     this._animError = "";
     this._studioEl = null;
-    // library and editors tabs
+    // library, icons and shapes tabs
     this._libraryStatus = "";
     this._libraryMessage = "";
     this._libraryEl = null;
@@ -533,9 +523,9 @@ class MagicCardUtilsPanel extends LitElement {
     this._editorEl = null;
     this._editorOpener = null;
     this._editorFocusKey = "";
-    this._recent = { icons: [], shapes: [] };
-    this._recentError = "";
-    this._recentLoaded = false;
+    this._iconsStatus = "";
+    this._iconsMessage = "";
+    this._iconsEl = null;
   }
 
   _processTemplates(templates) {
@@ -691,6 +681,7 @@ class MagicCardUtilsPanel extends LitElement {
       this._syncEditorHass();
       if (this._libraryEl) this._libraryEl.hass = this.hass;
       if (this._shapesEl) this._shapesEl.hass = this.hass;
+      if (this._iconsEl) this._iconsEl.hass = this.hass;
     }
     if (this._editorOpen) {
       this._attachEditor();
@@ -699,11 +690,14 @@ class MagicCardUtilsPanel extends LitElement {
         this._mountLibraryView();
       }
       if (this._tab === "library" && this._libraryStatus === "ready") this._attachLibraryView();
+      if (this._tab === "icons" && this.hass && !this._iconsEl && this._iconsStatus === "") {
+        this._mountIconsView();
+      }
+      if (this._tab === "icons" && this._iconsStatus === "ready") this._attachIconsView();
       if (this._tab === "shapes" && this.hass && !this._shapesEl && this._shapesStatus === "") {
         this._mountShapesView();
       }
       if (this._tab === "shapes" && this._shapesStatus === "ready") this._attachShapesView();
-      if (this._tab === "editors" && this.hass && !this._recentLoaded) this._loadRecent();
     }
     if (this._tab === "themes" && this.hass && !this._themeEl && this._themeStatus === "") {
       this._mountThemeEditor();
@@ -970,6 +964,8 @@ class MagicCardUtilsPanel extends LitElement {
   // ---- Animations tab ----------------------------------------------------
 
   _setTab(tab) {
+    // The tab that was called "editors" is the Icons tab now.
+    if (tab === "editors") tab = "icons";
     if (this._tab === tab) return;
     this._tab = tab;
     this._shapeSavedNote = false;
@@ -1337,7 +1333,7 @@ class MagicCardUtilsPanel extends LitElement {
     this._themeMessage = "";
   }
 
-  // ---- Library and Editors tabs ---------------------------------------------
+  // ---- Library, Icons and Shapes tabs ---------------------------------------------
 
   /**
    * Load Magic Card, then what the Library tab ('library') or an editor ('icon' / 'shape') needs from it,
@@ -1423,7 +1419,6 @@ class MagicCardUtilsPanel extends LitElement {
         const item = Array.isArray(res && res.shapes) ? res.shapes.find((s) => s && s.id === id) : null;
         if (!item) {
           this._editorNotice = tr("That shape no longer exists.");
-          this._loadRecent();
           return;
         }
         value = { shape: "custom", shape_options: item.shape };
@@ -1474,7 +1469,6 @@ class MagicCardUtilsPanel extends LitElement {
   _onEditorSaved() {
     if (this._editorKind === "shape") this._shapeSavedNote = true;
     this._libraryStale = true;
-    this._loadRecent();
   }
 
   async _closeEditor() {
@@ -1496,6 +1490,8 @@ class MagicCardUtilsPanel extends LitElement {
       if (this._libraryStatus !== "error") this._libraryStatus = "";
       this._shapesEl = null;
       if (this._shapesStatus !== "error") this._shapesStatus = "";
+      this._iconsEl = null;
+      if (this._iconsStatus !== "error") this._iconsStatus = "";
     }
     await this.updateComplete;
     await this._restoreFocus(opener, key);
@@ -1528,25 +1524,6 @@ class MagicCardUtilsPanel extends LitElement {
     let a = document.activeElement;
     while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement;
     return a && a !== document.body ? a : null;
-  }
-
-  async _loadRecent() {
-    this._recentLoaded = true;
-    if (!this.hass) return;
-    try {
-      const [icons, shapes] = await Promise.all([
-        this.hass.callWS({ type: CMD_ICONS_LIST }),
-        this.hass.callWS({ type: CMD_SHAPES_LIST }),
-      ]);
-      this._recent = {
-        icons: _recentItems(icons && icons.icons, RECENT_ITEMS),
-        shapes: _recentItems(shapes && shapes.shapes, RECENT_ITEMS),
-      };
-      this._recentError = "";
-    } catch (err) {
-      console.warn("[magic_card_utils] recent items not loaded", err);
-      this._recentError = tr("Your saved icons and shapes could not be loaded.");
-    }
   }
 
   async _mountLibraryView() {
@@ -1592,6 +1569,41 @@ class MagicCardUtilsPanel extends LitElement {
     await this.updateComplete;
     this._attachShapesView();
     this._wireShapeRows(el);
+  }
+
+  /** The Icons tab: the same Library view, narrowed to the icons kind (it keeps New icon, Edit, Rename, Delete, Export). */
+  async _mountIconsView() {
+    if (this._iconsEl || this._iconsStatus === "loading") return;
+    this._iconsStatus = "loading";
+    this._iconsMessage = "";
+    const status = await this._ensureEditors("library");
+    if (!status.ok) {
+      this._iconsStatus = "error";
+      this._iconsMessage = status.message;
+      return;
+    }
+    const el = document.createElement(LIBRARY_VIEW_TAG);
+    el.context = "mcu-panel";
+    el.kinds = ["icon"];
+    el.hass = this.hass;
+    el.presets = _createPresetBackend(_makeCall(() => this.hass));
+    el.addEventListener("mc-library-open", (e) => this._onLibraryOpen(e));
+    this._iconsEl = el;
+    this._iconsStatus = "ready";
+    await this.updateComplete;
+    this._attachIconsView();
+  }
+
+  _attachIconsView() {
+    const host = this.shadowRoot.querySelector(".icons-host");
+    if (!host || !this._iconsEl || this._iconsEl.parentNode === host) return;
+    host.innerHTML = "";
+    host.appendChild(this._iconsEl);
+  }
+
+  _retryIcons() {
+    this._iconsStatus = "";
+    this._iconsMessage = "";
   }
 
   _attachShapesView() {
@@ -1678,14 +1690,6 @@ class MagicCardUtilsPanel extends LitElement {
     this._libraryMessage = "";
   }
 
-  _seeAllInLibrary() {
-    this._setTab("library");
-    this.updateComplete.then(() => {
-      const btn = this._tabButton("library");
-      if (btn) btn.focus();
-    });
-  }
-
   _renderEditorNotice() {
     return this._editorNotice
       ? html`<div class="notice warn editor-notice" role="alert">
@@ -1741,64 +1745,24 @@ class MagicCardUtilsPanel extends LitElement {
     `;
   }
 
-  _renderRecent(title, kind, items) {
+  _renderIconsTab() {
     return html`
-      <section class="recent-section">
-      <div class="group-head"><h3>${title}</h3></div>
-      ${items.length === 0
-        ? html`<div class="empty"><strong>${tr("Nothing saved yet.")}</strong></div>`
-        : html`<ul class="recent-list">
-            ${items.map(
-              (item) => html`<li>
-                <span class="recent-name">${item.name || item.id}</span>
-                <button
-                  class="btn btn-secondary btn-sm"
-                  data-focus-key=${`edit-${kind}-${item.id}`}
-                  aria-label=${tr("Edit {name}", { name: item.name || item.id })}
-                  ?disabled=${this._editorBusy || !this._isAdmin()}
-                  @click=${(e) => this._openEditor({ kind, id: item.id, opener: e.currentTarget })}
-                >
-                  ${tr("Edit")}
-                </button>
-              </li>`
-            )}
-          </ul>`}
-      </section>
-    `;
-  }
-
-  _renderEditorsTab() {
-    return html`
-      <div class="content editors-tab">
-        ${this._renderEditorNotice()}
-        ${this._recentError
-          ? html`<div class="notice error" role="alert">${glyph("error", 20)}<div class="body"><p>${this._recentError}</p></div></div>`
-          : ""}
-        ${this._isAdmin()
-          ? ""
-          : html`<div class="notice info" role="status">${glyph("info", 20)}<div class="body"><p>${msgAdminOnly()}</p></div></div>`}
-        <div class="editor-actions">
-          <button
-            class="btn btn-primary"
-            data-focus-key="new-icon"
-            ?disabled=${this._editorBusy || !this._isAdmin()}
-            @click=${(e) => this._openEditor({ kind: "icon", opener: e.currentTarget })}
-          >
-            ${tr("New icon")}
-          </button>
-          <button
-            class="btn btn-primary"
-            data-focus-key="new-shape"
-            ?disabled=${this._editorBusy || !this._isAdmin()}
-            @click=${(e) => this._openEditor({ kind: "shape", opener: e.currentTarget })}
-          >
-            ${tr("New shape")}
-          </button>
-        </div>
-        ${this._renderRecent(tr("Recent icons"), "icon", this._recent.icons)}
-        ${this._renderRecent(tr("Recent shapes"), "shape", this._recent.shapes)}
-        <button class="btn btn-secondary see-all" @click=${() => this._seeAllInLibrary()}>${tr("See all in Library")}</button>
-      </div>
+      ${this._renderEditorNotice()}
+      ${this._iconsStatus === "loading" || this._iconsStatus === ""
+        ? html`<div class="studio-status"><ha-circular-progress active></ha-circular-progress></div>`
+        : ""}
+      ${this._iconsStatus === "error"
+        ? html`<div class="content">
+            <div class="notice error" role="alert">
+              ${glyph("error", 20)}
+              <div class="body">
+                <p>${this._iconsMessage}</p>
+                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryIcons()}>${tr("Try again")}</button></div>
+              </div>
+            </div>
+          </div>`
+        : ""}
+      <div class="icons-host" ?hidden=${this._iconsStatus !== "ready"}></div>
     `;
   }
 
@@ -1850,7 +1814,8 @@ class MagicCardUtilsPanel extends LitElement {
     if (this._libraryStatus !== "error") this._libraryStatus = "";
     this._shapesEl = null;
     if (this._shapesStatus !== "error") this._shapesStatus = "";
-    this._recentLoaded = false;
+    this._iconsEl = null;
+    if (this._iconsStatus !== "error") this._iconsStatus = "";
     if (this._themeStatus !== "error") this._themeStatus = "";
     if (this._animStatus !== "error") this._animStatus = "";
     if (animPending) {
@@ -1918,8 +1883,8 @@ class MagicCardUtilsPanel extends LitElement {
               ? this._renderLibraryTab()
               : this._tab === "shapes"
               ? this._renderShapesTab()
-              : this._tab === "editors"
-              ? this._renderEditorsTab()
+              : this._tab === "icons"
+              ? this._renderIconsTab()
               : this._renderTemplatesTab()}`}
     `;
   }
@@ -2333,11 +2298,13 @@ class MagicCardUtilsPanel extends LitElement {
         display: none;
       }
       .library-host,
+      .icons-host,
       .shapes-host {
         display: block;
         padding: 16px;
       }
       .library-host[hidden],
+      .icons-host[hidden],
       .shapes-host[hidden] {
         display: none;
       }
@@ -2351,47 +2318,6 @@ class MagicCardUtilsPanel extends LitElement {
       }
       .shape-note {
         margin: 16px 16px 0;
-      }
-      .editors-tab {
-        gap: 12px;
-      }
-      .editor-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-      }
-      .see-all {
-        justify-self: start;
-      }
-      .recent-section {
-        display: grid;
-        gap: 8px;
-        margin-top: 12px;
-      }
-      .recent-list {
-        justify-self: stretch;
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        background: var(--mc-surface);
-        border: 1px solid var(--mc-divider);
-        border-radius: var(--mc-radius-lg);
-      }
-      .recent-list li {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        min-height: var(--mc-hit);
-        padding: 4px 8px 4px 16px;
-        border-bottom: 1px solid var(--mc-divider);
-      }
-      .recent-list li:last-child {
-        border-bottom: none;
-      }
-      .recent-name {
-        min-width: 0;
-        overflow-wrap: anywhere;
       }
       .theme-host {
         display: block;
@@ -2625,10 +2551,8 @@ export const _testing = {
   shapeRowExtra: _shapeRowExtra,
   createPresetBackend: _createPresetBackend,
   compareCalVer: _compareCalVer,
-  recentItems: _recentItems,
   FOCUS_KEY_RE,
   MIN_MAGIC_CARD_FOR_EDITORS,
   EDITORS_MIN_CONTRACT_REVISION,
-  RECENT_ITEMS,
   TABS,
 };

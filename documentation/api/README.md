@@ -40,7 +40,7 @@ A non-admin user calling an admin command gets Home Assistant's `unauthorized` e
 
 ### Icon and shape library
 
-The Library, Shapes and Editors tabs and the icon picker use the icon and shape library, which is stored in Home Assistant. Saving, renaming, deleting and importing icons and shapes are admin-only. A saved icon is named `mcu:` followed by its id in Home Assistant's icon picker; see [Using icons in Home Assistant](../panel/library.md#using-icons-in-home-assistant).
+The Library, Icons and Shapes tabs and the icon picker use the icon and shape library, which is stored in Home Assistant. Saving, renaming, deleting and importing icons and shapes are admin-only. A saved icon is named `mcu:` followed by its id in Home Assistant's icon picker; see [Using icons in Home Assistant](../panel/library.md#using-icons-in-home-assistant).
 
 All these commands have the prefix `magic_card_utils/`, for example `magic_card_utils/icons_list`.
 
