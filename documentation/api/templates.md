@@ -1,10 +1,12 @@
 # Templates API
 
-All template commands need an admin user. Templates are keyed by name; see [Templates and linking](../concepts/templates.md) for what the fields mean.
+Saving, deleting and listing templates need an admin user. Reading one template by name, with `template_get` or `subscribe_template`, works for any signed-in user. Templates are keyed by name; see [Templates and linking](../concepts/templates.md) for what the fields mean.
 
 - [Commands](#commands)
 - [get_templates](#get_templates)
 - [subscribe_templates](#subscribe_templates)
+- [template_get](#template_get)
+- [subscribe_template](#subscribe_template)
 - [save_template](#save_template)
 - [delete_template](#delete_template)
 - [The template object](#the-template-object)
@@ -16,6 +18,8 @@ All template commands need an admin user. Templates are keyed by name; see [Temp
 | --- | --- | --- |
 | `magic_card_utils/get_templates` | none | `{ templates: { [name]: template } }` |
 | `magic_card_utils/subscribe_templates` | none | Empty. Events: `{ templates: { [name]: template } }` |
+| `magic_card_utils/template_get` | `{ name }` | `{ template: content \| null }`. Any signed-in user. |
+| `magic_card_utils/subscribe_template` | `{ name }` | Empty. Events: `{ action: "saved", name, template: content }` or `{ action: "deleted", name }`. Any signed-in user. |
 | `magic_card_utils/save_template` | `{ name, template, card_type?, old_name? }` | `{ success: true }` |
 | `magic_card_utils/delete_template` | `{ name }` | `{ success: true }` |
 
@@ -45,6 +49,35 @@ const unsubscribe = await hass.connection.subscribeMessage(
 ```
 
 An event is sent when a template is saved, renamed or deleted, and when any dashboard is saved (the linked-card counts may have changed).
+
+## template_get
+
+Returns one template by name, or `template: null` when no template has that name. It doesn't scan dashboards, so it's cheap. The name must be 1 to 255 characters; anything else fails with `invalid_format`. If the integration hasn't finished loading, it fails with `not_loaded`; try again shortly.
+
+The content has `config`, plus `card_type` and `last_updated` when they're stored. It never has `linked_cards`, `created_at` or other fields, so a non-admin user only sees what a card needs to draw itself.
+
+```js
+const { template } = await hass.callWS({
+  type: "magic_card_utils/template_get",
+  name: "kitchen-light-card",
+});
+```
+
+## subscribe_template
+
+Subscribes to one template. The first event arrives straight away with the current state: `saved` with the content, or `deleted` when no template has that name. After that you get one event for each change to that name. A rename sends `deleted` for the old name, then `saved` for the new one. Events for other names aren't sent to you.
+
+```js
+const unsubscribe = await hass.connection.subscribeMessage(
+  (event) => {
+    if (event.action === "saved") this._config = event.template.config;
+    else this._config = undefined;
+  },
+  { type: "magic_card_utils/subscribe_template", name: "kitchen-light-card" }
+);
+```
+
+Call `unsubscribe()` when you no longer need it. A non-admin user who sends `get_templates`, `subscribe_templates`, `save_template` or `delete_template` gets `unauthorized` and nothing is changed.
 
 ## save_template
 
@@ -113,5 +146,5 @@ Put anything you need in the template. These fields have a meaning:
 ## Linking from your own card
 
 1. Store the template name in your card's configuration as `template: <name>`. That's what the integration counts as a link.
-2. Subscribe with `subscribe_templates` and apply the template with that name when it arrives or changes.
+2. Subscribe with `subscribe_template` (one name, any user) or `subscribe_templates` (all names, admin only) and apply the template with that name when it arrives or changes.
 3. Leave `linked_cards` alone; the integration counts the links itself.

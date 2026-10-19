@@ -25,6 +25,7 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 - **Import and export:** move icons, shapes, animations and theme presets between Home Assistant installations. Imports are size-limited and checked before anything is saved. See [Library](documentation/panel/library.md).
 - **Theme editor:** create and edit Home Assistant themes in a Themes tab, with a live preview and a Try on dashboard button. Saves write the theme file to `/config/themes`.
 - **Languages:** English (UK), English (US) and Dutch, following your Home Assistant profile language.
+- **Templates for every user:** non-admin users see shared templates on cards too. Only admins can change them.
 - **WebSocket API:** other custom cards can store and link their own templates and use the animation library.
 
 ## Requirements

@@ -50,6 +50,10 @@ A breaking change to the contract raises `apiVersion`; Magic Card Utils then rai
 | Themes tab | 2026.10.06 or newer, with `magic-card-theme-editor.js` next to `magic-card.js` |
 | Library, Icons and Shapes tabs, and icons in Home Assistant's icon picker | 2026.10.11-beta.1 or newer |
 
+| Shared templates on cards for non-admin users | The Magic Card release that reads templates with `template_get` and `subscribe_template`, together with this version of Magic Card Utils or newer |
+
+Non-admin users need both sides updated. With an older Magic Card Utils, a new Magic Card still shows templates to admin users but tells non-admin users the template couldn't be loaded. With an older Magic Card, admin users see templates as before and non-admin users still don't.
+
 Use the newest Magic Card release where you can. Magic Card's own documentation lists which version added what.
 
 ### Which version the editors need
