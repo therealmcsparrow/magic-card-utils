@@ -18,6 +18,9 @@ PANEL_TABS is now Templates, Animations, Themes, Library, Icons, Shapes. The "Ed
 Icons tab hosts <mc-library-view context="mcu-panel" kinds=["icon"]> (saved icons with New icon, Edit,
 Rename, Delete, Export) and replaces the recent lists. The recent-items constant is removed. No command, storage or
 revision number change.
+Second revision line 2026-10-19 (CEO: "The library tab should be next to templates"): PANEL_TABS is now
+Templates, Library, Animations, Themes, Icons, Shapes. Arrow-key order follows the tab bar; the panel still
+opens on Templates, or on the remembered Themes tab / ?animation= / ?theme= deep link, which name a tab id.
 
 Implementation: library.py (Store, validation, commands) and
 www/magic_card_utils_library.js (frontend provider), registered in __init__.py with
@@ -94,7 +97,7 @@ adapter object is passed to the Library tab's <mc-library-view> as `presets`.
 
 Editors in the panel (r4, www/magic_card_utils_panel.js; magic-card svg-editor 1.0.0 r5 "Hosts",
 preset-transfer 1.0.0 r2 context 'mcu-panel'):
-- Tabs PANEL_TABS: Templates, Animations, Themes, Library, Icons, Shapes (2026-10-19: the Editors tab became Icons).
+- Tabs PANEL_TABS: Templates, Library, Animations, Themes, Icons, Shapes (2026-10-19: the Editors tab became Icons; Library moved next to Templates).
 - Loading: _ensureMagicCard() as the other tabs do, then window.MagicCard.loadEditor(), then
   window.MagicCard.loadSvgEditor() / loadShapeEditor() on first use, and loadTransfer() for the
   Library tab. No new file in Magic Card; nothing from another host; no card element.
@@ -166,7 +169,7 @@ CONNECTION_WAIT_MS = 30_000
 ICON_PREFIX = "mcu"
 
 # (r4) Panel side, mirrored as constants in www/magic_card_utils_panel.js (the panel is plain JS).
-PANEL_TABS = ("templates", "animations", "themes", "library", "icons", "shapes")
+PANEL_TABS = ("templates", "library", "animations", "themes", "icons", "shapes")
 # magic-card svg-editor SVG_EDITOR_MCU_MIN_REVISION: the element revision that has host "mcu".
 EDITORS_MIN_CONTRACT_REVISION = 5
 

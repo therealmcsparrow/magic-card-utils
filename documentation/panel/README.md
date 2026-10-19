@@ -7,9 +7,9 @@ The panel has six tabs:
 | Tab | What you do there |
 | --- | --- |
 | [Templates](templates.md) | List, view, edit, open in the studio, duplicate and delete templates |
+| [Library](library.md) | Browse your saved icons, shapes, animations and theme presets. New icon, New shape, Edit, Rename, Delete, Export and Import |
 | [Animations](animations.md) | Build and manage the shared animation library in the Magic Card animation studio |
 | [Themes](themes.md) | Create, edit, save and delete Home Assistant themes in the Magic Card theme editor, and save a theme as your preset |
-| [Library](library.md) | Browse your saved icons, shapes, animations and theme presets. New icon, New shape, Edit, Rename, Delete, Export and Import |
 | [Icons](library.md#the-icons-tab) | Your saved icons: New icon, Edit, Rename, Delete and Export |
 | [Shapes](library.md#the-shapes-tab) | Your saved shapes, with a thumbnail and point count: New shape, Edit, Rename, Delete and Export |
 

@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- The Editors tab is now the Icons tab and sits before Shapes. The tab order is Templates, Animations, Themes, Library, Icons, Shapes. The Icons tab lists only your saved icons, with New icon, Edit, Rename, Delete and Export on each row. It replaces the recent lists, the New shape button and the See all in Library button. New shape stays on the Shapes tab. The Library tab still shows all four kinds. Dutch name: Pictogrammen.
+- The Editors tab is now the Icons tab and sits before Shapes. The Library tab now sits directly after Templates. The tab order is Templates, Library, Animations, Themes, Icons, Shapes, and the arrow keys follow it. The Icons tab lists only your saved icons, with New icon, Edit, Rename, Delete and Export on each row. It replaces the recent lists, the New shape button and the See all in Library button. New shape stays on the Shapes tab. The Library tab still shows all four kinds. Dutch name: Pictogrammen.
 
 ### Fixed
 

@@ -162,9 +162,9 @@ function _compareCalVer(a, b) {
 }
 const TABS = [
   ["templates", () => tr("Templates")],
+  ["library", () => tr("Library")],
   ["animations", () => tr("Animations")],
   ["themes", () => tr("Themes")],
-  ["library", () => tr("Library")],
   ["icons", () => tr("Icons")],
   ["shapes", () => tr("Shapes")],
 ];
