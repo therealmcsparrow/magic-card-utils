@@ -13,7 +13,7 @@ Change it in your Home Assistant profile (your name at the bottom of the sidebar
 
 ## What is translated
 
-- Every label, button, message and dialog in the panel, including the template table, the Library tab and its import and export window, and the Editors tab.
+- Every label, button, message and dialog in the panel, including the template table, the Library tab and its import and export window, and the Icons and Shapes tabs.
 - The setup screen of the integration (title, description and the **Show side panel** option). Home Assistant reads `translations/en.json`, `en-GB.json` and `nl.json` in the integration folder for this.
 - The editors and the animation and theme tools inside the panel come from Magic Card and follow the same language, as long as Magic Card is recent enough to include them.
 

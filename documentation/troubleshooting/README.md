@@ -18,13 +18,12 @@ Find the message you see, or the symptom, below.
 | Message | Cause | Fix |
 | --- | --- | --- |
 | Magic Card isn't installed. Install it from HACS and add it as a dashboard resource. | No dashboard resource ends in `/magic-card.js` | Install Magic Card with HACS, or add its resource under **Settings → Dashboards → ⋮ → Resources** as a JavaScript module. Then reload the panel. |
-| Install Magic Card to draw icons and shapes here. | The Library, Shapes or Editors tab can't find Magic Card | Install Magic Card as above, then reload the panel. |
+| Install Magic Card to draw icons and shapes here. | The Library, Icons or Shapes tab can't find Magic Card | Install Magic Card as above, then reload the panel. |
 | Drawing icons and shapes here needs Magic Card 2026.10.11-beta.1 or newer. Update Magic Card in HACS. | The installed Magic Card is older than 2026.10.11-beta.1. A Magic Card that doesn't report its version also counts as older. | Update Magic Card in HACS. For the pre-release, turn on **Show beta versions** (see [The pre-release isn't in HACS](#the-pre-release-isnt-in-hacs)). Reload the browser tab. See [Version check](../compatibility/README.md#which-magic-card-version-you-need). |
 | The editor files could not be loaded from Magic Card. Reload the page and try again. | Magic Card is installed, but its editor files didn't load | Reload the page. If it stays, open the browser console (F12) and check for a failed file, then update Magic Card. |
 | Magic Card could not be loaded from *url*. | The resource exists but the file failed to load | Open the URL in your browser to check it exists. For a manual install, check the file is at that path. The browser console (F12) has the exact error. |
 | Magic Card *version* is too old for Magic Card Utils (…). Update Magic Card. | The installed Magic Card has an older contract version | Update Magic Card in HACS and reload. See [Version check](../compatibility/README.md#version-check). |
 | Only administrators can create or change icons and shapes. | You are signed in as a non-admin user | Sign in as an admin user. |
-| Your saved icons and shapes could not be loaded. | The Editors tab couldn't read the library | Reload the page. If it stays, check the Home Assistant log for `magic_card_utils`. |
 | The Magic Card editor could not be loaded. | Magic Card loaded, but creating its editor failed | Reload the panel. If it stays, check the browser console and update Magic Card. |
 | Lovelace card helpers are unavailable until a dashboard has been opened. | Previewing a template for a card type other than Magic Card, before any dashboard was opened in this browser tab | Open any dashboard, then come back to the panel |
 | The animation library could not be loaded. | The integration isn't running or is still starting | Check the integration under **Settings → Devices & Services**, wait for Home Assistant to finish starting and click **Try again** |

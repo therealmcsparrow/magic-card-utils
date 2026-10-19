@@ -12,6 +12,12 @@ tab; nothing released yet, ADR 0020 / 0027): the panel gets "Library" and "Edito
 Magic Card's SVG editor and shape editor without a card (section "Editors in the panel"). No new
 command, no storage change, no Python change. The theme presets adapter shape is settled: the panel
 side changes (section "Theme editor backend adapter").
+Revision line 2026-10-19 (contract change approved at the Plan Gate, CEO: "The editors tab in magic card
+utils should be the icons tab and only be for icons. And it should be ordered before the shape tab"):
+PANEL_TABS is now Templates, Animations, Themes, Library, Icons, Shapes. The "Editors" tab is gone; the
+Icons tab hosts <mc-library-view context="mcu-panel" kinds=["icon"]> (saved icons with New icon, Edit,
+Rename, Delete, Export) and replaces the recent lists. The recent-items constant is removed. No command, storage or
+revision number change.
 
 Implementation: library.py (Store, validation, commands) and
 www/magic_card_utils_library.js (frontend provider), registered in __init__.py with
@@ -88,7 +94,7 @@ adapter object is passed to the Library tab's <mc-library-view> as `presets`.
 
 Editors in the panel (r4, www/magic_card_utils_panel.js; magic-card svg-editor 1.0.0 r5 "Hosts",
 preset-transfer 1.0.0 r2 context 'mcu-panel'):
-- Tabs PANEL_TABS: Templates, Animations, Themes, Library, Shapes, Editors.
+- Tabs PANEL_TABS: Templates, Animations, Themes, Library, Icons, Shapes (2026-10-19: the Editors tab became Icons).
 - Loading: _ensureMagicCard() as the other tabs do, then window.MagicCard.loadEditor(), then
   window.MagicCard.loadSvgEditor() / loadShapeEditor() on first use, and loadTransfer() for the
   Library tab. No new file in Magic Card; nothing from another host; no card element.
@@ -112,9 +118,9 @@ preset-transfer 1.0.0 r2 context 'mcu-panel'):
   replacement).
 - Library tab: <mc-library-view> with context "mcu-panel", hass, presets; its "New icon", "New shape"
   and row "Edit" fire mc-library-open {kind, id?} -> _openEditor.
-- Editors tab (panel markup only): "New icon", "New shape", "Recent icons" / "Recent shapes" (the
-  RECENT_ITEMS newest by updated_at, each with "Edit"), "See all in Library"; "Nothing saved yet."
-  when empty.
+- Icons tab (2026-10-19): a second <mc-library-view> with context "mcu-panel", kinds ["icon"], hass, presets.
+  New icon and row Edit fire mc-library-open {kind: "icon", id?} -> _openEditor. Empty state: "No icons here
+  yet." with New icon. Admin gating as the Library tab. The old tab id "editors" still resolves to "icons".
 - Accessibility: tablist pattern as today, real buttons >= 24 x 24 CSS px, focus return, 200 % zoom.
 
 Frontend provider (www/magic_card_utils_library.js, rules from spike S1 on HA core 2026.10.2):
@@ -160,8 +166,7 @@ CONNECTION_WAIT_MS = 30_000
 ICON_PREFIX = "mcu"
 
 # (r4) Panel side, mirrored as constants in www/magic_card_utils_panel.js (the panel is plain JS).
-PANEL_TABS = ("templates", "animations", "themes", "library", "shapes", "editors")
-RECENT_ITEMS = 8
+PANEL_TABS = ("templates", "animations", "themes", "library", "icons", "shapes")
 # magic-card svg-editor SVG_EDITOR_MCU_MIN_REVISION: the element revision that has host "mcu".
 EDITORS_MIN_CONTRACT_REVISION = 5
 

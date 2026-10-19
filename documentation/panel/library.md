@@ -4,13 +4,13 @@ The Library keeps the things you make in Magic Card, so every card and every das
 
 - [What the library holds](#what-the-library-holds)
 - [The Library tab](#the-library-tab)
+- [The Icons tab](#the-icons-tab)
 - [The Shapes tab](#the-shapes-tab)
-- [The Editors tab](#the-editors-tab)
 - [Using icons in Home Assistant](#using-icons-in-home-assistant)
 - [Import and export](#import-and-export)
 - [Who can change the library](#who-can-change-the-library)
 
-The Library, Shapes and Editors tabs need Magic Card 2026.10.11-beta.1 or newer. See [Magic Card compatibility](../compatibility/README.md#which-magic-card-version-you-need).
+The Library, Icons and Shapes tabs need Magic Card 2026.10.11-beta.1 or newer. See [Magic Card compatibility](../compatibility/README.md#which-magic-card-version-you-need).
 
 ## What the library holds
 
@@ -34,6 +34,14 @@ At the top, **New icon** and **New shape** open an empty editor, and **Import** 
 
 An empty kind shows a short message and the New button above it, for example "No shapes here yet."
 
+## The Icons tab
+
+The Icons tab shows only your saved icons. It sits before the Shapes tab. Each row has the same buttons as in the Library tab: Edit, Rename, Delete and Export. At the top, **New icon** opens an empty icon editor. Icons also still appear in the Library tab.
+
+When you have no icons yet, the tab says "No icons here yet." with New icon above it. New shape is not on this tab; use the Shapes tab for that.
+
+Magic Card versions older than 2026.10.11-beta.1 do not know this tab's filter, so they show all four kinds in it.
+
 ## The Shapes tab
 
 The Shapes tab shows only your shapes, with the same buttons: New shape, Edit, Rename, Delete and Export. Shapes also still appear in the Library tab.
@@ -49,17 +57,7 @@ After you save a shape, the editor stays open over the page, and a status line s
 
 Magic Card versions older than 2026.10.11-beta.1 do not know this tab's filter, so they show all four kinds in it.
 
-## The Editors tab
-
-Use the Editors tab to draw without a card:
-
-- **New icon** and **New shape** open an empty editor.
-- **Recent icons** and **Recent shapes** list your newest items, each with **Edit**.
-- **See all in Library** opens the Library tab.
-
-When you have nothing saved yet, the tab says "Nothing saved yet."
-
-When you close an editor after saving, the lists in the Library, Shapes and Editors tabs refresh to show the change.
+When you close an editor after saving, the lists in the Library, Icons and Shapes tabs refresh to show the change.
 
 ## Using icons in Home Assistant
 

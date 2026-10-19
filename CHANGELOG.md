@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- The Editors tab is now the Icons tab and sits before Shapes. The tab order is Templates, Animations, Themes, Library, Icons, Shapes. The Icons tab lists only your saved icons, with New icon, Edit, Rename, Delete and Export on each row. It replaces the recent lists, the New shape button and the See all in Library button. New shape stays on the Shapes tab. The Library tab still shows all four kinds. Dutch name: Pictogrammen.
+
 ### Fixed
 
 - The 2026.10.09 entry said the Third-party section lists Montserrat. The README lists Lit and @mdi/js only, and the integration ships no font file.
