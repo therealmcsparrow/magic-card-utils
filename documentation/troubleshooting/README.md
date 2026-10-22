@@ -48,7 +48,7 @@ Find the message you see, or the symptom, below.
 
 ## The pre-release isn't in HACS
 
-Pre-releases are hidden until you turn on **Show beta versions** in HACS settings. Turn it on, then open Magic Card Utils and choose **Redownload** from the menu (⋮) to pick 2026.10.11-beta.2. See [Pre-release (beta)](../../README.md#pre-release-beta).
+Pre-releases are hidden until you turn on **Show beta versions** in HACS settings. Turn it on, then open Magic Card and choose **Redownload** from the menu (⋮) to pick the newest 2026.10.11-beta version. See [Magic Card pre-release](../../README.md#magic-card-pre-release).
 
 ## A new icon is missing from the icon picker
 

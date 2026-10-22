@@ -52,13 +52,13 @@ Click the button above to open the repository in HACS, then click **Download** a
 4. Search for **Magic Card Utils** in HACS and click **Download**.
 5. Restart Home Assistant.
 
-### Pre-release (beta)
+### Magic Card pre-release
 
-HACS hides pre-releases unless you turn on **Show beta versions**. Use a test system first, and install the matching Magic Card pre-release (2026.10.11-beta.2 or newer) too.
+The Library, Icons and Shapes tabs and template cards for non-admin users need Magic Card 2026.10.11-beta.2 or newer, which is still a pre-release. HACS hides pre-releases unless you turn on **Show beta versions**.
 
 1. In HACS, open **Settings** and turn on **Show beta versions**.
-2. Open **Magic Card Utils**, choose **Redownload** from the menu (⋮), and select `2026.10.11-beta.2`.
-3. Restart Home Assistant.
+2. Open **Magic Card**, choose **Redownload** from the menu (⋮), and select the newest `2026.10.11-beta` version.
+3. Reload the browser tab.
 
 Report problems on [GitHub](https://github.com/therealmcsparrow/magic-card-utils/issues).
 

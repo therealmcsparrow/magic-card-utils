@@ -2,7 +2,7 @@
 
 - [Requirements](#requirements)
 - [Install with HACS](#install-with-hacs)
-- [Install the pre-release](#install-the-pre-release)
+- [Install the Magic Card pre-release](#install-the-magic-card-pre-release)
 - [Install by hand](#install-by-hand)
 - [Set up the integration](#set-up-the-integration)
 - [Show or hide the side panel](#show-or-hide-the-side-panel)
@@ -26,16 +26,13 @@
 4. Search for **Magic Card Utils** in HACS and click **Download**.
 5. Restart Home Assistant.
 
-## Install the pre-release
+## Install the Magic Card pre-release
 
-Version 2026.10.11-beta.2 is a pre-release for testing. HACS hides it until you turn on **Show beta versions**.
+The Library, Icons and Shapes tabs and template cards for non-admin users need Magic Card 2026.10.11-beta.2 or newer. Magic Card 2026.10.11 is still a pre-release, and HACS hides it until you turn on **Show beta versions**.
 
-1. Install the matching Magic Card pre-release (2026.10.11-beta.2 or newer) first.
-2. In HACS, open **Settings** and turn on **Show beta versions**.
-3. Open **Magic Card Utils**, choose **Redownload** from the menu (⋮), and select `2026.10.11-beta.2`.
-4. Restart Home Assistant.
-
-To go back to the last stable release, use **Redownload** again and pick the newest version without `-beta`.
+1. In HACS, open **Settings** and turn on **Show beta versions**.
+2. Open **Magic Card**, choose **Redownload** from the menu (⋮), and select the newest `2026.10.11-beta` version.
+3. Reload the browser tab.
 
 ## Install by hand
 

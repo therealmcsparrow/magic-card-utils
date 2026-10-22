@@ -6,47 +6,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-## [2026.10.11-beta.2] - 2026-10-19 (pre-release)
+## [2026.10.11] - 2026-10-22
 
-Pre-release for testing. HACS hides pre-releases unless you turn on **Show beta versions**. Install Magic Card 2026.10.11-beta.2 or newer as well: non-admin users see template cards only when both are updated.
-
-### Added
-
-- Two read commands, `magic_card_utils/template_get` and `magic_card_utils/subscribe_template`, that any signed-in user can use. They return one template by name, with its `config`, `card_type` and `last_updated` only. Cards can now show a shared template to non-admin users, and a saved, renamed or deleted template reaches an open card straight away. Saving and deleting still need an admin, and `get_templates` and `subscribe_templates` stay admin-only, because their answers include how many cards link to each template. Non-admin users need this version of Magic Card Utils and the Magic Card release that uses the new commands.
-
-### Changed
-
-- The Editors tab is now the Icons tab and sits before Shapes. The Library tab now sits directly after Templates. The tab order is Templates, Library, Animations, Themes, Icons, Shapes, and the arrow keys follow it. The Icons tab lists only your saved icons, with New icon, Edit, Rename, Delete and Export on each row. It replaces the recent lists, the New shape button and the See all in Library button. New shape stays on the Shapes tab. The Library tab still shows all four kinds. Dutch name: Pictogrammen.
-
-### Fixed
-
-- The 2026.10.09 entry said the Third-party section lists Montserrat. The README lists Lit and @mdi/js only, and the integration ships no font file.
-
-## [2026.10.11-beta.1] - 2026-10-18 (pre-release)
-
-Pre-release for testing. HACS hides pre-releases unless you turn on **Show beta versions**. Install the matching Magic Card pre-release (2026.10.11-beta.1 or newer) as well.
+The Library, Icons and Shapes tabs, icons in the icon picker, and template cards for non-admin users need Magic Card 2026.10.11-beta.2 or newer. Magic Card 2026.10.11 is still a pre-release: in HACS, turn on **Show beta versions** and install it. Everything else works with the stable Magic Card.
 
 ### Added
 
 - A Library tab in the panel: your saved icons, shapes, animations and theme presets, with New icon, New shape, Edit, Rename, Delete, Export and Import. Only admin users can change the library.
-- A Shapes tab next to Library lists your saved shapes with New shape, Edit, Rename, Delete and Export on each row. Shapes still show in Library too.
-- An Editors tab to draw a new icon or shape without a card, with your most recent icons and shapes to reopen.
-- Shapes tab rows show a thumbnail of the outline and the point count, such as "10 points", or "Corner shape" for a shape made of corners.
+- An Icons tab lists your saved icons with New icon, Edit, Rename, Delete and Export on each row.
+- A Shapes tab lists your saved shapes with New shape, Edit, Rename, Delete and Export on each row. Each row shows a thumbnail of the outline and the point count, such as "10 points", or "Corner shape" for a shape made of corners.
 - A note at the top of the Shapes tab says which cards follow a change to a shape, and which keep their own copy.
+- The tab order is Templates, Library, Animations, Themes, Icons, Shapes, and the arrow keys follow it.
 - Saved icons appear in Home Assistant's icon picker after a reload. Magic Card draws them in full colour; Home Assistant's own cards show a one-colour silhouette.
 - Import and export of icons, shapes, animations and theme presets as files. Imports are limited to 1 MB and checked before anything is saved.
 - Save as my preset in the Themes tab keeps a theme in your shared library.
+- Two read commands, `magic_card_utils/template_get` and `magic_card_utils/subscribe_template`, that any signed-in user can use. They return one template by name, with its `config`, `card_type` and `last_updated` only. Cards can now show a shared template to non-admin users, and a saved, renamed or deleted template reaches an open card straight away. Saving and deleting still need an admin, and `get_templates` and `subscribe_templates` stay admin-only, because their answers include how many cards link to each template.
 - The panel is available in English (UK), English (US) and Dutch, following your Home Assistant profile language. Any other language shows English (UK). The sidebar entry stays in English.
 - The setup screen is translated into the same three languages.
 
 ### Changed
 
-- Needs Magic Card 2026.10.11-beta.1 or newer for the Library, Shapes and Editors tabs. An older Magic Card shows a message in place of the editors.
+- An older Magic Card shows a message in place of the icon and shape editors.
 - The panel uses the same buttons, fields, notices, icon buttons and chips as the Magic Card editor. The Home Assistant header and page tabs are unchanged.
 - Dialogs follow the Magic Card look: larger corners, the same shadow and background dimming, a close button with an icon, and labelled fields with help text under them.
 - The shape list loads only when a card on the page uses a library shape. A dashboard with no such card does not load it.
 - After you save a shape, a status line on the Shapes and Library tabs says the shape was saved. It clears when you change tab.
 - Errors and warnings in the panel show as inline notices with an icon, not coloured bars. Table action buttons share one neutral colour and each has an accessible name.
+- The README has a My Home Assistant button that opens the repository in HACS.
+- The logo no longer has the Magic Card text.
+
+### Fixed
+
+- The 2026.10.09 entry said the Third-party section lists Montserrat. The README lists Lit and @mdi/js only, and the integration ships no font file.
 
 ## [2026.10.09] - 2026-10-17
 

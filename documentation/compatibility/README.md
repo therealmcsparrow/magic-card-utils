@@ -49,7 +49,7 @@ A breaking change to the contract raises `apiVersion`; Magic Card Utils then rai
 | Animations tab | 2026.10.01 or newer, with `magic-card-animation-studio.js` next to `magic-card.js` |
 | Themes tab | 2026.10.06 or newer, with `magic-card-theme-editor.js` next to `magic-card.js` |
 | Library, Icons and Shapes tabs, and icons in Home Assistant's icon picker | 2026.10.11-beta.1 or newer |
-| Shared templates on cards for non-admin users | 2026.10.11-beta.2 or newer, together with Magic Card Utils 2026.10.11-beta.2 or newer |
+| Shared templates on cards for non-admin users | 2026.10.11-beta.2 or newer, together with Magic Card Utils 2026.10.11 or newer |
 
 Non-admin users need both sides updated. With an older Magic Card Utils, a new Magic Card still shows templates to admin users but tells non-admin users the template couldn't be loaded. With an older Magic Card, admin users see templates as before and non-admin users still don't.
 
