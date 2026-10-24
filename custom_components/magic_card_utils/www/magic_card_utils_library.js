@@ -1,4 +1,4 @@
-// Magic Card Utils library provider (contract mcu-library 1.0.0 r2). Loaded on every HA page.
+// Magic Card Utils library provider (contract mcu-library 1.1.0). Loaded on every HA page.
 // Registers window.customIcons.mcu (merge, never replace) and window.magicCardUtils.
 // Touches no DOM. Reads the saved library over HA's own websocket connection.
 try {
@@ -100,8 +100,16 @@ try {
     }
   };
 
+  // Library images are read by the cards that show them; the provider only tells the page that one changed.
+  const onImageEvent = (ev) => {
+    const id = ev.action === "saved" ? ev.image && ev.image.id : ev.action === "deleted" ? ev.id : null;
+    if (typeof id !== "string" || !ID_RE.test(id)) return;
+    window.dispatchEvent(new CustomEvent("mcu-library-changed", { detail: { kind: "images", ids: [id] } }));
+  };
+
   const onEvent = (ev) => {
     try {
+      if (ev && ev.kind === "images") return onImageEvent(ev);
       if (!ev || (ev.kind !== "icons" && ev.kind !== "shapes")) return;
       if (ev.kind === "icons") {
         const id = ev.action === "saved" ? ev.icon && ev.icon.id : ev.id;

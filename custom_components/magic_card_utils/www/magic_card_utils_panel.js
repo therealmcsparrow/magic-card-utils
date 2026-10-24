@@ -123,11 +123,17 @@ const EDITORS_MIN_CONTRACT_REVISION = 5; // svg-editor SVG_EDITOR_MCU_MIN_REVISI
 const MIN_MAGIC_CARD_FOR_EDITORS = "2026.10.11-beta.1";
 const CMD_ICONS_LIST = "magic_card_utils/icons_list";
 const CMD_SHAPES_LIST = "magic_card_utils/shapes_list";
+// Library images (mcu-library 1.1.0, library_images_contract.py): the oldest Magic Card that opens image sources.
+const IMAGES_MIN_CONTRACT_REVISION = 6; // svg-editor SVG_EDITOR_CONTRACT_REVISION with image sources
+const MIN_MAGIC_CARD_FOR_IMAGES = "2026.10.12-beta.7";
 const LIBRARY_ID_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 const FOCUS_KEY_RE = /^[A-Za-z0-9_.:-]{1,96}$/;
 const msgNoCard = () => tr("Install Magic Card to draw icons and shapes here.");
 // The only message about a Magic Card that is too old. Every cause (version, missing loader, contractRevision) ends here.
 const msgUpdateCard = () => tr("Drawing icons and shapes here needs Magic Card {version} or newer. Update Magic Card in HACS.", { version: MIN_MAGIC_CARD_FOR_EDITORS });
+const msgNoCardImages = () => tr("Install Magic Card to draw images here.");
+const msgUpdateImages = () => tr("Drawing images here needs Magic Card {version} or newer. Update Magic Card in HACS.", { version: MIN_MAGIC_CARD_FOR_IMAGES });
+const msgAdminOnlyImages = () => tr("Only administrators can create or change images.");
 const msgAdminOnly = () => tr("Only administrators can create or change icons and shapes.");
 const msgEditorLoad = () => tr("The editor files could not be loaded from Magic Card. Reload the page and try again.");
 /**
@@ -167,6 +173,7 @@ const TABS = [
   ["themes", () => tr("Themes")],
   ["icons", () => tr("Icons")],
   ["shapes", () => tr("Shapes")],
+  ["images", () => tr("Images")],
 ];
 // Kept for the page's lifetime: the editor holds the draft and the dashboard trial, and the trial
 // bar's "Back to theme editor" re-opens the panel, which builds a new panel element.
@@ -472,6 +479,8 @@ class MagicCardUtilsPanel extends LitElement {
       _editorNotice: { type: String, state: true },
       _iconsStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _iconsMessage: { type: String, state: true },
+      _imagesStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
+      _imagesMessage: { type: String, state: true },
     };
   }
 
@@ -526,6 +535,9 @@ class MagicCardUtilsPanel extends LitElement {
     this._iconsStatus = "";
     this._iconsMessage = "";
     this._iconsEl = null;
+    this._imagesStatus = "";
+    this._imagesMessage = "";
+    this._imagesEl = null;
   }
 
   _processTemplates(templates) {
@@ -682,6 +694,7 @@ class MagicCardUtilsPanel extends LitElement {
       if (this._libraryEl) this._libraryEl.hass = this.hass;
       if (this._shapesEl) this._shapesEl.hass = this.hass;
       if (this._iconsEl) this._iconsEl.hass = this.hass;
+      if (this._imagesEl) this._imagesEl.hass = this.hass;
     }
     if (this._editorOpen) {
       this._attachEditor();
@@ -698,6 +711,10 @@ class MagicCardUtilsPanel extends LitElement {
         this._mountShapesView();
       }
       if (this._tab === "shapes" && this._shapesStatus === "ready") this._attachShapesView();
+      if (this._tab === "images" && this.hass && !this._imagesEl && this._imagesStatus === "") {
+        this._mountImagesView();
+      }
+      if (this._tab === "images" && this._imagesStatus === "ready") this._attachImagesView();
     }
     if (this._tab === "themes" && this.hass && !this._themeEl && this._themeStatus === "") {
       this._mountThemeEditor();
@@ -1340,32 +1357,35 @@ class MagicCardUtilsPanel extends LitElement {
    * and check the version. Resolves to `{ ok: true }` or `{ ok: false, message }`.
    */
   async _ensureEditors(what) {
+    // 'image' (the editor on an image) and 'images' (the Images tab's view) have their own, later minimum and message.
+    const images = what === "image" || what === "images";
+    const tooOld = images ? msgUpdateImages : msgUpdateCard;
     const card = await this._ensureMagicCard();
     if (!card.ok) {
       // Not registered: not installed (no resource) or a genuine load failure (its own plain message).
-      if (!customElements.get(CARD_TAG)) return { ok: false, message: this._magicCardUrl ? card.message : msgNoCard() };
-      return { ok: false, message: msgUpdateCard() }; // there, but too old to speak the panel contract
+      if (!customElements.get(CARD_TAG)) return { ok: false, message: this._magicCardUrl ? card.message : images ? msgNoCardImages() : msgNoCard() };
+      return { ok: false, message: tooOld() }; // there, but too old to speak the panel contract
     }
     // The one version gate. A Magic Card that exposes no version predates the editors.
-    const cmp = _compareCalVer(window.MagicCard && window.MagicCard.version, MIN_MAGIC_CARD_FOR_EDITORS);
-    if (cmp === null || cmp < 0) return { ok: false, message: msgUpdateCard() };
-    if (typeof window.MagicCard.loadEditor !== "function") return { ok: false, message: msgUpdateCard() };
-    const loader = what === "library" ? "loadTransfer" : what === "shape" ? "loadShapeEditor" : "loadSvgEditor";
+    const cmp = _compareCalVer(window.MagicCard && window.MagicCard.version, images ? MIN_MAGIC_CARD_FOR_IMAGES : MIN_MAGIC_CARD_FOR_EDITORS);
+    if (cmp === null || cmp < 0) return { ok: false, message: tooOld() };
+    if (typeof window.MagicCard.loadEditor !== "function") return { ok: false, message: tooOld() };
+    const loader = what === "library" || what === "images" ? "loadTransfer" : what === "shape" ? "loadShapeEditor" : "loadSvgEditor";
     try {
       if (!(await window.MagicCard.loadEditor())) return { ok: false, message: msgEditorLoad() };
       // The editor chunk adds the loaders to window.MagicCard: read it again, never keep the object from before.
       const mc = window.MagicCard;
-      if (!mc || typeof mc[loader] !== "function") return { ok: false, message: msgUpdateCard() };
+      if (!mc || typeof mc[loader] !== "function") return { ok: false, message: tooOld() };
       if (!(await mc[loader]())) return { ok: false, message: msgEditorLoad() };
     } catch (err) {
       console.warn("[magic_card_utils] editor chunk not loaded", err);
       return { ok: false, message: msgEditorLoad() };
     }
-    const tag = what === "library" ? LIBRARY_VIEW_TAG : what === "shape" ? SHAPE_STUDIO_TAG : SVG_EDITOR_TAG;
+    const tag = what === "library" || what === "images" ? LIBRARY_VIEW_TAG : what === "shape" ? SHAPE_STUDIO_TAG : SVG_EDITOR_TAG;
     const ctor = customElements.get(tag);
     if (!ctor) return { ok: false, message: msgEditorLoad() };
-    // Internal sanity check, never worded as a revision: an element without contractRevision >= 5 is an old build.
-    if (!(Number(ctor.contractRevision) >= EDITORS_MIN_CONTRACT_REVISION)) return { ok: false, message: msgUpdateCard() };
+    // Internal sanity check, never worded as a revision: an element below the needed contractRevision is an old build.
+    if (!(Number(ctor.contractRevision) >= (images ? IMAGES_MIN_CONTRACT_REVISION : EDITORS_MIN_CONTRACT_REVISION))) return { ok: false, message: tooOld() };
     return { ok: true };
   }
 
@@ -1386,16 +1406,17 @@ class MagicCardUtilsPanel extends LitElement {
   }
 
   /**
-   * The editor shell, shared by both tabs. `kind` is 'icon' or 'shape', `id` a saved item to edit
+   * The editor shell, shared by the editor tabs. `kind` is 'icon', 'shape' or 'image', `id` a saved item to edit
    * (none = new), `opener` the control to return focus to.
    */
   async _openEditor({ kind, id, opener } = {}) {
     if (this._editorOpen || this._editorBusy) return;
-    if (kind !== "icon" && kind !== "shape") return;
+    if (kind !== "icon" && kind !== "shape" && kind !== "image") return;
     if (id !== undefined && !(typeof id === "string" && LIBRARY_ID_RE.test(id))) return;
-    if (!this._isAdmin()) {
-      // The save commands are admin-only; the Library view shows its buttons to everyone.
-      this._editorNotice = msgAdminOnly();
+    // The save commands are admin-only; the Library view shows its buttons to everyone. A saved image still opens for
+    // anyone: the editor itself is view-only for a non-admin, so a new image is the only thing refused here.
+    if (!this._isAdmin() && (kind !== "image" || !id)) {
+      this._editorNotice = kind === "image" ? msgAdminOnlyImages() : msgAdminOnly();
       return;
     }
     this._editorBusy = true;
@@ -1423,12 +1444,13 @@ class MagicCardUtilsPanel extends LitElement {
         }
         value = { shape: "custom", shape_options: item.shape };
       }
-      const el = document.createElement(kind === "icon" ? SVG_EDITOR_TAG : SHAPE_STUDIO_TAG);
+      const el = document.createElement(kind === "shape" ? SHAPE_STUDIO_TAG : SVG_EDITOR_TAG);
       el.host = "mcu";
       el.hass = this.hass;
       el.libraryAvailable = true;
-      if (kind === "icon") {
-        el.source = id ? { kind: "library", id } : { kind: "blank" };
+      if (kind === "icon" || kind === "image") {
+        const [saved, blank] = kind === "icon" ? ["library", "blank"] : ["image", "image-blank"];
+        el.source = id ? { kind: saved, id } : { kind: blank };
         if (id) el.savedId = id;
       } else {
         if (value) {
@@ -1439,7 +1461,7 @@ class MagicCardUtilsPanel extends LitElement {
       }
       const onSaved = () => this._onEditorSaved();
       const onClose = () => this._closeEditor();
-      const [saveEvent, closeEvent] = kind === "icon" ? ["mc-svg-save", "mc-svg-close"] : ["mc-shape-save", "mc-shape-close"];
+      const [saveEvent, closeEvent] = kind === "shape" ? ["mc-shape-save", "mc-shape-close"] : ["mc-svg-save", "mc-svg-close"];
       el.addEventListener(saveEvent, onSaved);
       el.addEventListener(closeEvent, onClose);
       this._editorListeners = [[saveEvent, onSaved], [closeEvent, onClose]];
@@ -1492,6 +1514,8 @@ class MagicCardUtilsPanel extends LitElement {
       if (this._shapesStatus !== "error") this._shapesStatus = "";
       this._iconsEl = null;
       if (this._iconsStatus !== "error") this._iconsStatus = "";
+      this._imagesEl = null;
+      if (this._imagesStatus !== "error") this._imagesStatus = "";
     }
     await this.updateComplete;
     await this._restoreFocus(opener, key);
@@ -1508,10 +1532,10 @@ class MagicCardUtilsPanel extends LitElement {
     if (target && typeof target.focus === "function") target.focus();
   }
 
-  /** `mc-library-open` from <mc-library-view>: detail { kind: 'icon' | 'shape', id? }. */
+  /** `mc-library-open` from <mc-library-view>: detail { kind: 'icon' | 'shape' | 'image', id? }. */
   _onLibraryOpen(e) {
     const d = e && e.detail;
-    if (!d || (d.kind !== "icon" && d.kind !== "shape")) return;
+    if (!d || (d.kind !== "icon" && d.kind !== "shape" && d.kind !== "image")) return;
     if (d.id !== undefined && !(typeof d.id === "string" && LIBRARY_ID_RE.test(d.id))) return;
     // The view fires the event on itself, so the control that was used is the one holding focus.
     const path = typeof e.composedPath === "function" ? e.composedPath() : [];
@@ -1592,6 +1616,40 @@ class MagicCardUtilsPanel extends LitElement {
     this._iconsStatus = "ready";
     await this.updateComplete;
     this._attachIconsView();
+  }
+
+  /** The Images tab: the same Library view, narrowed to the images kind (it keeps New image, Edit or View, Rename, Duplicate, Delete, Export, Export all and Import). */
+  async _mountImagesView() {
+    if (this._imagesEl || this._imagesStatus === "loading") return;
+    this._imagesStatus = "loading";
+    this._imagesMessage = "";
+    const status = await this._ensureEditors("images");
+    if (!status.ok) {
+      this._imagesStatus = "error";
+      this._imagesMessage = status.message;
+      return;
+    }
+    const el = document.createElement(LIBRARY_VIEW_TAG);
+    el.context = "mcu-panel";
+    el.kinds = ["image"];
+    el.hass = this.hass;
+    el.addEventListener("mc-library-open", (e) => this._onLibraryOpen(e));
+    this._imagesEl = el;
+    this._imagesStatus = "ready";
+    await this.updateComplete;
+    this._attachImagesView();
+  }
+
+  _attachImagesView() {
+    const host = this.shadowRoot.querySelector(".images-host");
+    if (!host || !this._imagesEl || this._imagesEl.parentNode === host) return;
+    host.innerHTML = "";
+    host.appendChild(this._imagesEl);
+  }
+
+  _retryImages() {
+    this._imagesStatus = "";
+    this._imagesMessage = "";
   }
 
   _attachIconsView() {
@@ -1745,6 +1803,30 @@ class MagicCardUtilsPanel extends LitElement {
     `;
   }
 
+  _renderImagesTab() {
+    return html`
+      ${this._renderEditorNotice()}
+      ${this._imagesStatus === "loading" || this._imagesStatus === ""
+        ? html`<div class="studio-status"><ha-circular-progress active></ha-circular-progress></div>`
+        : ""}
+      ${this._imagesStatus === "error"
+        ? html`<div class="content">
+            <div class="notice error" role="alert">
+              ${glyph("error", 20)}
+              <div class="body">
+                <p>${this._imagesMessage}</p>
+                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryImages()}>${tr("Try again")}</button></div>
+              </div>
+            </div>
+          </div>`
+        : ""}
+      <div class="images-host" ?hidden=${this._imagesStatus !== "ready"}></div>
+      ${this._imagesStatus === "ready"
+        ? html`<p class="images-hint">${tr("Images are stored in Home Assistant, not in your dashboard YAML. Export all keeps a backup.")}</p>`
+        : ""}
+    `;
+  }
+
   _renderIconsTab() {
     return html`
       ${this._renderEditorNotice()}
@@ -1816,6 +1898,8 @@ class MagicCardUtilsPanel extends LitElement {
     if (this._shapesStatus !== "error") this._shapesStatus = "";
     this._iconsEl = null;
     if (this._iconsStatus !== "error") this._iconsStatus = "";
+    this._imagesEl = null;
+    if (this._imagesStatus !== "error") this._imagesStatus = "";
     if (this._themeStatus !== "error") this._themeStatus = "";
     if (this._animStatus !== "error") this._animStatus = "";
     if (animPending) {
@@ -1885,6 +1969,8 @@ class MagicCardUtilsPanel extends LitElement {
               ? this._renderShapesTab()
               : this._tab === "icons"
               ? this._renderIconsTab()
+              : this._tab === "images"
+              ? this._renderImagesTab()
               : this._renderTemplatesTab()}`}
     `;
   }
@@ -2299,14 +2385,23 @@ class MagicCardUtilsPanel extends LitElement {
       }
       .library-host,
       .icons-host,
+      .images-host,
       .shapes-host {
         display: block;
         padding: 16px;
       }
       .library-host[hidden],
       .icons-host[hidden],
+      .images-host[hidden],
       .shapes-host[hidden] {
         display: none;
+      }
+      .images-hint {
+        margin: 0;
+        padding: 0 16px 16px;
+        color: var(--secondary-text-color);
+        font-size: 0.875rem;
+        line-height: 1.5;
       }
       .editor-host {
         display: block;
@@ -2554,5 +2649,7 @@ export const _testing = {
   FOCUS_KEY_RE,
   MIN_MAGIC_CARD_FOR_EDITORS,
   EDITORS_MIN_CONTRACT_REVISION,
+  MIN_MAGIC_CARD_FOR_IMAGES,
+  IMAGES_MIN_CONTRACT_REVISION,
   TABS,
 };

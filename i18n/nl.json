@@ -77,5 +77,10 @@
   "Cards that picked this shape from the library follow your changes. A card that holds its own copy, such as a shape drawn in the card editor, keeps its points. To use this version there, pick the shape again under My shapes in the card editor.": "Kaarten die deze vorm uit de bibliotheek hebben gekozen volgen je wijzigingen. Een kaart met een eigen kopie, bijvoorbeeld een vorm die in de kaarteditor is getekend, houdt zijn eigen punten. Kies de vorm daar opnieuw onder Mijn vormen in de kaarteditor om deze versie te gebruiken.",
   "Saved to the library. Cards with their own copy of this shape keep it. To use this version in such a card, pick the shape again under My shapes in the card editor.": "Opgeslagen in de bibliotheek. Kaarten met een eigen kopie van deze vorm houden die. Kies de vorm in zo'n kaart opnieuw onder Mijn vormen in de kaarteditor om deze versie te gebruiken.",
   "{n, plural, one {# point} other {# points}}": "{n, plural, one {# punt} other {# punten}}",
-  "Corner shape": "Hoekvorm"
+  "Corner shape": "Hoekvorm",
+  "Images": "Afbeeldingen",
+  "Install Magic Card to draw images here.": "Installeer Magic Card om hier afbeeldingen te tekenen.",
+  "Drawing images here needs Magic Card {version} or newer. Update Magic Card in HACS.": "Om hier afbeeldingen te tekenen is Magic Card {version} of nieuwer nodig. Werk Magic Card bij in HACS.",
+  "Only administrators can create or change images.": "Alleen beheerders kunnen afbeeldingen maken of wijzigen.",
+  "Images are stored in Home Assistant, not in your dashboard YAML. Export all keeps a backup.": "Afbeeldingen worden bewaard in Home Assistant, niet in de YAML van je dashboard. Met Alle afbeeldingen exporteren maak je een back-up."
 }

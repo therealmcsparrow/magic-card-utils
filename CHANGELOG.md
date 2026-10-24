@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- An Images tab lists the images you drew in Magic Card, with New image, Edit, Rename, Duplicate, Delete, Export, Export all and Import. It sits after Shapes, and the Library tab lists images too. Everyone can look at an image; only admin users can change one. The tab needs a Magic Card version that can draw images, and says so when yours is older.
+- Cards that show a library image refresh when an image is saved or deleted.
+- Saved images are stored by Magic Card Utils: up to 256 KiB each, 200 in all, and included in Home Assistant backups.
+
 ## [2026.10.11] - 2026-10-22
 
 The Library, Icons and Shapes tabs, icons in the icon picker, and template cards for non-admin users need Magic Card 2026.10.11-beta.2 or newer. Magic Card 2026.10.11 is still a pre-release: in HACS, turn on **Show beta versions** and install it. Everything else works with the stable Magic Card.
