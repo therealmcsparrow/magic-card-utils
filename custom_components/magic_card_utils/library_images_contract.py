@@ -25,6 +25,9 @@ Commands (``type``: request -> result). Reads: any authenticated user (@callback
 @require_admin), because dashboards render for every user. Writes: @require_admin + @async_response.
 - CMD_IMAGES_LIST   {} -> {images: [ImageSummary]}           (includes thumb)
 - CMD_IMAGES_GET    {ids: [str] (1..MAX_IMAGE_GET_IDS)} -> {images: [SavedImage]}  (unknown ids left out)
+                    More than MAX_IMAGE_GET_IDS ids: error ERR_TOO_MANY ("too_many"), no partial result.
+                    An empty list: invalid_format. Callers split longer lists into calls of at most
+                    MAX_IMAGE_GET_IDS (the card never sends more).
 - CMD_IMAGES_SAVE   {image: SavedImageInput, base_updated_at?: str} -> {image: ImageSummary}
                     (the summary, never the body echoed back)
 - CMD_IMAGES_DELETE {image_id: str} -> {}                    (unknown id: success)
@@ -69,7 +72,8 @@ Validation (defence in depth; the card sanitises every image again before it ren
 - thumb: optional str matching THUMB_RE, at most THUMB_MAX_BYTES; not counted in IMAGE_MAX_BYTES.
 - At most MAX_IMAGES images; a new id beyond that -> library_full.
 Errors as library_contract.py: invalid_format, not_found, conflict, library_full, not_loaded,
-save_failed; non-admin writers get Home Assistant's `unauthorized`.
+save_failed; plus ERR_TOO_MANY for images_get only; non-admin writers get Home Assistant's
+`unauthorized`.
 
 Provider (www/magic_card_utils_library.js): forwards kind "images" events as window
 `mcu-library-changed` {kind: "images", ids: [id]}; it reads, caches and registers nothing for images.
@@ -101,6 +105,9 @@ CMD_IMAGES_LIST = "magic_card_utils/images_list"
 CMD_IMAGES_GET = "magic_card_utils/images_get"
 CMD_IMAGES_SAVE = "magic_card_utils/images_save"
 CMD_IMAGES_DELETE = "magic_card_utils/images_delete"
+
+# images_get error code for more than MAX_IMAGE_GET_IDS ids.
+ERR_TOO_MANY = "too_many"
 
 IMAGE_MAX_BYTES = 256 * 1024
 THUMB_MAX_BYTES = 16 * 1024
