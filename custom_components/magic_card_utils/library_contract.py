@@ -1,4 +1,4 @@
-"""Contract: mcu-library 1.0.0 (Architect-owned). Saved icons, shapes and theme presets for Magic Card.
+"""Contract: mcu-library 1.1.0 (Architect-owned; 1.1.0 adds library_images_contract.py, implemented in images.py). Saved icons, shapes and theme presets for Magic Card.
 
 TypeScript mirror (same version, field names and rules): magic-card
 src/contracts/mcu-library.ts. Decision records: magic-card docs/adr/0018, 0020, 0022 and 0027.
@@ -152,7 +152,7 @@ from __future__ import annotations
 import re
 from typing import Literal, NotRequired, TypedDict
 
-MCU_LIBRARY_CONTRACT_VERSION = "1.0.0"
+MCU_LIBRARY_CONTRACT_VERSION = "1.1.0"
 MCU_LIBRARY_CONTRACT_REVISION = 4
 PROVIDER_API_VERSION = 1
 

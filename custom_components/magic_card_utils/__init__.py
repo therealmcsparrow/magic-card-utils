@@ -10,6 +10,7 @@ from homeassistant.components.http import StaticPathConfig
 
 from .const import DOMAIN, PANEL_ICON, PANEL_TITLE, PANEL_URL, STATIC_URL
 from .animations import async_setup_animations
+from .images import async_setup_images
 from .library import async_setup_library
 from .library_contract import PROVIDER_URL
 from .themes import async_setup_themes
@@ -29,6 +30,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await async_register_websocket(hass)
     await async_setup_animations(hass)
     await async_setup_library(hass)
+    await async_setup_images(hass)
     await async_setup_themes(hass)
 
     if not hass.data.get(f"{DOMAIN}_static_path_registered", False):
