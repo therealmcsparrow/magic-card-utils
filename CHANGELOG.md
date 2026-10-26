@@ -4,7 +4,9 @@ All notable changes to Magic Card Utils are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use calendar versioning (`YYYY.MM.NN`).
 
-## [Unreleased]
+## [2026.10.12-beta.1] - 2026-10-26
+
+The Images tab needs Magic Card 2026.10.12-beta.8 or newer, which is a pre-release: in HACS, turn on **Show beta versions** and install it. Everything else works as before.
 
 ### Added
 
@@ -185,7 +187,8 @@ First stable release.
 - Templates side panel with YAML view and preview, plus rename, duplicate and delete actions.
 - Config flow with an option to show or hide the side panel.
 
-[Unreleased]: https://github.com/therealmcsparrow/magic-card-utils/compare/2026.10.11-beta.2...HEAD
+[Unreleased]: https://github.com/therealmcsparrow/magic-card-utils/compare/2026.10.12-beta.1...HEAD
+[2026.10.12-beta.1]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.12-beta.1
 [2026.10.11-beta.2]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.11-beta.2
 [2026.10.09]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.09
 [2026.10.08]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.08

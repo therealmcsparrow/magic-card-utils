@@ -33,8 +33,8 @@ unsubscribe(); // when your element disconnects
 | `get_animations`, `subscribe_animations` | Any signed-in user |
 | `save_animation`, `delete_animation` | Admin users |
 | `themes_list`, `themes_get`, `themes_save`, `themes_delete` | Admin users |
-| `icons_list`, `icons_get`, `shapes_list`, `theme_presets_list`, `subscribe_library` | Any signed-in user |
-| `icons_save`, `icons_delete`, `shapes_save`, `shapes_delete`, `theme_presets_save`, `theme_presets_delete` | Admin users |
+| `icons_list`, `icons_get`, `shapes_list`, `images_list`, `images_get`, `theme_presets_list`, `subscribe_library` | Any signed-in user |
+| `icons_save`, `icons_delete`, `shapes_save`, `shapes_delete`, `images_save`, `images_delete`, `theme_presets_save`, `theme_presets_delete` | Admin users |
 
 A non-admin user calling an admin command gets Home Assistant's `unauthorized` error.
 
@@ -53,15 +53,20 @@ All these commands have the prefix `magic_card_utils/`, for example `magic_card_
 | `shapes_list` | none | Lists the saved shapes |
 | `shapes_save` | `shape`, optional `base_updated_at` | Saves a shape |
 | `shapes_delete` | `shape_id` | Deletes a shape |
+| `images_list` | none | Lists the saved images, with a thumbnail each |
+| `images_get` | `ids`, up to 8 | Gets the images with those ids; unknown ids are left out, more than 8 ids answer `too_many` |
+| `images_save` | `image`, optional `base_updated_at` | Saves an image |
+| `images_delete` | `image_id` | Deletes an image; an unknown id succeeds |
 | `theme_presets_list` | none | Lists the theme presets |
 | `theme_presets_save` | `theme_preset`, optional `base_updated_at` | Saves a theme preset |
 | `theme_presets_delete` | `theme_preset_id` | Deletes a theme preset |
-| `subscribe_library` | none | Sends `saved` and `deleted` events for icons, shapes and theme presets |
+| `subscribe_library` | none | Sends `saved` and `deleted` events for icons, shapes, images and theme presets |
 
 Limits:
 
 -   500 icons, each up to 32 KiB.
 -   200 shapes, each up to 8 KiB, with 3 to 64 points.
+-   200 images, each up to 256 KiB. A save over the limit answers `invalid_format` with `too_large`; a text the library refuses answers `forbidden_text` with the word.
 -   100 theme presets, each up to 32 KiB.
 
 A dashboard loads the shape list only when a card on it uses a library shape. A dashboard with no such card sends only the `subscribe_library` subscription.
