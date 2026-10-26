@@ -26,6 +26,8 @@ Commands (``type``: request -> result). Reads: any authenticated user (@callback
 - CMD_IMAGES_LIST   {} -> {images: [ImageSummary]}           (includes thumb)
 - CMD_IMAGES_GET    {ids: [str] (1..MAX_IMAGE_GET_IDS)} -> {images: [SavedImage]}  (unknown ids left out)
                     More than MAX_IMAGE_GET_IDS ids: error ERR_TOO_MANY ("too_many"), no partial result.
+                    More than MAX_IMAGE_GET_IDS_SCHEMA (64) ids: invalid_format from the schema, before
+                    any id is checked.
                     An empty list: invalid_format. Callers split longer lists into calls of at most
                     MAX_IMAGE_GET_IDS (the card never sends more).
 - CMD_IMAGES_SAVE   {image: SavedImageInput, base_updated_at?: str} -> {image: ImageSummary}
@@ -46,7 +48,9 @@ Validation (defence in depth; the card sanitises every image again before it ren
   ensure_ascii=False) <= IMAGE_MAX_BYTES. Over it: invalid_format with errors [{path: "svg", message:
   "too_large", bytes: <n>, limit: IMAGE_MAX_BYTES}] so the editor can say how big it is.
 - svg: str, stripped text starts with "<svg"; at most IMAGE_MAX_NODES "<" characters; none of TEXT_DENY
-  (case-insensitive) anywhere. Then one left-to-right pass of the tag scanner below (linear, no
+  (case-insensitive) anywhere, text content and data-name included. A hit is invalid_format with errors
+  [{path: "svg", message: ERR_FORBIDDEN_TEXT ("forbidden_text"), word: <the TEXT_DENY entry>}] so the card
+  can say which word to remove (the card also checks its text layers before Save). Then one left-to-right pass of the tag scanner below (linear, no
   backtracking regex over a tag, no XML parser).
 - Tag scanner. Outside a tag, text runs up to the next "<" and is not read as markup; it may hold ">".
   At "<": "</" starts a closing tag; "<!" or "<?" is refused; otherwise an opening tag. The element name
@@ -62,10 +66,12 @@ Validation (defence in depth; the card sanitises every image again before it ren
   Refused (invalid_format, naming the attribute): xmlns with any other value, xmlns on any other
   element, a second xmlns on the root, any other case of the name, and every xmlns:* name (the ":" rule
   above). The card's serialiser always writes this attribute on the root, so the server must take it.
+  The value is compared as written (no entity decoding, no trimming).
   Hostile tests: xmlns on a child, another value on the root, xmlns:x on the root, XMLNS on the root.
 - Over the whole text as an extra layer: library_contract ATTR_DENY_RE and the wide attribute pattern
   library.py uses for icons; every "url(" is url(#...); every "var(" matches VAR_RE; every "&" starts
-  &amp; &lt; &gt; &quot; &apos; or a numeric reference. All patterns are linear. The server refuses
+  &amp; &lt; &gt; &quot; &apos; or a numeric reference. Before the word check on an entity-decoded
+  attribute value, tab, line feed and carriage return are removed ("j&#10;avascript:" is "javascript:"). All patterns are linear. The server refuses
   (invalid_format, path "svg", message naming the first offending element or attribute); it never
   strips. Hostile tests come first, including a quoted ">" followed by an event attribute
   (<rect x="1>" onload="x"/>), a raw "<" in a value, an unquoted value and a comment.
@@ -121,6 +127,11 @@ CMD_IMAGES_DELETE = "magic_card_utils/images_delete"
 
 # images_get error code for more than MAX_IMAGE_GET_IDS ids.
 ERR_TOO_MANY = "too_many"
+# images_get: a list longer than this is refused by the schema (invalid_format) before any id is read.
+MAX_IMAGE_GET_IDS_SCHEMA = 64
+# Validation error message (like "too_large") for a TEXT_DENY word found anywhere in the markup, text
+# content and data-name included: {path: "svg", message: ERR_FORBIDDEN_TEXT, word: <the TEXT_DENY entry>}.
+ERR_FORBIDDEN_TEXT = "forbidden_text"
 
 IMAGE_MAX_BYTES = 256 * 1024
 THUMB_MAX_BYTES = 16 * 1024

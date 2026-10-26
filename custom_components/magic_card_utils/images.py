@@ -77,6 +77,8 @@ _VAR_START_RE = re.compile(r"var\(", re.IGNORECASE)
 _BAD_AMPERSAND_RE = re.compile(
     r"&(?!(?:amp|lt|gt|quot|apos|#[0-9]{1,7}|#[xX][0-9a-fA-F]{1,6});)"
 )
+# A URL parser drops these inside a word, so "j&#10;avascript:" must read as "javascript:".
+_URL_WHITESPACE_RE = re.compile(r"[\t\n\r]")
 # Words that must not survive an entity reference inside an attribute value either.
 _DECODED_DENY = ("javascript:", "vbscript:", "@import", "expression(")
 
@@ -111,6 +113,7 @@ def scan_svg(svg: str) -> str | None:
     """
     length = len(svg)
     pos = 0
+    root_open = True  # the first opening tag is the root <svg>
     while True:
         pos = svg.find("<", pos)
         if pos < 0:
@@ -134,6 +137,8 @@ def scan_svg(svg: str) -> str | None:
                 return f"The closing tag </{name}> may only hold its name"
             pos += 1
             continue
+        is_root, root_open = root_open, False
+        root_namespaces = 0
         while True:
             pos = _SPACE_RUN_RE.match(svg, pos).end()
             if pos >= length:
@@ -150,9 +155,11 @@ def scan_svg(svg: str) -> str | None:
             match = _ATTR_NAME_RUN_RE.match(svg, pos)
             attribute = match.group()
             pos = match.end()
-            if (
-                not contract.ATTR_NAME_SCAN_RE.fullmatch(attribute)
-                or attribute.lower() not in contract.IMAGE_ATTRIBUTES
+            namespace = is_root and attribute == "xmlns"
+            if namespace:
+                root_namespaces += 1
+            if not contract.ATTR_NAME_SCAN_RE.fullmatch(attribute) or (
+                attribute.lower() not in contract.IMAGE_ATTRIBUTES and not namespace
             ):
                 return f"The attribute {_shown(attribute)} is not allowed on <{name}>"
             pos = _SPACE_RUN_RE.match(svg, pos).end()
@@ -166,6 +173,8 @@ def scan_svg(svg: str) -> str | None:
             if end < 0:
                 return f"The value of {attribute} on <{name}> is not closed"
             value = svg[pos + 1 : end]
+            if namespace and (value != contract.ROOT_XMLNS or root_namespaces > 1):
+                return f"The attribute 'xmlns' on <{name}> may only be written once, as {contract.ROOT_XMLNS}"
             if "<" in value:
                 return f"The value of {attribute} on <{name}> may not hold '<'"
             if "&" in value:
@@ -176,6 +185,7 @@ def scan_svg(svg: str) -> str | None:
 
 
 def _decoded_value_error(attribute: str, decoded: str) -> str | None:
+    decoded = _URL_WHITESPACE_RE.sub("", decoded)
     lowered = decoded.lower()
     for text in _DECODED_DENY:
         if text in lowered:
@@ -187,16 +197,25 @@ def _decoded_value_error(attribute: str, decoded: str) -> str | None:
 
 def _svg_error(svg: str) -> str | None:
     """Everything except the size, which the caller has already checked."""
+    return _svg_problem(svg)[0]
+
+
+def _svg_problem(svg: str) -> tuple[str | None, str | None]:
+    """(message, denied word); the word is set only when a TEXT_DENY word anywhere in the text was the reason."""
     if _CONTROL_RE.search(svg):
-        return "Control characters are not allowed"
+        return "Control characters are not allowed", None
     if not svg.strip().lower().startswith("<svg"):
-        return "Must start with <svg"
+        return "Must start with <svg", None
     if svg.count("<") > contract.IMAGE_MAX_NODES:
-        return f"Too many elements (at most {contract.IMAGE_MAX_NODES})"
+        return f"Too many elements (at most {contract.IMAGE_MAX_NODES})", None
     lowered = svg.lower()
     for text in contract.TEXT_DENY:
         if text in lowered:
-            return f"{text!r} is not allowed"
+            return f"{text!r} is not allowed", text
+    return _structure_error(svg), None
+
+
+def _structure_error(svg: str) -> str | None:
     message = scan_svg(svg)
     if message:
         return message
@@ -389,8 +408,10 @@ def validate_image(image: Any) -> Errors:
             }
         )
         return errors
-    message = _svg_error(svg)
-    if message:
+    message, word = _svg_problem(svg)
+    if word:
+        errors.append({"path": "svg", "message": contract.ERR_FORBIDDEN_TEXT, "word": word})
+    elif message:
         errors.append(_err("svg", message))
     return errors
 
@@ -717,7 +738,13 @@ def ws_images_list(hass: HomeAssistant, connection: websocket_api.ActiveConnecti
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): contract.CMD_IMAGES_GET, vol.Required("ids"): [vol.All(str, vol.Length(max=64))]}
+    {
+        vol.Required("type"): contract.CMD_IMAGES_GET,
+        # The length is checked before any item, so a huge list costs nothing.
+        vol.Required("ids"): vol.All(
+            vol.Length(max=contract.MAX_IMAGE_GET_IDS_SCHEMA), [vol.All(str, vol.Length(max=64))]
+        ),
+    }
 )
 @websocket_api.async_response
 async def ws_images_get(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict) -> None:
