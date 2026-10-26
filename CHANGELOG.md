@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- An Images tab lists the images you drew in Magic Card, with New image, Edit, Rename, Duplicate, Delete, Export, Export all and Import. It sits after Shapes, and the Library tab lists images too. Everyone can look at an image; only admin users can change one. The tab needs a Magic Card version that can draw images, and says so when yours is older.
+- An Images tab lists the images you drew in Magic Card, with New image, Edit, Rename, Duplicate, Delete, Export, Export all and Import. It sits after Shapes, and the Library tab lists images too. Everyone can look at an image; only admin users can change one. The tab needs the matching Magic Card release that can draw images. When yours is older, the tab says so and asks you to update Magic Card in HACS. Export all saves every image to a file on your device.
 - Cards that show a library image refresh when an image is saved or deleted.
 - Saved images are stored by Magic Card Utils: up to 256 KiB each, 200 in all, and included in Home Assistant backups.
 

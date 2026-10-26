@@ -6,6 +6,7 @@
 - [Install by hand](#install-by-hand)
 - [Set up the integration](#set-up-the-integration)
 - [Show or hide the side panel](#show-or-hide-the-side-panel)
+- [Your first image](#your-first-image)
 - [Update](#update)
 - [Remove](#remove)
 
@@ -14,7 +15,7 @@
 | What | Version | Why |
 | --- | --- | --- |
 | Home Assistant | 2024.7 or newer | The integration serves its panel with `async_register_static_paths`, added in 2024.7. HACS refuses to install it on older versions. |
-| [Magic Card](https://github.com/therealmcsparrow/magic-card) | Any version for templates; 2026.10.01 or newer for the Animations tab; 2026.10.11-beta.1 or newer for the Library, Icons and Shapes tabs | The panel uses the installed Magic Card for its editor, studio, preview and animation studio. Magic Card Utils doesn't ship its own copy. See [Magic Card compatibility](../compatibility/README.md). |
+| [Magic Card](https://github.com/therealmcsparrow/magic-card) | Any version for templates; 2026.10.01 or newer for the Animations tab; 2026.10.11-beta.1 or newer for the Library, Icons and Shapes tabs; the matching Magic Card release for the Images tab | The panel uses the installed Magic Card for its editor, studio, preview and animation studio. Magic Card Utils doesn't ship its own copy. See [Magic Card compatibility](../compatibility/README.md). |
 | Magic Card as a dashboard resource | Type JavaScript module | The panel finds Magic Card through your dashboard resources. HACS adds the resource for you. |
 | An admin user | | The panel is only in the sidebar of admin users, and the template commands need an admin. |
 
@@ -25,6 +26,8 @@
 3. Add `https://github.com/therealmcsparrow/magic-card-utils` with type **Integration**.
 4. Search for **Magic Card Utils** in HACS and click **Download**.
 5. Restart Home Assistant.
+
+Install Magic Card in HACS as well. The Images tab needs the matching Magic Card release. If your Magic Card is older, the tab says so and asks you to update Magic Card in HACS.
 
 ## Install the Magic Card pre-release
 
@@ -52,6 +55,16 @@ The integration can be set up once. Adding it a second time stops with "Magic Ca
 ## Show or hide the side panel
 
 The side panel setting can't be changed afterwards; there are no options for the integration. To change it, delete the integration under **Settings → Devices & Services** and add it again. Your templates and animations are kept: they're stored separately from the integration entry (see [Where the data is stored](../concepts/storage.md)).
+
+## Your first image
+
+1. Open the **Magic Card Templates** panel in the sidebar and choose the **Images** tab.
+2. Choose **New image**.
+3. Choose a canvas size, then choose **Create**.
+4. Draw a shape with the tools in the editor.
+5. Choose **Save**. The first save asks for a name.
+
+The image is listed in the Images tab. To show it in a card, refer to it in YAML with `mcu-image:<id>`. The Magic Card documentation has a section on library images, in its documentation/images folder.
 
 ## Update
 
