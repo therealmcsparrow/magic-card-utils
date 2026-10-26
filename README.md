@@ -21,6 +21,7 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 - **Templates panel:** browse, preview, edit, duplicate and delete templates, or open one straight into the full-screen Magic Card studio.
 - **Animation library:** keep the custom animations from the Magic Card animation studio in one place, for every card and every user.
 - **Icon and shape library:** draw icons and shapes without a card, in the Library, Icons and Shapes tabs. Saved icons appear in Home Assistant's icon picker after a reload, and Magic Card draws them in full colour. Home Assistant's own cards show them as one-colour silhouettes.
+- **Image library:** draw images in Magic Card's image editor, keep them in the Images tab and show them in image modules and background layers. Saved images are included in Home Assistant backups, and every user can see them. See [Images](documentation/panel/images.md) and the [Images section](#images) below.
 - **Theme presets:** keep your own theme presets in the shared library, and import or export them as files.
 - **Import and export:** move icons, shapes, animations and theme presets between Home Assistant installations. Imports are size-limited and checked before anything is saved. See [Library](documentation/panel/library.md).
 - **Theme editor:** create and edit Home Assistant themes in a Themes tab, with a live preview and a Try on dashboard button. Saves write the theme file to `/config/themes`.
@@ -37,6 +38,7 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 - Magic Card **2026.10.06** or newer for the Themes tab.
 - Magic Card **2026.10.11-beta.1** or newer for the Library, Icons and Shapes tabs and for icons in Home Assistant's icon picker.
 - Magic Card **2026.10.11-beta.2** or newer for template cards that non-admin users can see.
+- Magic Card **2026.10.12-beta.8** or newer for the Images tab and for library images on cards.
 
 ## Installation
 
@@ -54,10 +56,10 @@ Click the button above to open the repository in HACS, then click **Download** a
 
 ### Magic Card pre-release
 
-The Library, Icons and Shapes tabs and template cards for non-admin users need Magic Card 2026.10.11-beta.2 or newer, which is still a pre-release. HACS hides pre-releases unless you turn on **Show beta versions**.
+The Images tab needs Magic Card 2026.10.12-beta.8 or newer, which is a pre-release. The Library, Icons and Shapes tabs and template cards for non-admin users need Magic Card 2026.10.11-beta.2 or newer. HACS hides pre-releases unless you turn on **Show beta versions**.
 
 1. In HACS, open **Settings** and turn on **Show beta versions**.
-2. Open **Magic Card**, choose **Redownload** from the menu (⋮), and select the newest `2026.10.11-beta` version.
+2. Open **Magic Card**, choose **Redownload** from the menu (⋮), and select the newest `2026.10.12-beta` version.
 3. Reload the browser tab.
 
 Report problems on [GitHub](https://github.com/therealmcsparrow/magic-card-utils/issues).
@@ -73,7 +75,7 @@ Report problems on [GitHub](https://github.com/therealmcsparrow/magic-card-utils
 2. Click **+ Add Integration** and search for **Magic Card Utils**.
 3. Choose whether to show the side panel, then click **Submit**.
 
-The **Magic Card Templates** panel then appears in the sidebar of admin users. It has six tabs:
+The **Magic Card Templates** panel then appears in the sidebar of admin users. It has seven tabs:
 
 - **Templates:** every template with its card type, linked cards and dates, and buttons to open it in the studio, edit it (YAML with a live preview, then the Magic Card editor), duplicate it or delete it.
 - **Library:** your saved icons, shapes, animations and theme presets, with New icon, New shape, Edit, Rename, Delete, Export and Import.
@@ -81,10 +83,23 @@ The **Magic Card Templates** panel then appears in the sidebar of admin users. I
 - **Themes:** the Magic Card theme editor. It lists the theme files in `/config/themes`, and creates, edits, saves and deletes them. Saving needs the include lines in `configuration.yaml`, which the tab shows when they are missing. The [Magic Card theme documentation](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/themes/README.md) covers the editor itself.
 - **Icons:** your saved icons, with New icon, Edit, Rename, Delete and Export.
 - **Shapes:** your saved shapes, each with a thumbnail and its point count, and with New shape, Edit, Rename, Delete and Export.
+- **Images:** your library images, with New image, Duplicate, Rename, Delete and Export all images. Every user can see them; only admins change them.
 
 Only admin users can create, change, rename, delete or import library items.
 
 After an update, restart Home Assistant so your browser loads the new panel.
+
+## Images
+
+Library images are drawings you make in Magic Card's image editor and save to the library. Dashboards show them in an image module or as a background layer.
+
+- Magic Card Utils stores them in Home Assistant's own storage, in `config/.storage/`. They are included in Home Assistant backups.
+- The library holds up to 200 images. Each image can be up to 256 KiB.
+- Every user who can log in to Home Assistant can see and use the images. Only administrators can create, change, rename, delete or import them.
+- The Images tab lists the images. Each row has Duplicate, Rename and Delete, and Export all images saves every image to a file on your device.
+- The Images tab needs Magic Card **2026.10.12-beta.8** or newer. See [Magic Card pre-release](#magic-card-pre-release).
+
+A drawing can show the layout of your home, so check what goes into it. For what is stored, who can read it and what an export file holds, see the [Magic Card privacy page for images](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/images/privacy.md). The [Images tab page](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/images.md) covers the tab in detail.
 
 ## Documentation
 
@@ -93,7 +108,7 @@ The [documentation](https://github.com/therealmcsparrow/magic-card-utils/tree/ma
 | Topic | Covers |
 | --- | --- |
 | [Getting started](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/getting-started/README.md) | Requirements, installing (including the pre-release), setting up, updating and removing |
-| [Panel](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/README.md) | All six tabs |
+| [Panel](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/README.md) | All seven tabs |
 | [Library](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/library.md) | Icons, shapes, animations and theme presets, the Icons and Shapes tabs, import and export, and the icon picker |
 | [Languages](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/languages.md) | English (UK), English (US) and Dutch, and what follows your profile language |
 | [Concepts](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/concepts/README.md) | Templates and linking, linked-card counting, the animation library and where the data is stored |
