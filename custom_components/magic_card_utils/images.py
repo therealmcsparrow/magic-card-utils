@@ -70,6 +70,8 @@ BODY_FILE_MAX_BYTES = 4 * contract.IMAGE_MAX_BYTES
 _TAG_NAME_RUN_RE = re.compile(r"[^ \t\n\r\f/>]*")
 _ATTR_NAME_RUN_RE = re.compile(r"[^ \t\n\r\f=/>]*")
 _SPACE_RUN_RE = re.compile(r"[ \t\n\r\f]*")
+# What may follow a closing quote: whitespace between attributes, or the end of the tag.
+_AFTER_VALUE = frozenset(" \t\n\r\f/>")
 _CONTROL_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 _URL_RE = re.compile(r"url\(", re.IGNORECASE)
 _LOCAL_URL_RE = re.compile(r"url\(#", re.IGNORECASE)
@@ -182,6 +184,8 @@ def scan_svg(svg: str) -> str | None:
                 if message:
                     return message
             pos = end + 1
+            if pos < length and svg[pos] not in _AFTER_VALUE:
+                return f"Attributes on <{name}> must be separated by whitespace"
 
 
 def _decoded_value_error(attribute: str, decoded: str) -> str | None:
@@ -208,7 +212,7 @@ def _svg_problem(svg: str) -> tuple[str | None, str | None]:
         return "Must start with <svg", None
     if svg.count("<") > contract.IMAGE_MAX_NODES:
         return f"Too many elements (at most {contract.IMAGE_MAX_NODES})", None
-    lowered = svg.lower()
+    lowered = _URL_WHITESPACE_RE.sub("", svg).lower()
     for text in contract.TEXT_DENY:
         if text in lowered:
             return f"{text!r} is not allowed", text

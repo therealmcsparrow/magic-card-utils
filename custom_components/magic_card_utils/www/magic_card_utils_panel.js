@@ -125,7 +125,7 @@ const CMD_ICONS_LIST = "magic_card_utils/icons_list";
 const CMD_SHAPES_LIST = "magic_card_utils/shapes_list";
 // Library images (mcu-library 1.1.0, library_images_contract.py): the oldest Magic Card that opens image sources.
 const IMAGES_MIN_CONTRACT_REVISION = 6; // svg-editor SVG_EDITOR_CONTRACT_REVISION with image sources
-const MIN_MAGIC_CARD_FOR_IMAGES = "2026.10.12-beta.7";
+const MIN_MAGIC_CARD_FOR_IMAGES = "2026.10.12-beta.8";
 const LIBRARY_ID_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 const FOCUS_KEY_RE = /^[A-Za-z0-9_.:-]{1,96}$/;
 const msgNoCard = () => tr("Install Magic Card to draw icons and shapes here.");
