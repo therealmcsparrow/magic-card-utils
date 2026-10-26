@@ -15,7 +15,7 @@
 | What | Version | Why |
 | --- | --- | --- |
 | Home Assistant | 2024.7 or newer | The integration serves its panel with `async_register_static_paths`, added in 2024.7. HACS refuses to install it on older versions. |
-| [Magic Card](https://github.com/therealmcsparrow/magic-card) | Any version for templates; 2026.10.01 or newer for the Animations tab; 2026.10.11-beta.1 or newer for the Library, Icons and Shapes tabs; the matching Magic Card release for the Images tab | The panel uses the installed Magic Card for its editor, studio, preview and animation studio. Magic Card Utils doesn't ship its own copy. See [Magic Card compatibility](../compatibility/README.md). |
+| [Magic Card](https://github.com/therealmcsparrow/magic-card) | Any version for templates; 2026.10.01 or newer for the Animations tab; 2026.10.11-beta.1 or newer for the Library, Icons and Shapes tabs; Magic Card 2026.10.12-beta.8 or newer for the Images tab | The panel uses the installed Magic Card for its editor, studio, preview and animation studio. Magic Card Utils doesn't ship its own copy. See [Magic Card compatibility](../compatibility/README.md). |
 | Magic Card as a dashboard resource | Type JavaScript module | The panel finds Magic Card through your dashboard resources. HACS adds the resource for you. |
 | An admin user | | The panel is only in the sidebar of admin users, and the template commands need an admin. |
 
@@ -27,7 +27,7 @@
 4. Search for **Magic Card Utils** in HACS and click **Download**.
 5. Restart Home Assistant.
 
-Install Magic Card in HACS as well. The Images tab needs the matching Magic Card release. If your Magic Card is older, the tab says so and asks you to update Magic Card in HACS.
+Install Magic Card in HACS as well. The Images tab needs Magic Card 2026.10.12-beta.8 or newer. If your Magic Card is older, the tab says so and asks you to update Magic Card in HACS.
 
 ## Install the Magic Card pre-release
 

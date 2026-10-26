@@ -50,7 +50,7 @@ A breaking change to the contract raises `apiVersion`; Magic Card Utils then rai
 | Themes tab | 2026.10.06 or newer, with `magic-card-theme-editor.js` next to `magic-card.js` |
 | Library, Icons and Shapes tabs, and icons in Home Assistant's icon picker | 2026.10.11-beta.1 or newer |
 | Shared templates on cards for non-admin users | 2026.10.11-beta.2 or newer, together with Magic Card Utils 2026.10.11 or newer |
-| Images tab, and library images in image modules and background layers | The matching Magic Card release, which draws images |
+| Images tab, and library images in image modules and background layers | 2026.10.12-beta.8 or newer |
 
 Non-admin users need both sides updated. With an older Magic Card Utils, a new Magic Card still shows templates to admin users but tells non-admin users the template couldn't be loaded. With an older Magic Card, admin users see templates as before and non-admin users still don't.
 
@@ -67,4 +67,4 @@ The Library, Icons and Shapes tabs check the installed Magic Card's `window.Magi
 
 Magic Card versions below the minimum, or a Magic Card that doesn't report its version, show this message in place of the editors: "Drawing icons and shapes here needs Magic Card 2026.10.11-beta.1 or newer. Update Magic Card in HACS." See [Troubleshooting](../troubleshooting/README.md#messages-in-the-panel).
 
-The Images tab uses the same check with its own minimum, the matching Magic Card release, and shows "Drawing images here needs Magic Card *version* or newer. Update Magic Card in HACS." when yours is older.
+The Images tab uses the same check with its own minimum, 2026.10.12-beta.8. Magic Card versions below it, or a Magic Card that doesn't report its version, show "Drawing images here needs Magic Card 2026.10.12-beta.8 or newer. Update Magic Card in HACS." in place of the editor. The same comparison rules apply.

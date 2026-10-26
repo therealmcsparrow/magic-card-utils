@@ -6,7 +6,7 @@ Images are stored in Home Assistant, not in your dashboard YAML. Export all keep
 
 ## Requirements
 
-- Magic Card with image support. The Images tab says "Install Magic Card to draw images here." when Magic Card is missing, and "Drawing images here needs Magic Card {version} or newer. Update Magic Card in HACS." when it is too old.
+- Magic Card 2026.10.12-beta.8 or newer. The Images tab says "Install Magic Card to draw images here." when Magic Card is missing, and "Drawing images here needs Magic Card 2026.10.12-beta.8 or newer. Update Magic Card in HACS." when it is too old.
 - Magic Card Utils is installed through HACS, like Magic Card.
 
 ## Who can do what
@@ -20,9 +20,9 @@ Images are stored in Home Assistant, not in your dashboard YAML. Export all keep
 2. Choose a canvas size and Create. The Magic Card documentation describes each option under "The image editor".
 3. Draw, then choose Save. The first save asks for a name.
 
-## Export all
+## Export all images
 
-Export all, in the library's More menu, saves every library image to a file on your device.
+The Export all images button saves every library image to a file on your device. The button shows "Export all" until the image support has loaded.
 
 Export files contain your drawings and may contain entity names from bindings. Check a file before you share it. The Magic Card documentation has the privacy note for library images.
 
