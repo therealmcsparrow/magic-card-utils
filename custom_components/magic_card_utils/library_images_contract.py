@@ -57,12 +57,25 @@ Validation (defence in depth; the card sanitises every image again before it ren
   which runs to the same quote character. A value that holds "<", an unquoted value, an attribute
   without "=", a name with any other character, or end of text inside a tag is refused. ">" inside a
   quoted value does not end the tag. A closing tag holds only the name and optional whitespace.
+- Root namespace, the one exception to IMAGE_ATTRIBUTES: in the first opening tag (the root <svg>) the
+  attribute name "xmlns" (exactly, lower-case) is allowed once when its value is exactly ROOT_XMLNS.
+  Refused (invalid_format, naming the attribute): xmlns with any other value, xmlns on any other
+  element, a second xmlns on the root, any other case of the name, and every xmlns:* name (the ":" rule
+  above). The card's serialiser always writes this attribute on the root, so the server must take it.
+  Hostile tests: xmlns on a child, another value on the root, xmlns:x on the root, XMLNS on the root.
 - Over the whole text as an extra layer: library_contract ATTR_DENY_RE and the wide attribute pattern
   library.py uses for icons; every "url(" is url(#...); every "var(" matches VAR_RE; every "&" starts
   &amp; &lt; &gt; &quot; &apos; or a numeric reference. All patterns are linear. The server refuses
   (invalid_format, path "svg", message naming the first offending element or attribute); it never
   strips. Hostile tests come first, including a quoted ">" followed by an event attribute
   (<rect x="1>" onload="x"/>), a raw "<" in a value, an unquoted value and a comment.
+- Card output passes: every markup the card's image sanitiser and serialiser emit (sanitizeImage
+  output, the editor's save payload, a transfer import, a Duplicate) passes this validation unchanged.
+  A shared conformance test runs real card serialiser output (fixtures made by the card's build: shapes,
+  text with tspan lines, gradients, theme var() with and without a hex fallback, imported part groups
+  with their defs, bindings) through validate_image and expects no error; the card repo keeps the
+  fixture generator and this repo keeps the test. A card change that emits a new element, attribute or
+  value form changes this contract (and the TypeScript mirror) and the server in the same release.
 - bindings: optional list of at most MAX_IMAGE_BINDINGS dicts with keys only target (IMAGE_ID_RE),
   entity (ENTITY_RE), attribute (optional str 1..64), set (one of BINDING_SETS), rules (list of at most
   MAX_BINDING_RULES dicts with keys only state (str 1..255) / above (finite number) / below (finite
@@ -141,6 +154,8 @@ IMAGE_ATTRIBUTES = frozenset(
         "data-name",
     )
 )
+# The one xmlns value allowed, on the root <svg> only (see "Root namespace").
+ROOT_XMLNS = "http://www.w3.org/2000/svg"
 # Checked with fullmatch on a token the scanner has already cut out; never run over the whole text.
 TAG_NAME_RE = re.compile(r"[A-Za-z][A-Za-z0-9]{0,31}")
 ATTR_NAME_SCAN_RE = re.compile(r"[A-Za-z][A-Za-z0-9-]{0,31}")
