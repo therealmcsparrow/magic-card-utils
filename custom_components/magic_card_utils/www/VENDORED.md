@@ -73,18 +73,19 @@ same SHA-256. After regenerating, update the three rows above.
 `mc-i18n.js` is the Magic Card i18n runtime (contract `i18n` 1.0.0, revision 3): the locale pick from `hass`, the
 message formatter with plurals, and the number formatting. `mc-i18n-panel.js` holds the panel's own messages in
 English (UK), English (US) and Dutch. Both are generated from the Magic Card repository and never edited by hand.
-The panel imports them as `i18nFor('mcu-panel', tables)` and writes `tr('British text')`; the text is the id.
+The panel imports `t`, `tx` and `locale` from `mc-i18n-panel.js`, already bound to its tables, and writes
+`tr('mcu-panel.panel.save')`; the id is a key from `i18n/en-GB.json`.
 
 | Field | Value |
 | --- | --- |
 | Files | `mc-i18n.js`, `mc-i18n-panel.js` |
 | Magic Card commit | `1ab607c` (branch `aico/svg-and-shape-editors`) for `mc-i18n.js`; `mc-i18n-panel.js` was re-exported on 2026-10-25 with `tools/i18n-export.mjs --mcu` from Magic Card `2250f6e5` (branch `aico/svg-image-editor`) for the Images tab strings |
 | SHA-256 `mc-i18n.js` | `f1a042bc2bb7873aaf453980f91923e17432e32bb9a19eb8226b29829f72e500` |
-| SHA-256 `mc-i18n-panel.js` | `f60a77dbf77d4e01837b3e3c5369c90404ee1cb8cb6290f620df2573527519a2` |
-| Sources in this repo | `magic_card_utils_panel.js` (the `tr()` calls), `i18n/nl.json` (written by hand), `i18n/en-US.json` (generated) |
+| SHA-256 `mc-i18n-panel.js` | `d6393b2795c2f55c6cf275c4508137a5ee49a49c8e1ed4b65457b19d645af07c` |
+| Sources in this repo | `magic_card_utils_panel.js` (the `tr()` calls), `i18n/en-GB.json` (English, notes and length limits), `i18n/nl.json` (written by hand, with the hash of the English it was made from), `i18n/en-US.json` (generated) |
 
 The exporter reads the panel source and runs the drift checks: every message is a literal, has an en-US and a nl
-entry with the same arguments, parses, uses British spelling, and no user text sits outside `tr()`. Then it writes
+entry with the same arguments, parses, uses British spelling, has a note and a length limit, and no user text sits outside `tr()`. Then it writes
 both files and `i18n/en-US.json`. From the Magic Card repo, after a commit:
 
 ```sh
@@ -94,7 +95,8 @@ sha256sum <this repo>/custom_components/magic_card_utils/www/mc-i18n.js <this re
 ```
 
 Add `--check` to write nothing and exit 1 when a file is stale or a check fails. After regenerating, update the
-two SHA-256 rows. A new or changed panel message needs its Dutch text in `i18n/nl.json` first.
+two SHA-256 rows. A new or changed panel message needs its entry in `i18n/en-GB.json` and its Dutch text in
+`i18n/nl.json` first.
 
 The config flow does not use these files. Home Assistant reads `translations/en.json`, `en-GB.json` and
 `nl.json` in the integration folder (`strings.json` is only for core integrations).

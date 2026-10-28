@@ -1,86 +1,338 @@
 {
-  "A template named '{name}' already exists.": "A template named '{name}' already exists.",
-  "Actions": "Actions",
-  "Animations": "Animations",
-  "Cancel": "Cancel",
-  "Cannot delete {name}: {n, plural, one {# linked card} other {# linked cards}}": "Cannot delete {name}: {n, plural, one {# linked card} other {# linked cards}}",
-  "Cannot delete — {n, plural, one {# linked card} other {# linked cards}}": "Cannot delete — {n, plural, one {# linked card} other {# linked cards}}",
-  "Card Type": "Card Type",
-  "Cards that picked this shape from the library follow your changes. A card that holds its own copy, such as a shape drawn in the card editor, keeps its points. To use this version there, pick the shape again under My shapes in the card editor.": "Cards that picked this shape from the library follow your changes. A card that holds its own copy, such as a shape drawn in the card editor, keeps its points. To use this version there, pick the shape again under My shapes in the card editor.",
-  "Close": "Close",
-  "Copies the config, description, and card type. Created and updated timestamps reset to now.": "Copies the config, description, and card type. Created and updated timestamps reset to now.",
-  "Corner shape": "Corner shape",
-  "Created": "Created",
-  "Delete": "Delete",
-  "Delete failed": "Delete failed",
-  "Delete template": "Delete template",
-  "Delete {name}": "Delete {name}",
-  "Delete {name}? This action cannot be undone.": "Delete {name}? This action cannot be undone.",
-  "Deleting…": "Deleting…",
-  "Description": "Description",
-  "Dismiss": "Dismiss",
-  "Drawing icons and shapes here needs Magic Card {version} or newer. Update Magic Card in HACS.": "Drawing icons and shapes here needs Magic Card {version} or newer. Update Magic Card in HACS.",
-  "Drawing images here needs Magic Card {version} or newer. Update Magic Card in HACS.": "Drawing images here needs Magic Card {version} or newer. Update Magic Card in HACS.",
-  "Duplicate": "Duplicate",
-  "Duplicate failed": "Duplicate failed",
-  "Duplicate template": "Duplicate template",
-  "Duplicate {name}": "Duplicate {name}",
-  "Duplicating…": "Duplicating…",
-  "Edit": "Edit",
-  "Edit Template": "Edit Template",
-  "Edit template": "Edit template",
-  "Edit the card using the editor on the right. Its changes are captured live.": "Edit the card using the editor on the right. Its changes are captured live.",
-  "Edit {name}": "Edit {name}",
-  "Editor": "Editor",
-  "Failed to render preview.": "Failed to render preview.",
-  "Icons": "Icons",
-  "Images": "Images",
-  "Images are stored in Home Assistant, not in your dashboard YAML. Export all keeps a backup.": "Images are stored in Home Assistant, not in your dashboard YAML. Export all keeps a backup.",
-  "Install Magic Card to draw icons and shapes here.": "Install Magic Card to draw icons and shapes here.",
-  "Install Magic Card to draw images here.": "Install Magic Card to draw images here.",
-  "Last Updated": "Last Updated",
-  "Library": "Library",
-  "Linked Cards": "Linked Cards",
-  "Lovelace card helpers are unavailable until a dashboard has been opened.": "Lovelace card helpers are unavailable until a dashboard has been opened.",
-  "Magic Card Utils": "Magic Card Utils",
-  "Magic Card could not be loaded from {url}.": "Magic Card could not be loaded from {url}.",
-  "Magic Card isn't installed. Install it from HACS and add it as a dashboard resource.": "Magic Card isn't installed. Install it from HACS and add it as a dashboard resource.",
-  "Magic Card {version} is too old for Magic Card Utils (needs API version {min} or newer). Update Magic Card.": "Magic Card {version} is too old for Magic Card Utils (needs API version {min} or newer). Update Magic Card.",
-  "Name": "Name",
-  "Name is required.": "Name is required.",
-  "New template name": "New template name",
-  "No card type available — neither the config nor the template carries a `type`.": "No card type available — neither the config nor the template carries a `type`.",
-  "No config to preview.": "No config to preview.",
-  "No templates saved yet.": "No templates saved yet.",
-  "Only administrators can create or change icons and shapes.": "Only administrators can create or change icons and shapes.",
-  "Only administrators can create or change images.": "Only administrators can create or change images.",
-  "Open in studio": "Open in studio",
-  "Open {name} in studio": "Open {name} in studio",
-  "Preview": "Preview",
-  "Request failed": "Request failed",
-  "Save": "Save",
-  "Saved to the library. Cards with their own copy of this shape keep it. To use this version in such a card, pick the shape again under My shapes in the card editor.": "Saved to the library. Cards with their own copy of this shape keep it. To use this version in such a card, pick the shape again under My shapes in the card editor.",
-  "Saving…": "Saving…",
-  "Shapes": "Shapes",
-  "Template": "Template",
-  "Template Preview": "Template Preview",
-  "Templates": "Templates",
-  "That shape could not be read. Try again.": "That shape could not be read. Try again.",
-  "That shape no longer exists.": "That shape no longer exists.",
-  "The Magic Card editor could not be loaded.": "The Magic Card editor could not be loaded.",
-  "The animation could not be deleted": "The animation could not be deleted",
-  "The animation could not be saved": "The animation could not be saved",
-  "The animation library could not be loaded.": "The animation library could not be loaded.",
-  "The animation studio could not be loaded. It ships with Magic Card as {file}: update Magic Card to a version that includes it.": "The animation studio could not be loaded. It ships with Magic Card as {file}: update Magic Card to a version that includes it.",
-  "The editor files could not be loaded from Magic Card. Reload the page and try again.": "The editor files could not be loaded from Magic Card. Reload the page and try again.",
-  "The template could not be saved.": "The template could not be saved.",
-  "The theme editor could not be loaded. It ships with Magic Card as {file}: update Magic Card to {version} or newer.": "The theme editor could not be loaded. It ships with Magic Card as {file}: update Magic Card to {version} or newer.",
-  "Themes": "Themes",
-  "This Magic Card Utils version doesn't match the theme editor in Magic Card. Update both to their latest versions.": "This Magic Card Utils version doesn't match the theme editor in Magic Card. Update both to their latest versions.",
-  "Try again": "Try again",
-  "{n, plural, one {# point} other {# points}}": "{n, plural, one {# point} other {# points}}",
-  "{n, plural, one {Cannot delete — still linked to # card.} other {Cannot delete — still linked to # cards.}}": "{n, plural, one {Cannot delete — still linked to # card.} other {Cannot delete — still linked to # cards.}}",
-  "{n, plural, one {This template is still linked to # card and cannot be deleted. Remove the bindings first.} other {This template is still linked to # cards and cannot be deleted. Remove the bindings first.}}": "{n, plural, one {This template is still linked to # card and cannot be deleted. Remove the bindings first.} other {This template is still linked to # cards and cannot be deleted. Remove the bindings first.}}",
-  "{name} (copy {n})": "{name} (copy {n})",
-  "{name} (copy)": "{name} (copy)"
+  "mcu-panel.panel.a-template-named-name-already-exists": {
+    "text": "A template named ‘{name}’ already exists.",
+    "hash": "bd93b912"
+  },
+  "mcu-panel.panel.actions": {
+    "text": "Actions",
+    "hash": "ff8059dc"
+  },
+  "mcu-panel.panel.animations": {
+    "text": "Animations",
+    "hash": "7f7c3306"
+  },
+  "mcu-panel.panel.cancel": {
+    "text": "Cancel",
+    "hash": "19766ed6"
+  },
+  "mcu-panel.panel.cannot-delete-linked-cards": {
+    "text": "Cannot delete — {n, plural, one {# linked card} other {# linked cards}}",
+    "hash": "259c2b7a"
+  },
+  "mcu-panel.panel.cannot-delete-name-linked-cards": {
+    "text": "Cannot delete {name}: {n, plural, one {# linked card} other {# linked cards}}",
+    "hash": "b411ae21"
+  },
+  "mcu-panel.panel.cannot-delete-still-linked-to-cards": {
+    "text": "{n, plural, one {Cannot delete — still linked to # card.} other {Cannot delete — still linked to # cards.}}",
+    "hash": "1fdb90ac"
+  },
+  "mcu-panel.panel.card-type": {
+    "text": "Card Type",
+    "hash": "c1b8c367"
+  },
+  "mcu-panel.panel.cards-that-picked-this-shape-from-the": {
+    "text": "Cards that picked this shape from the library follow your changes. A card that holds its own copy, such as a shape drawn in the card editor, keeps its points. To use this version there, pick the shape again under My shapes in the card editor.",
+    "hash": "0d2a7418"
+  },
+  "mcu-panel.panel.close": {
+    "text": "Close",
+    "hash": "7d9eb7ac"
+  },
+  "mcu-panel.panel.copies-the-config-description-and-card": {
+    "text": "Copies the config, description, and card type. Created and updated timestamps reset to now.",
+    "hash": "79e6d149"
+  },
+  "mcu-panel.panel.corner-shape": {
+    "text": "Corner shape",
+    "hash": "7833e955"
+  },
+  "mcu-panel.panel.created": {
+    "text": "Created",
+    "hash": "d70b9e24"
+  },
+  "mcu-panel.panel.delete": {
+    "text": "Delete",
+    "hash": "e2d0a549"
+  },
+  "mcu-panel.panel.delete-failed": {
+    "text": "Delete failed",
+    "hash": "8727e2ba"
+  },
+  "mcu-panel.panel.delete-name": {
+    "text": "Delete {name}",
+    "hash": "3cf8146e"
+  },
+  "mcu-panel.panel.delete-name-this-action-cannot-be-undone": {
+    "text": "Delete {name}? This action cannot be undone.",
+    "hash": "392e7df1"
+  },
+  "mcu-panel.panel.delete-template": {
+    "text": "Delete template",
+    "hash": "da9a9b35"
+  },
+  "mcu-panel.panel.deleting": {
+    "text": "Deleting…",
+    "hash": "43b5894c"
+  },
+  "mcu-panel.panel.description": {
+    "text": "Description",
+    "hash": "526e0087"
+  },
+  "mcu-panel.panel.dismiss": {
+    "text": "Dismiss",
+    "hash": "48845bff"
+  },
+  "mcu-panel.panel.drawing-icons-and-shapes-here-needs": {
+    "text": "Drawing icons and shapes here needs Magic Card {version} or newer. Update Magic Card in HACS.",
+    "hash": "7bd8082a"
+  },
+  "mcu-panel.panel.drawing-images-here-needs-magic-card": {
+    "text": "Drawing images here needs Magic Card {version} or newer. Update Magic Card in HACS.",
+    "hash": "3be5111c"
+  },
+  "mcu-panel.panel.duplicate": {
+    "text": "Duplicate",
+    "hash": "02cdaabf"
+  },
+  "mcu-panel.panel.duplicate-failed": {
+    "text": "Duplicate failed",
+    "hash": "9e3b1adc"
+  },
+  "mcu-panel.panel.duplicate-name": {
+    "text": "Duplicate {name}",
+    "hash": "fe06d16b"
+  },
+  "mcu-panel.panel.duplicate-template": {
+    "text": "Duplicate template",
+    "hash": "b876040a"
+  },
+  "mcu-panel.panel.duplicating": {
+    "text": "Duplicating…",
+    "hash": "c9f56dc5"
+  },
+  "mcu-panel.panel.edit": {
+    "text": "Edit",
+    "hash": "464c4ffd"
+  },
+  "mcu-panel.panel.edit-name": {
+    "text": "Edit {name}",
+    "hash": "2313fe21"
+  },
+  "mcu-panel.panel.edit-template": {
+    "text": "Edit Template",
+    "hash": "b42b895a"
+  },
+  "mcu-panel.panel.edit-template-2": {
+    "text": "Edit template",
+    "hash": "708c9a5c"
+  },
+  "mcu-panel.panel.edit-the-card-using-the-editor-on-the": {
+    "text": "Edit the card using the editor on the right. Its changes are captured live.",
+    "hash": "bdfa7ed2"
+  },
+  "mcu-panel.panel.editor": {
+    "text": "Editor",
+    "hash": "936a161c"
+  },
+  "mcu-panel.panel.failed-to-render-preview": {
+    "text": "Failed to render preview.",
+    "hash": "aeade066"
+  },
+  "mcu-panel.panel.icons": {
+    "text": "Icons",
+    "hash": "eae96e02"
+  },
+  "mcu-panel.panel.images": {
+    "text": "Images",
+    "hash": "be7e2f20"
+  },
+  "mcu-panel.panel.images-are-stored-in-home-assistant-not": {
+    "text": "Images are stored in Home Assistant, not in your dashboard YAML. Export all keeps a backup.",
+    "hash": "ae2b9610"
+  },
+  "mcu-panel.panel.install-magic-card-to-draw-icons-and": {
+    "text": "Install Magic Card to draw icons and shapes here.",
+    "hash": "9fcb9cfe"
+  },
+  "mcu-panel.panel.install-magic-card-to-draw-images-here": {
+    "text": "Install Magic Card to draw images here.",
+    "hash": "0fdc1e5b"
+  },
+  "mcu-panel.panel.last-updated": {
+    "text": "Last Updated",
+    "hash": "048c7f2e"
+  },
+  "mcu-panel.panel.library": {
+    "text": "Library",
+    "hash": "dc20b3d5"
+  },
+  "mcu-panel.panel.linked-cards": {
+    "text": "Linked Cards",
+    "hash": "1b795cc6"
+  },
+  "mcu-panel.panel.lovelace-card-helpers-are-unavailable": {
+    "text": "Lovelace card helpers are unavailable until a dashboard has been opened.",
+    "hash": "7ab442df"
+  },
+  "mcu-panel.panel.magic-card-could-not-be-loaded-from-url": {
+    "text": "Magic Card could not be loaded from {url}.",
+    "hash": "a1a97249"
+  },
+  "mcu-panel.panel.magic-card-isn-t-installed-install-it": {
+    "text": "Magic Card isn't installed. Install it from HACS and add it as a dashboard resource.",
+    "hash": "cd61b1ec"
+  },
+  "mcu-panel.panel.magic-card-utils": {
+    "text": "Magic Card Utils",
+    "hash": "b19971b3"
+  },
+  "mcu-panel.panel.magic-card-version-is-too-old-for-magic": {
+    "text": "Magic Card {version} is too old for Magic Card Utils (needs API version {min} or newer). Update Magic Card.",
+    "hash": "ecaa55e6"
+  },
+  "mcu-panel.panel.name": {
+    "text": "Name",
+    "hash": "dcd1d522"
+  },
+  "mcu-panel.panel.name-copy": {
+    "text": "{name} (copy)",
+    "hash": "83ad538b"
+  },
+  "mcu-panel.panel.name-copy-n": {
+    "text": "{name} (copy {n})",
+    "hash": "b2ea7059"
+  },
+  "mcu-panel.panel.name-is-required": {
+    "text": "Name is required.",
+    "hash": "f83a4bc1"
+  },
+  "mcu-panel.panel.new-template-name": {
+    "text": "New template name",
+    "hash": "0a05447d"
+  },
+  "mcu-panel.panel.no-card-type-available-neither-the": {
+    "text": "No card type available — neither the config nor the template carries a `type`.",
+    "hash": "4e67d440"
+  },
+  "mcu-panel.panel.no-config-to-preview": {
+    "text": "No config to preview.",
+    "hash": "2280220b"
+  },
+  "mcu-panel.panel.no-templates-saved-yet": {
+    "text": "No templates saved yet.",
+    "hash": "6d4c6b7c"
+  },
+  "mcu-panel.panel.only-administrators-can-create-or-change": {
+    "text": "Only administrators can create or change images.",
+    "hash": "ec7154b6"
+  },
+  "mcu-panel.panel.only-administrators-can-create-or-change-2": {
+    "text": "Only administrators can create or change icons and shapes.",
+    "hash": "a634e825"
+  },
+  "mcu-panel.panel.open-in-studio": {
+    "text": "Open in studio",
+    "hash": "ab1e4137"
+  },
+  "mcu-panel.panel.open-name-in-studio": {
+    "text": "Open {name} in studio",
+    "hash": "16681a49"
+  },
+  "mcu-panel.panel.points": {
+    "text": "{n, plural, one {# point} other {# points}}",
+    "hash": "0dbf0152"
+  },
+  "mcu-panel.panel.preview": {
+    "text": "Preview",
+    "hash": "324b134f"
+  },
+  "mcu-panel.panel.request-failed": {
+    "text": "Request failed",
+    "hash": "cfce761b"
+  },
+  "mcu-panel.panel.save": {
+    "text": "Save",
+    "hash": "1509f561"
+  },
+  "mcu-panel.panel.saved-to-the-library-cards-with-their": {
+    "text": "Saved to the library. Cards with their own copy of this shape keep it. To use this version in such a card, pick the shape again under My shapes in the card editor.",
+    "hash": "b592e8d1"
+  },
+  "mcu-panel.panel.saving": {
+    "text": "Saving…",
+    "hash": "23e39291"
+  },
+  "mcu-panel.panel.shapes": {
+    "text": "Shapes",
+    "hash": "75e8028a"
+  },
+  "mcu-panel.panel.template": {
+    "text": "Template",
+    "hash": "0575f29d"
+  },
+  "mcu-panel.panel.template-preview": {
+    "text": "Template Preview",
+    "hash": "3fb9185a"
+  },
+  "mcu-panel.panel.templates": {
+    "text": "Templates",
+    "hash": "56b564b7"
+  },
+  "mcu-panel.panel.that-shape-could-not-be-read-try-again": {
+    "text": "That shape could not be read. Try again.",
+    "hash": "9fe1b5b7"
+  },
+  "mcu-panel.panel.that-shape-no-longer-exists": {
+    "text": "That shape no longer exists.",
+    "hash": "10a53b14"
+  },
+  "mcu-panel.panel.the-animation-could-not-be-deleted": {
+    "text": "The animation could not be deleted",
+    "hash": "dc2678e7"
+  },
+  "mcu-panel.panel.the-animation-could-not-be-saved": {
+    "text": "The animation could not be saved",
+    "hash": "7e7c0cdb"
+  },
+  "mcu-panel.panel.the-animation-library-could-not-be": {
+    "text": "The animation library could not be loaded.",
+    "hash": "e7b0c030"
+  },
+  "mcu-panel.panel.the-animation-studio-could-not-be-loaded": {
+    "text": "The animation studio could not be loaded. It ships with Magic Card as {file}: update Magic Card to a version that includes it.",
+    "hash": "f4b7469d"
+  },
+  "mcu-panel.panel.the-editor-files-could-not-be-loaded": {
+    "text": "The editor files could not be loaded from Magic Card. Reload the page and try again.",
+    "hash": "dd90f518"
+  },
+  "mcu-panel.panel.the-magic-card-editor-could-not-be": {
+    "text": "The Magic Card editor could not be loaded.",
+    "hash": "2dac0634"
+  },
+  "mcu-panel.panel.the-template-could-not-be-saved": {
+    "text": "The template could not be saved.",
+    "hash": "d7c3ca43"
+  },
+  "mcu-panel.panel.the-theme-editor-could-not-be-loaded-it": {
+    "text": "The theme editor could not be loaded. It ships with Magic Card as {file}: update Magic Card to {version} or newer.",
+    "hash": "beaf6a42"
+  },
+  "mcu-panel.panel.themes": {
+    "text": "Themes",
+    "hash": "43ae3265"
+  },
+  "mcu-panel.panel.this-magic-card-utils-version-doesn-t": {
+    "text": "This Magic Card Utils version doesn't match the theme editor in Magic Card. Update both to their latest versions.",
+    "hash": "01cd0534"
+  },
+  "mcu-panel.panel.this-template-is-still-linked-to-cards": {
+    "text": "{n, plural, one {This template is still linked to # card and cannot be deleted. Remove the bindings first.} other {This template is still linked to # cards and cannot be deleted. Remove the bindings first.}}",
+    "hash": "83def8f0"
+  },
+  "mcu-panel.panel.try-again": {
+    "text": "Try again",
+    "hash": "d8b8392e"
+  }
 }

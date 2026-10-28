@@ -1,86 +1,338 @@
 {
-  "A template named '{name}' already exists.": "Er bestaat al een sjabloon met de naam '{name}'.",
-  "Actions": "Acties",
-  "Animations": "Animaties",
-  "Cancel": "Annuleren",
-  "Cannot delete {name}: {n, plural, one {# linked card} other {# linked cards}}": "Kan {name} niet verwijderen: {n, plural, one {# gekoppelde kaart} other {# gekoppelde kaarten}}",
-  "Cannot delete — {n, plural, one {# linked card} other {# linked cards}}": "Kan niet verwijderen: {n, plural, one {# gekoppelde kaart} other {# gekoppelde kaarten}}",
-  "Card Type": "Kaarttype",
-  "Close": "Sluiten",
-  "Copies the config, description, and card type. Created and updated timestamps reset to now.": "Kopieert de configuratie, de beschrijving en het kaarttype. De tijdstippen van aanmaken en bijwerken worden teruggezet naar nu.",
-  "Created": "Aangemaakt",
-  "Delete": "Verwijderen",
-  "Delete failed": "Verwijderen is mislukt",
-  "Delete template": "Sjabloon verwijderen",
-  "Delete {name}": "{name} verwijderen",
-  "Delete {name}? This action cannot be undone.": "{name} verwijderen? Dit kan niet ongedaan worden gemaakt.",
-  "Deleting…": "Bezig met verwijderen…",
-  "Description": "Beschrijving",
-  "Dismiss": "Sluiten",
-  "Drawing icons and shapes here needs Magic Card {version} or newer. Update Magic Card in HACS.": "Om hier pictogrammen en vormen te tekenen is Magic Card {version} of nieuwer nodig. Werk Magic Card bij in HACS.",
-  "Duplicate": "Dupliceren",
-  "Duplicate failed": "Dupliceren is mislukt",
-  "Duplicate template": "Sjabloon dupliceren",
-  "Duplicate {name}": "{name} dupliceren",
-  "Duplicating…": "Bezig met dupliceren…",
-  "Edit": "Bewerken",
-  "Edit Template": "Sjabloon bewerken",
-  "Edit template": "Sjabloon bewerken",
-  "Edit the card using the editor on the right. Its changes are captured live.": "Bewerk de kaart met de editor rechts. Wijzigingen worden direct overgenomen.",
-  "Edit {name}": "{name} bewerken",
-  "Editor": "Editor",
-  "Icons": "Pictogrammen",
-  "Failed to render preview.": "Het voorbeeld kon niet worden weergegeven.",
-  "Install Magic Card to draw icons and shapes here.": "Installeer Magic Card om hier pictogrammen en vormen te tekenen.",
-  "Last Updated": "Laatst bijgewerkt",
-  "Library": "Bibliotheek",
-  "Linked Cards": "Gekoppelde kaarten",
-  "Lovelace card helpers are unavailable until a dashboard has been opened.": "De Lovelace-kaarthulpmiddelen zijn pas beschikbaar nadat een dashboard is geopend.",
-  "Magic Card Utils": "Magic Card Utils",
-  "Magic Card could not be loaded from {url}.": "Magic Card kon niet worden geladen vanaf {url}.",
-  "Magic Card isn't installed. Install it from HACS and add it as a dashboard resource.": "Magic Card is niet geïnstalleerd. Installeer het via HACS en voeg het toe als dashboardresource.",
-  "Magic Card {version} is too old for Magic Card Utils (needs API version {min} or newer). Update Magic Card.": "Magic Card {version} is te oud voor Magic Card Utils (API-versie {min} of nieuwer nodig). Werk Magic Card bij.",
-  "Name": "Naam",
-  "Name is required.": "Een naam is verplicht.",
-  "New template name": "Naam van het nieuwe sjabloon",
-  "No card type available — neither the config nor the template carries a `type`.": "Geen kaarttype beschikbaar: noch de configuratie noch het sjabloon bevat een `type`.",
-  "No config to preview.": "Geen configuratie om te bekijken.",
-  "No templates saved yet.": "Nog geen sjablonen opgeslagen.",
-  "Only administrators can create or change icons and shapes.": "Alleen beheerders kunnen pictogrammen en vormen maken of wijzigen.",
-  "Open in studio": "Openen in de studio",
-  "Open {name} in studio": "{name} openen in de studio",
-  "Preview": "Voorbeeld",
-  "Request failed": "Het verzoek is mislukt",
-  "Save": "Opslaan",
-  "Saving…": "Bezig met opslaan…",
-  "Shapes": "Vormen",
-  "Template": "Sjabloon",
-  "Template Preview": "Sjabloonvoorbeeld",
-  "Templates": "Sjablonen",
-  "That shape could not be read. Try again.": "Die vorm kon niet worden gelezen. Probeer het opnieuw.",
-  "That shape no longer exists.": "Die vorm bestaat niet meer.",
-  "The Magic Card editor could not be loaded.": "De Magic Card-editor kon niet worden geladen.",
-  "The animation could not be deleted": "De animatie kon niet worden verwijderd",
-  "The animation could not be saved": "De animatie kon niet worden opgeslagen",
-  "The animation library could not be loaded.": "De animatiebibliotheek kon niet worden geladen.",
-  "The animation studio could not be loaded. It ships with Magic Card as {file}: update Magic Card to a version that includes it.": "De animatiestudio kon niet worden geladen. Hij wordt met Magic Card meegeleverd als {file}: werk Magic Card bij naar een versie die hem bevat.",
-  "The editor files could not be loaded from Magic Card. Reload the page and try again.": "De editorbestanden konden niet uit Magic Card worden geladen. Laad de pagina opnieuw en probeer het nog eens.",
-  "The template could not be saved.": "Het sjabloon kon niet worden opgeslagen.",
-  "The theme editor could not be loaded. It ships with Magic Card as {file}: update Magic Card to {version} or newer.": "De theme-editor kon niet worden geladen. Hij wordt met Magic Card meegeleverd als {file}: werk Magic Card bij naar {version} of nieuwer.",
-  "Themes": "Thema's",
-  "This Magic Card Utils version doesn't match the theme editor in Magic Card. Update both to their latest versions.": "Deze versie van Magic Card Utils past niet bij de theme-editor in Magic Card. Werk beide bij naar de nieuwste versie.",
-  "Try again": "Opnieuw proberen",
-  "{n, plural, one {Cannot delete — still linked to # card.} other {Cannot delete — still linked to # cards.}}": "{n, plural, one {Kan niet verwijderen: nog gekoppeld aan # kaart.} other {Kan niet verwijderen: nog gekoppeld aan # kaarten.}}",
-  "{n, plural, one {This template is still linked to # card and cannot be deleted. Remove the bindings first.} other {This template is still linked to # cards and cannot be deleted. Remove the bindings first.}}": "{n, plural, one {Dit sjabloon is nog gekoppeld aan # kaart en kan niet worden verwijderd. Verwijder eerst de koppelingen.} other {Dit sjabloon is nog gekoppeld aan # kaarten en kan niet worden verwijderd. Verwijder eerst de koppelingen.}}",
-  "{name} (copy {n})": "{name} (kopie {n})",
-  "{name} (copy)": "{name} (kopie)",
-  "Cards that picked this shape from the library follow your changes. A card that holds its own copy, such as a shape drawn in the card editor, keeps its points. To use this version there, pick the shape again under My shapes in the card editor.": "Kaarten die deze vorm uit de bibliotheek hebben gekozen volgen je wijzigingen. Een kaart met een eigen kopie, bijvoorbeeld een vorm die in de kaarteditor is getekend, houdt zijn eigen punten. Kies de vorm daar opnieuw onder Mijn vormen in de kaarteditor om deze versie te gebruiken.",
-  "Saved to the library. Cards with their own copy of this shape keep it. To use this version in such a card, pick the shape again under My shapes in the card editor.": "Opgeslagen in de bibliotheek. Kaarten met een eigen kopie van deze vorm houden die. Kies de vorm in zo'n kaart opnieuw onder Mijn vormen in de kaarteditor om deze versie te gebruiken.",
-  "{n, plural, one {# point} other {# points}}": "{n, plural, one {# punt} other {# punten}}",
-  "Corner shape": "Hoekvorm",
-  "Images": "Afbeeldingen",
-  "Install Magic Card to draw images here.": "Installeer Magic Card om hier afbeeldingen te tekenen.",
-  "Drawing images here needs Magic Card {version} or newer. Update Magic Card in HACS.": "Om hier afbeeldingen te tekenen is Magic Card {version} of nieuwer nodig. Werk Magic Card bij in HACS.",
-  "Only administrators can create or change images.": "Alleen beheerders kunnen afbeeldingen maken of wijzigen.",
-  "Images are stored in Home Assistant, not in your dashboard YAML. Export all keeps a backup.": "Afbeeldingen worden bewaard in Home Assistant, niet in de YAML van je dashboard. Met Alle afbeeldingen exporteren maak je een back-up."
+  "mcu-panel.panel.a-template-named-name-already-exists": {
+    "text": "Er bestaat al een sjabloon met de naam ‘{name}’.",
+    "hash": "bd93b912"
+  },
+  "mcu-panel.panel.actions": {
+    "text": "Acties",
+    "hash": "ff8059dc"
+  },
+  "mcu-panel.panel.animations": {
+    "text": "Animaties",
+    "hash": "7f7c3306"
+  },
+  "mcu-panel.panel.cancel": {
+    "text": "Annuleren",
+    "hash": "19766ed6"
+  },
+  "mcu-panel.panel.cannot-delete-linked-cards": {
+    "text": "Kan niet verwijderen: {n, plural, one {# gekoppelde kaart} other {# gekoppelde kaarten}}",
+    "hash": "259c2b7a"
+  },
+  "mcu-panel.panel.cannot-delete-name-linked-cards": {
+    "text": "Kan {name} niet verwijderen: {n, plural, one {# gekoppelde kaart} other {# gekoppelde kaarten}}",
+    "hash": "b411ae21"
+  },
+  "mcu-panel.panel.cannot-delete-still-linked-to-cards": {
+    "text": "{n, plural, one {Kan niet verwijderen: nog gekoppeld aan # kaart.} other {Kan niet verwijderen: nog gekoppeld aan # kaarten.}}",
+    "hash": "1fdb90ac"
+  },
+  "mcu-panel.panel.card-type": {
+    "text": "Kaarttype",
+    "hash": "c1b8c367"
+  },
+  "mcu-panel.panel.cards-that-picked-this-shape-from-the": {
+    "text": "Kaarten die deze vorm uit de bibliotheek hebben gekozen volgen je wijzigingen. Een kaart met een eigen kopie, bijvoorbeeld een vorm die in de kaarteditor is getekend, houdt zijn eigen punten. Kies de vorm daar opnieuw onder Mijn vormen in de kaarteditor om deze versie te gebruiken.",
+    "hash": "0d2a7418"
+  },
+  "mcu-panel.panel.close": {
+    "text": "Sluiten",
+    "hash": "7d9eb7ac"
+  },
+  "mcu-panel.panel.copies-the-config-description-and-card": {
+    "text": "Kopieert de configuratie, de beschrijving en het kaarttype. De tijdstippen van aanmaken en bijwerken worden teruggezet naar nu.",
+    "hash": "79e6d149"
+  },
+  "mcu-panel.panel.corner-shape": {
+    "text": "Hoekvorm",
+    "hash": "7833e955"
+  },
+  "mcu-panel.panel.created": {
+    "text": "Aangemaakt",
+    "hash": "d70b9e24"
+  },
+  "mcu-panel.panel.delete": {
+    "text": "Verwijderen",
+    "hash": "e2d0a549"
+  },
+  "mcu-panel.panel.delete-failed": {
+    "text": "Verwijderen is mislukt",
+    "hash": "8727e2ba"
+  },
+  "mcu-panel.panel.delete-name": {
+    "text": "{name} verwijderen",
+    "hash": "3cf8146e"
+  },
+  "mcu-panel.panel.delete-name-this-action-cannot-be-undone": {
+    "text": "{name} verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    "hash": "392e7df1"
+  },
+  "mcu-panel.panel.delete-template": {
+    "text": "Sjabloon verwijderen",
+    "hash": "da9a9b35"
+  },
+  "mcu-panel.panel.deleting": {
+    "text": "Bezig met verwijderen…",
+    "hash": "43b5894c"
+  },
+  "mcu-panel.panel.description": {
+    "text": "Beschrijving",
+    "hash": "526e0087"
+  },
+  "mcu-panel.panel.dismiss": {
+    "text": "Sluiten",
+    "hash": "48845bff"
+  },
+  "mcu-panel.panel.drawing-icons-and-shapes-here-needs": {
+    "text": "Om hier pictogrammen en vormen te tekenen is Magic Card {version} of nieuwer nodig. Werk Magic Card bij in HACS.",
+    "hash": "7bd8082a"
+  },
+  "mcu-panel.panel.drawing-images-here-needs-magic-card": {
+    "text": "Om hier afbeeldingen te tekenen is Magic Card {version} of nieuwer nodig. Werk Magic Card bij in HACS.",
+    "hash": "3be5111c"
+  },
+  "mcu-panel.panel.duplicate": {
+    "text": "Dupliceren",
+    "hash": "02cdaabf"
+  },
+  "mcu-panel.panel.duplicate-failed": {
+    "text": "Dupliceren is mislukt",
+    "hash": "9e3b1adc"
+  },
+  "mcu-panel.panel.duplicate-name": {
+    "text": "{name} dupliceren",
+    "hash": "fe06d16b"
+  },
+  "mcu-panel.panel.duplicate-template": {
+    "text": "Sjabloon dupliceren",
+    "hash": "b876040a"
+  },
+  "mcu-panel.panel.duplicating": {
+    "text": "Bezig met dupliceren…",
+    "hash": "c9f56dc5"
+  },
+  "mcu-panel.panel.edit": {
+    "text": "Bewerken",
+    "hash": "464c4ffd"
+  },
+  "mcu-panel.panel.edit-name": {
+    "text": "{name} bewerken",
+    "hash": "2313fe21"
+  },
+  "mcu-panel.panel.edit-template": {
+    "text": "Sjabloon bewerken",
+    "hash": "b42b895a"
+  },
+  "mcu-panel.panel.edit-template-2": {
+    "text": "Sjabloon bewerken",
+    "hash": "708c9a5c"
+  },
+  "mcu-panel.panel.edit-the-card-using-the-editor-on-the": {
+    "text": "Bewerk de kaart met de editor rechts. Wijzigingen worden direct overgenomen.",
+    "hash": "bdfa7ed2"
+  },
+  "mcu-panel.panel.editor": {
+    "text": "Editor",
+    "hash": "936a161c"
+  },
+  "mcu-panel.panel.failed-to-render-preview": {
+    "text": "Het voorbeeld kon niet worden weergegeven.",
+    "hash": "aeade066"
+  },
+  "mcu-panel.panel.icons": {
+    "text": "Pictogrammen",
+    "hash": "eae96e02"
+  },
+  "mcu-panel.panel.images": {
+    "text": "Afbeeldingen",
+    "hash": "be7e2f20"
+  },
+  "mcu-panel.panel.images-are-stored-in-home-assistant-not": {
+    "text": "Afbeeldingen worden bewaard in Home Assistant, niet in de YAML van je dashboard. Met Alle afbeeldingen exporteren maak je een back-up.",
+    "hash": "ae2b9610"
+  },
+  "mcu-panel.panel.install-magic-card-to-draw-icons-and": {
+    "text": "Installeer Magic Card om hier pictogrammen en vormen te tekenen.",
+    "hash": "9fcb9cfe"
+  },
+  "mcu-panel.panel.install-magic-card-to-draw-images-here": {
+    "text": "Installeer Magic Card om hier afbeeldingen te tekenen.",
+    "hash": "0fdc1e5b"
+  },
+  "mcu-panel.panel.last-updated": {
+    "text": "Laatst bijgewerkt",
+    "hash": "048c7f2e"
+  },
+  "mcu-panel.panel.library": {
+    "text": "Bibliotheek",
+    "hash": "dc20b3d5"
+  },
+  "mcu-panel.panel.linked-cards": {
+    "text": "Gekoppelde kaarten",
+    "hash": "1b795cc6"
+  },
+  "mcu-panel.panel.lovelace-card-helpers-are-unavailable": {
+    "text": "De Lovelace-kaarthulpmiddelen zijn pas beschikbaar nadat een dashboard is geopend.",
+    "hash": "7ab442df"
+  },
+  "mcu-panel.panel.magic-card-could-not-be-loaded-from-url": {
+    "text": "Magic Card kon niet worden geladen vanaf {url}.",
+    "hash": "a1a97249"
+  },
+  "mcu-panel.panel.magic-card-isn-t-installed-install-it": {
+    "text": "Magic Card is niet geïnstalleerd. Installeer het via HACS en voeg het toe als dashboardresource.",
+    "hash": "cd61b1ec"
+  },
+  "mcu-panel.panel.magic-card-utils": {
+    "text": "Magic Card Utils",
+    "hash": "b19971b3"
+  },
+  "mcu-panel.panel.magic-card-version-is-too-old-for-magic": {
+    "text": "Magic Card {version} is te oud voor Magic Card Utils (API-versie {min} of nieuwer nodig). Werk Magic Card bij.",
+    "hash": "ecaa55e6"
+  },
+  "mcu-panel.panel.name": {
+    "text": "Naam",
+    "hash": "dcd1d522"
+  },
+  "mcu-panel.panel.name-copy": {
+    "text": "{name} (kopie)",
+    "hash": "83ad538b"
+  },
+  "mcu-panel.panel.name-copy-n": {
+    "text": "{name} (kopie {n})",
+    "hash": "b2ea7059"
+  },
+  "mcu-panel.panel.name-is-required": {
+    "text": "Een naam is verplicht.",
+    "hash": "f83a4bc1"
+  },
+  "mcu-panel.panel.new-template-name": {
+    "text": "Naam van het nieuwe sjabloon",
+    "hash": "0a05447d"
+  },
+  "mcu-panel.panel.no-card-type-available-neither-the": {
+    "text": "Geen kaarttype beschikbaar: noch de configuratie noch het sjabloon bevat een `type`.",
+    "hash": "4e67d440"
+  },
+  "mcu-panel.panel.no-config-to-preview": {
+    "text": "Geen configuratie om te bekijken.",
+    "hash": "2280220b"
+  },
+  "mcu-panel.panel.no-templates-saved-yet": {
+    "text": "Nog geen sjablonen opgeslagen.",
+    "hash": "6d4c6b7c"
+  },
+  "mcu-panel.panel.only-administrators-can-create-or-change": {
+    "text": "Alleen beheerders kunnen afbeeldingen maken of wijzigen.",
+    "hash": "ec7154b6"
+  },
+  "mcu-panel.panel.only-administrators-can-create-or-change-2": {
+    "text": "Alleen beheerders kunnen pictogrammen en vormen maken of wijzigen.",
+    "hash": "a634e825"
+  },
+  "mcu-panel.panel.open-in-studio": {
+    "text": "Openen in de studio",
+    "hash": "ab1e4137"
+  },
+  "mcu-panel.panel.open-name-in-studio": {
+    "text": "{name} openen in de studio",
+    "hash": "16681a49"
+  },
+  "mcu-panel.panel.points": {
+    "text": "{n, plural, one {# punt} other {# punten}}",
+    "hash": "0dbf0152"
+  },
+  "mcu-panel.panel.preview": {
+    "text": "Voorbeeld",
+    "hash": "324b134f"
+  },
+  "mcu-panel.panel.request-failed": {
+    "text": "Het verzoek is mislukt",
+    "hash": "cfce761b"
+  },
+  "mcu-panel.panel.save": {
+    "text": "Opslaan",
+    "hash": "1509f561"
+  },
+  "mcu-panel.panel.saved-to-the-library-cards-with-their": {
+    "text": "Opgeslagen in de bibliotheek. Kaarten met een eigen kopie van deze vorm houden die. Kies de vorm in zo'n kaart opnieuw onder Mijn vormen in de kaarteditor om deze versie te gebruiken.",
+    "hash": "b592e8d1"
+  },
+  "mcu-panel.panel.saving": {
+    "text": "Bezig met opslaan…",
+    "hash": "23e39291"
+  },
+  "mcu-panel.panel.shapes": {
+    "text": "Vormen",
+    "hash": "75e8028a"
+  },
+  "mcu-panel.panel.template": {
+    "text": "Sjabloon",
+    "hash": "0575f29d"
+  },
+  "mcu-panel.panel.template-preview": {
+    "text": "Sjabloonvoorbeeld",
+    "hash": "3fb9185a"
+  },
+  "mcu-panel.panel.templates": {
+    "text": "Sjablonen",
+    "hash": "56b564b7"
+  },
+  "mcu-panel.panel.that-shape-could-not-be-read-try-again": {
+    "text": "Die vorm kon niet worden gelezen. Probeer het opnieuw.",
+    "hash": "9fe1b5b7"
+  },
+  "mcu-panel.panel.that-shape-no-longer-exists": {
+    "text": "Die vorm bestaat niet meer.",
+    "hash": "10a53b14"
+  },
+  "mcu-panel.panel.the-animation-could-not-be-deleted": {
+    "text": "De animatie kon niet worden verwijderd",
+    "hash": "dc2678e7"
+  },
+  "mcu-panel.panel.the-animation-could-not-be-saved": {
+    "text": "De animatie kon niet worden opgeslagen",
+    "hash": "7e7c0cdb"
+  },
+  "mcu-panel.panel.the-animation-library-could-not-be": {
+    "text": "De animatiebibliotheek kon niet worden geladen.",
+    "hash": "e7b0c030"
+  },
+  "mcu-panel.panel.the-animation-studio-could-not-be-loaded": {
+    "text": "De animatiestudio kon niet worden geladen. Hij wordt met Magic Card meegeleverd als {file}: werk Magic Card bij naar een versie die hem bevat.",
+    "hash": "f4b7469d"
+  },
+  "mcu-panel.panel.the-editor-files-could-not-be-loaded": {
+    "text": "De editorbestanden konden niet uit Magic Card worden geladen. Laad de pagina opnieuw en probeer het nog eens.",
+    "hash": "dd90f518"
+  },
+  "mcu-panel.panel.the-magic-card-editor-could-not-be": {
+    "text": "De Magic Card-editor kon niet worden geladen.",
+    "hash": "2dac0634"
+  },
+  "mcu-panel.panel.the-template-could-not-be-saved": {
+    "text": "Het sjabloon kon niet worden opgeslagen.",
+    "hash": "d7c3ca43"
+  },
+  "mcu-panel.panel.the-theme-editor-could-not-be-loaded-it": {
+    "text": "De theme-editor kon niet worden geladen. Hij wordt met Magic Card meegeleverd als {file}: werk Magic Card bij naar {version} of nieuwer.",
+    "hash": "beaf6a42"
+  },
+  "mcu-panel.panel.themes": {
+    "text": "Thema's",
+    "hash": "43ae3265"
+  },
+  "mcu-panel.panel.this-magic-card-utils-version-doesn-t": {
+    "text": "Deze versie van Magic Card Utils past niet bij de theme-editor in Magic Card. Werk beide bij naar de nieuwste versie.",
+    "hash": "01cd0534"
+  },
+  "mcu-panel.panel.this-template-is-still-linked-to-cards": {
+    "text": "{n, plural, one {Dit sjabloon is nog gekoppeld aan # kaart en kan niet worden verwijderd. Verwijder eerst de koppelingen.} other {Dit sjabloon is nog gekoppeld aan # kaarten en kan niet worden verwijderd. Verwijder eerst de koppelingen.}}",
+    "hash": "83def8f0"
+  },
+  "mcu-panel.panel.try-again": {
+    "text": "Opnieuw proberen",
+    "hash": "d8b8392e"
+  }
 }

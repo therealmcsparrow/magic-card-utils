@@ -21,4 +21,4 @@ Not translated: the sidebar entry **Magic Card Templates** (set when the integra
 
 ## For contributors
 
-The panel messages are written as `tr('British text')` in `magic_card_utils_panel.js`. The Dutch texts are in `i18n/nl.json`. `i18n/en-US.json`, `www/mc-i18n.js` and `www/mc-i18n-panel.js` are generated from the Magic Card repository and recorded with their SHA-256 in `www/VENDORED.md`, which also lists the command that regenerates them.
+The panel messages are written as `tr('mcu-panel.panel.save')` in `magic_card_utils_panel.js`: the key names the message, and its British English, a note for translators and a length limit are in `i18n/en-GB.json`. The Dutch texts are in `i18n/nl.json`. `i18n/en-US.json`, `www/mc-i18n.js` and `www/mc-i18n-panel.js` are generated from the Magic Card repository and recorded with their SHA-256 in `www/VENDORED.md`, which also lists the command that regenerates them.
