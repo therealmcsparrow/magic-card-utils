@@ -15,7 +15,7 @@ Home Assistant doesn't load dashboard resources on custom panels, so the panel l
 | Card and editor | Your dashboard resource whose URL ends in `/magic-card.js`. With HACS that's `/hacsfiles/magic-card/magic-card.js`. |
 | Theme editor | `magic-card-theme-editor.js` in the same folder as `magic-card.js`, with the same query string. Loaded when you open the Themes tab. |
 | Editor | Created with the card's own `getConfigElement()`, the same way a dashboard does. This keeps working when Magic Card loads its editor on demand. |
-| Animation studio | `magic-card-animation-studio.js` in the same folder as `magic-card.js`, with the same query string |
+| Animation studio | `magic-card-animation-studio.js` in the same folder as `magic-card.js`, with the same query string. Its drawing tools load `magic-card-path-canvas.<hash>.js` and `magic-card-path-core.<hash>.js` from that folder too. |
 
 When you've opened a dashboard first, Magic Card is already loaded and the panel uses that copy. It always imports the same URL as your dashboards, so Magic Card is never loaded twice.
 
