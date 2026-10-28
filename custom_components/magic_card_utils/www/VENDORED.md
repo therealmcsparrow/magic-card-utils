@@ -70,18 +70,19 @@ same SHA-256. After regenerating, update the three rows above.
 
 # Generated: Magic Card i18n runtime and panel messages
 
-`mc-i18n.js` is the Magic Card i18n runtime (contract `i18n` 1.0.0, revision 3): the locale pick from `hass`, the
+`mc-i18n.js` is the Magic Card i18n runtime (contract `i18n` 2.0.0): the locale pick from `hass`, the
 message formatter with plurals, and the number formatting. `mc-i18n-panel.js` holds the panel's own messages in
 English (UK), English (US) and Dutch. Both are generated from the Magic Card repository and never edited by hand.
 The panel imports `t`, `tx` and `locale` from `mc-i18n-panel.js`, already bound to its tables, and writes
-`tr('mcu-panel.panel.save')`; the id is a key from `i18n/en-GB.json`.
+`tr('mcu-panel.panel.save')`; the id is a key from `i18n/en-GB.json`. The runtime takes message positions only, so
+`mc-i18n-panel.js` carries the key to position map and binds `t` and `tx` to it. An empty en-US or nl cell shows the en-GB text.
 
 | Field | Value |
 | --- | --- |
 | Files | `mc-i18n.js`, `mc-i18n-panel.js` |
-| Magic Card commit | `1ab607c` (branch `aico/svg-and-shape-editors`) for `mc-i18n.js`; `mc-i18n-panel.js` was re-exported on 2026-10-25 with `tools/i18n-export.mjs --mcu` from Magic Card `2250f6e5` (branch `aico/svg-image-editor`) for the Images tab strings |
-| SHA-256 `mc-i18n.js` | `f1a042bc2bb7873aaf453980f91923e17432e32bb9a19eb8226b29829f72e500` |
-| SHA-256 `mc-i18n-panel.js` | `d6393b2795c2f55c6cf275c4508137a5ee49a49c8e1ed4b65457b19d645af07c` |
+| Magic Card commit | `dfc768e5` (branch `aico/roadmap-leftovers`) for both files; full id in `.magic-card-ref` |
+| SHA-256 `mc-i18n.js` | `517566a61a0b897542a9ba77c22112741e7d9bb22f3e9c3272e0d4ec7118a1c3` |
+| SHA-256 `mc-i18n-panel.js` | `f8faf5661c8a286a297f7135c8dc8482bd936c0b469850f8ce7a407cf9532188` |
 | Sources in this repo | `magic_card_utils_panel.js` (the `tr()` calls), `i18n/en-GB.json` (English, notes and length limits), `i18n/nl.json` (written by hand, with the hash of the English it was made from), `i18n/en-US.json` (generated) |
 
 The exporter reads the panel source and runs the drift checks: every message is a literal, has an en-US and a nl

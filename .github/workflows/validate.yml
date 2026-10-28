@@ -34,3 +34,37 @@ jobs:
       - uses: hacs/action@d556e736723344f83838d08488c983a15381059a # 22.5.0
         with:
           category: integration
+
+  panel-i18n:
+    name: Panel i18n
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Read the Magic Card commit
+        id: ref
+        run: |
+          set -euo pipefail
+          sha=$(tr -d '[:space:]' < .magic-card-ref)
+          if ! printf '%s' "$sha" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::error::.magic-card-ref must hold one full 40-character commit id"
+            exit 1
+          fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: therealmcsparrow/magic-card
+          ref: ${{ steps.ref.outputs.sha }}
+          path: magic-card
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: magic-card/.nvmrc
+      - name: Install Magic Card tools
+        working-directory: magic-card
+        run: npm ci --ignore-scripts
+      - name: Check generated panel i18n files
+        run: node magic-card/tools/i18n-export.mjs custom_components/magic_card_utils/www --mcu . --check
