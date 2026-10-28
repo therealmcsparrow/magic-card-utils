@@ -4,6 +4,12 @@ All notable changes to Magic Card Utils are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use calendar versioning (`YYYY.MM.NN`).
 
+## [Unreleased]
+
+### Changed
+
+- The notes for a manual Magic Card install now list the two files the animation studio's drawing tools load next to `magic-card.js`: `magic-card-path-canvas.<hash>.js` and `magic-card-path-core.<hash>.js`. HACS installs them with the card. The panel code is unchanged: it never copied these files, the studio asks for them from the card's folder.
+
 ## [2026.10.12-beta.1] - 2026-10-26
 
 The Images tab needs Magic Card 2026.10.12-beta.8 or newer, which is a pre-release: in HACS, turn on **Show beta versions** and install it. Everything else works as before.

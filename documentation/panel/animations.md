@@ -13,6 +13,7 @@ The studio itself is part of Magic Card. How to use it is documented in the [Mag
 
 - Magic Card 2026.10.01 or newer, added as a dashboard resource of type JavaScript module.
 - The file `magic-card-animation-studio.js` in the same folder as your `magic-card.js` resource. Magic Card releases attach it and HACS installs it with the card, in `/hacsfiles/magic-card/`. With a manual install of Magic Card, copy it next to `magic-card.js`.
+- The drawing tools of the studio load from two more files in that folder: `magic-card-path-canvas.<hash>.js` and `magic-card-path-core.<hash>.js`, where `<hash>` is a short code that changes with each Magic Card release. The studio asks for them by name the first time you open a Draw tool or a motion path. Copy both next to `magic-card.js`, with the studio file, from the same Magic Card release.
 
 ## Loading
 
