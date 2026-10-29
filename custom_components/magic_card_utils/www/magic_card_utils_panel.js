@@ -4,12 +4,11 @@ import {
   css,
 } from "./lit-core.min.js";
 import { mcUiKit, glyph } from "./mc-ui-kit.js";
-import { i18nFor, setI18nLocale } from "./mc-i18n.js";
-import tables from "./mc-i18n-panel.js";
+import { setI18nLocale } from "./mc-i18n.js";
+import { t as tr, tx as trx, locale } from "./mc-i18n-panel.js";
 
-// Messages of the panel (namespace "mcu-panel", contract i18n 1.0.0 r3). The id is the British text; the
-// tables are generated (tools/i18n-export.mjs in the Magic Card repository, see VENDORED.md).
-const { t: tr, tx: trx, locale } = i18nFor("mcu-panel", tables);
+// Messages of the panel (namespace "mcu-panel"). tr and trx take a key from i18n/en-GB.json; the English is there and the
+// tables in mc-i18n-panel.js are generated (tools/i18n-export.mjs in the Magic Card repository, see VENDORED.md).
 
 function _padStr(n) {
   return " ".repeat(n);
@@ -128,14 +127,14 @@ const IMAGES_MIN_CONTRACT_REVISION = 6; // svg-editor SVG_EDITOR_CONTRACT_REVISI
 const MIN_MAGIC_CARD_FOR_IMAGES = "2026.10.12-beta.8";
 const LIBRARY_ID_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 const FOCUS_KEY_RE = /^[A-Za-z0-9_.:-]{1,96}$/;
-const msgNoCard = () => tr("Install Magic Card to draw icons and shapes here.");
+const msgNoCard = () => tr("mcu-panel.panel.install-magic-card-to-draw-icons-and");
 // The only message about a Magic Card that is too old. Every cause (version, missing loader, contractRevision) ends here.
-const msgUpdateCard = () => tr("Drawing icons and shapes here needs Magic Card {version} or newer. Update Magic Card in HACS.", { version: MIN_MAGIC_CARD_FOR_EDITORS });
-const msgNoCardImages = () => tr("Install Magic Card to draw images here.");
-const msgUpdateImages = () => tr("Drawing images here needs Magic Card {version} or newer. Update Magic Card in HACS.", { version: MIN_MAGIC_CARD_FOR_IMAGES });
-const msgAdminOnlyImages = () => tr("Only administrators can create or change images.");
-const msgAdminOnly = () => tr("Only administrators can create or change icons and shapes.");
-const msgEditorLoad = () => tr("The editor files could not be loaded from Magic Card. Reload the page and try again.");
+const msgUpdateCard = () => tr("mcu-panel.panel.drawing-icons-and-shapes-here-needs", { version: MIN_MAGIC_CARD_FOR_EDITORS });
+const msgNoCardImages = () => tr("mcu-panel.panel.install-magic-card-to-draw-images-here");
+const msgUpdateImages = () => tr("mcu-panel.panel.drawing-images-here-needs-magic-card", { version: MIN_MAGIC_CARD_FOR_IMAGES });
+const msgAdminOnlyImages = () => tr("mcu-panel.panel.only-administrators-can-create-or-change");
+const msgAdminOnly = () => tr("mcu-panel.panel.only-administrators-can-create-or-change-2");
+const msgEditorLoad = () => tr("mcu-panel.panel.the-editor-files-could-not-be-loaded");
 /**
  * Compare two Magic Card versions: `YYYY.M.N` with an optional `-pre.release` suffix (and `+build`, ignored).
  * Returns <0, 0, >0, or null when either side is not a version.
@@ -167,13 +166,13 @@ function _compareCalVer(a, b) {
   return x.pre.length - y.pre.length;
 }
 const TABS = [
-  ["templates", () => tr("Templates")],
-  ["library", () => tr("Library")],
-  ["animations", () => tr("Animations")],
-  ["themes", () => tr("Themes")],
-  ["icons", () => tr("Icons")],
-  ["shapes", () => tr("Shapes")],
-  ["images", () => tr("Images")],
+  ["templates", () => tr("mcu-panel.panel.templates")],
+  ["library", () => tr("mcu-panel.panel.library")],
+  ["animations", () => tr("mcu-panel.panel.animations")],
+  ["themes", () => tr("mcu-panel.panel.themes")],
+  ["icons", () => tr("mcu-panel.panel.icons")],
+  ["shapes", () => tr("mcu-panel.panel.shapes")],
+  ["images", () => tr("mcu-panel.panel.images")],
 ];
 // Kept for the page's lifetime: the editor holds the draft and the dashboard trial, and the trial
 // bar's "Back to theme editor" re-opens the panel, which builds a new panel element.
@@ -198,7 +197,7 @@ function _toThemeBackendError(err) {
       ? src.message
       : typeof err === "string"
       ? err
-      : tr("Request failed")
+      : tr("mcu-panel.panel.request-failed")
   );
   out.code = typeof src.code === "string" && src.code ? src.code : "unknown";
   const list = [src.errors, src.error && src.error.errors, src.data && src.data.errors].find(Array.isArray);
@@ -417,7 +416,7 @@ function _shapeRowExtra(byId, cache, kind, id) {
   const { d, count } = _shapeOutline(shape);
   const extra = {
     thumb: d ? _shapeThumb(id, d) : undefined,
-    meta: count ? tr("{n, plural, one {# point} other {# points}}", { n: count }) : tr("Corner shape"),
+    meta: count ? tr("mcu-panel.panel.points", { n: count }) : tr("mcu-panel.panel.corner-shape"),
   };
   cache.set(id, { shape, extra });
   return extra;
@@ -632,7 +631,7 @@ class MagicCardUtilsPanel extends LitElement {
 
     const config = this._viewRow?.raw?.config || this._viewRow?.raw || null;
     if (!config || typeof config !== "object") {
-      this._previewError = tr("No config to preview.");
+      this._previewError = tr("mcu-panel.panel.no-config-to-preview");
       return;
     }
     const card_type = this._viewRow?.card_type || "";
@@ -644,14 +643,14 @@ class MagicCardUtilsPanel extends LitElement {
         : null;
     if (!renderConfig) {
       this._previewError =
-        tr("No card type available — neither the config nor the template carries a `type`.");
+        tr("mcu-panel.panel.no-card-type-available-neither-the");
       return;
     }
     // Card helpers only exist once a dashboard has loaded; magic-card can be built directly.
     const isMagicCard = renderConfig.type === "custom:magic-card";
     if (!isMagicCard && typeof window.loadCardHelpers !== "function") {
       this._previewError =
-        tr("Lovelace card helpers are unavailable until a dashboard has been opened.");
+        tr("mcu-panel.panel.lovelace-card-helpers-are-unavailable");
       return;
     }
     try {
@@ -674,7 +673,7 @@ class MagicCardUtilsPanel extends LitElement {
       if (build !== this._previewBuild) return;
       console.error("[magic_card_utils] preview failed", err);
       this._previewError =
-        (err && (err.message || String(err))) || tr("Failed to render preview.");
+        (err && (err.message || String(err))) || tr("mcu-panel.panel.failed-to-render-preview");
     }
   }
 
@@ -750,8 +749,8 @@ class MagicCardUtilsPanel extends LitElement {
       return {
         ok: false,
         message: this._magicCardUrl
-          ? tr("Magic Card could not be loaded from {url}.", { url: this._magicCardUrl })
-          : tr("Magic Card isn't installed. Install it from HACS and add it as a dashboard resource."),
+          ? tr("mcu-panel.panel.magic-card-could-not-be-loaded-from-url", { url: this._magicCardUrl })
+          : tr("mcu-panel.panel.magic-card-isn-t-installed-install-it"),
       };
     }
     const api = window.MagicCard;
@@ -759,7 +758,7 @@ class MagicCardUtilsPanel extends LitElement {
       return {
         ok: false,
         message:
-          tr("Magic Card {version} is too old for Magic Card Utils (needs API version {min} or newer). Update Magic Card.", { version: String(api.version || ""), min: String(MIN_MAGIC_CARD_API) }),
+          tr("mcu-panel.panel.magic-card-version-is-too-old-for-magic", { version: String(api.version || ""), min: String(MIN_MAGIC_CARD_API) }),
       };
     }
     return { ok: true };
@@ -795,7 +794,7 @@ class MagicCardUtilsPanel extends LitElement {
         el = await customElements.get(CARD_TAG).getConfigElement();
       } catch (err) {
         console.error("[magic_card_utils] failed to create the Magic Card editor", err);
-        message = tr("The Magic Card editor could not be loaded.");
+        message = tr("mcu-panel.panel.the-magic-card-editor-could-not-be");
       }
     }
     const host = this.shadowRoot.querySelector(".editor-host");
@@ -846,12 +845,12 @@ class MagicCardUtilsPanel extends LitElement {
     const meta = this._editMeta;
     const name = (meta.name || "").trim();
     if (!name) {
-      this._editError = tr("Name is required.");
+      this._editError = tr("mcu-panel.panel.name-is-required");
       return;
     }
     const renamed = this._viewRow && name !== this._viewRow.name;
     if (renamed && this._templates.some((t) => t.name === name)) {
-      this._editError = tr("A template named '{name}' already exists.", { name });
+      this._editError = tr("mcu-panel.panel.a-template-named-name-already-exists", { name });
       return;
     }
     const payload = {
@@ -871,7 +870,7 @@ class MagicCardUtilsPanel extends LitElement {
       this._closeOverlay();
     } catch (err) {
       console.error("[magic_card_utils] save failed", err);
-      this._editError = this._wsErrorMessage(err, tr("The template could not be saved."));
+      this._editError = this._wsErrorMessage(err, tr("mcu-panel.panel.the-template-could-not-be-saved"));
     } finally {
       this._submitting = false;
     }
@@ -900,10 +899,10 @@ class MagicCardUtilsPanel extends LitElement {
 
   _uniqueCopyName(base) {
     const existing = new Set(this._templates.map((t) => t.name));
-    let candidate = tr("{name} (copy)", { name: base });
+    let candidate = tr("mcu-panel.panel.name-copy", { name: base });
     let i = 2;
     while (existing.has(candidate)) {
-      candidate = tr("{name} (copy {n})", { name: base, n: i });
+      candidate = tr("mcu-panel.panel.name-copy-n", { name: base, n: i });
       i += 1;
     }
     return candidate;
@@ -919,11 +918,11 @@ class MagicCardUtilsPanel extends LitElement {
     if (!row) return;
     const newName = (this._duplicateName || "").trim();
     if (!newName) {
-      this._actionError = tr("Name is required.");
+      this._actionError = tr("mcu-panel.panel.name-is-required");
       return;
     }
     if (this._templates.some((t) => t.name === newName)) {
-      this._actionError = tr("A template named '{name}' already exists.", { name: newName });
+      this._actionError = tr("mcu-panel.panel.a-template-named-name-already-exists", { name: newName });
       return;
     }
     const raw = row.raw && typeof row.raw === "object" ? row.raw : {};
@@ -945,7 +944,7 @@ class MagicCardUtilsPanel extends LitElement {
     } catch (err) {
       console.error("[magic_card_utils] duplicate failed", err);
       this._actionError =
-        (err && (err.message || err.code)) || tr("Duplicate failed");
+        (err && (err.message || err.code)) || tr("mcu-panel.panel.duplicate-failed");
       this._submitting = false;
     }
   }
@@ -955,7 +954,7 @@ class MagicCardUtilsPanel extends LitElement {
     const row = this._actionRow;
     if (!row) return;
     if (row.linked_cards > 0) {
-      this._actionError = tr("{n, plural, one {Cannot delete — still linked to # card.} other {Cannot delete — still linked to # cards.}}", { n: row.linked_cards });
+      this._actionError = tr("mcu-panel.panel.cannot-delete-still-linked-to-cards", { n: row.linked_cards });
       return;
     }
     this._submitting = true;
@@ -969,7 +968,7 @@ class MagicCardUtilsPanel extends LitElement {
     } catch (err) {
       console.error("[magic_card_utils] delete failed", err);
       this._actionError =
-        (err && (err.message || err.code)) || tr("Delete failed");
+        (err && (err.message || err.code)) || tr("mcu-panel.panel.delete-failed");
       this._submitting = false;
     }
   }
@@ -1047,7 +1046,7 @@ class MagicCardUtilsPanel extends LitElement {
       return {
         ok: false,
         message:
-          tr("The animation studio could not be loaded. It ships with Magic Card as {file}: update Magic Card to a version that includes it.", { file: STUDIO_FILE }),
+          tr("mcu-panel.panel.the-animation-studio-could-not-be-loaded", { file: STUDIO_FILE }),
       };
     }
     return { ok: true };
@@ -1062,7 +1061,7 @@ class MagicCardUtilsPanel extends LitElement {
     } catch (err) {
       console.error("[magic_card_utils] animation library unavailable", err);
       this._animStatus = "error";
-      this._animMessage = tr("The animation library could not be loaded.");
+      this._animMessage = tr("mcu-panel.panel.the-animation-library-could-not-be");
       return;
     }
     const status = await this._ensureAnimationStudio();
@@ -1172,7 +1171,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (e.detail) e.detail.result = result;
     result.catch((err) => {
       console.error("[magic_card_utils] save animation failed", err);
-      this._animError = this._wsErrorMessage(err, tr("The animation could not be saved"));
+      this._animError = this._wsErrorMessage(err, tr("mcu-panel.panel.the-animation-could-not-be-saved"));
     });
   }
 
@@ -1188,7 +1187,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (e.detail) e.detail.result = result;
     result.catch((err) => {
       console.error("[magic_card_utils] delete animation failed", err);
-      this._animError = this._wsErrorMessage(err, tr("The animation could not be deleted"));
+      this._animError = this._wsErrorMessage(err, tr("mcu-panel.panel.the-animation-could-not-be-deleted"));
     });
   }
 
@@ -1214,7 +1213,7 @@ class MagicCardUtilsPanel extends LitElement {
             <div class="notice error" role="alert">
               ${glyph("error", 20)}
               <div class="body"><p>${this._animError}</p></div>
-              <button type="button" class="icon-btn sm close-btn" aria-label=${tr("Dismiss")} title=${tr("Dismiss")} @click=${() => (this._animError = "")}>${glyph("close")}</button>
+              <button type="button" class="icon-btn sm close-btn" aria-label=${tr("mcu-panel.panel.dismiss")} title=${tr("mcu-panel.panel.dismiss")} @click=${() => (this._animError = "")}>${glyph("close")}</button>
             </div>
           </div>`
         : ""}
@@ -1227,7 +1226,7 @@ class MagicCardUtilsPanel extends LitElement {
               ${glyph("error", 20)}
               <div class="body">
                 <p>${this._animMessage}</p>
-                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._mountAnimationStudio()}>${tr("Try again")}</button></div>
+                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._mountAnimationStudio()}>${tr("mcu-panel.panel.try-again")}</button></div>
               </div>
             </div>
           </div>`
@@ -1265,7 +1264,7 @@ class MagicCardUtilsPanel extends LitElement {
       return {
         ok: false,
         message:
-          tr("The theme editor could not be loaded. It ships with Magic Card as {file}: update Magic Card to {version} or newer.", { file: THEME_EDITOR_FILE, version: "2026.10.06" }),
+          tr("mcu-panel.panel.the-theme-editor-could-not-be-loaded-it", { file: THEME_EDITOR_FILE, version: "2026.10.06" }),
       };
     }
     const major = parseInt(String(ctor.contractVersion || "").split(".")[0], 10);
@@ -1273,7 +1272,7 @@ class MagicCardUtilsPanel extends LitElement {
       return {
         ok: false,
         message:
-          tr("This Magic Card Utils version doesn't match the theme editor in Magic Card. Update both to their latest versions."),
+          tr("mcu-panel.panel.this-magic-card-utils-version-doesn-t"),
       };
     }
     return { ok: true };
@@ -1336,7 +1335,7 @@ class MagicCardUtilsPanel extends LitElement {
               ${glyph("error", 20)}
               <div class="body">
                 <p>${this._themeMessage}</p>
-                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryThemes()}>${tr("Try again")}</button></div>
+                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryThemes()}>${tr("mcu-panel.panel.try-again")}</button></div>
               </div>
             </div>
           </div>`
@@ -1434,12 +1433,12 @@ class MagicCardUtilsPanel extends LitElement {
         try {
           res = await this.hass.callWS({ type: CMD_SHAPES_LIST });
         } catch (_err) {
-          this._editorNotice = tr("That shape could not be read. Try again.");
+          this._editorNotice = tr("mcu-panel.panel.that-shape-could-not-be-read-try-again");
           return;
         }
         const item = Array.isArray(res && res.shapes) ? res.shapes.find((s) => s && s.id === id) : null;
         if (!item) {
-          this._editorNotice = tr("That shape no longer exists.");
+          this._editorNotice = tr("mcu-panel.panel.that-shape-no-longer-exists");
           return;
         }
         value = { shape: "custom", shape_options: item.shape };
@@ -1674,14 +1673,14 @@ class MagicCardUtilsPanel extends LitElement {
   /** What an edit of a saved shape does to cards, as the card resolves it (a ref follows the library, an own copy stays). */
   _shapeCopyNote() {
     return tr(
-      "Cards that picked this shape from the library follow your changes. A card that holds its own copy, such as a shape drawn in the card editor, keeps its points. To use this version there, pick the shape again under My shapes in the card editor."
+      "mcu-panel.panel.cards-that-picked-this-shape-from-the"
     );
   }
 
   /** After a shape save, on the tab the user returns to (the editor covers the whole page, so a line inside the shell would be hidden). */
   _shapeSavedText() {
     return tr(
-      "Saved to the library. Cards with their own copy of this shape keep it. To use this version in such a card, pick the shape again under My shapes in the card editor."
+      "mcu-panel.panel.saved-to-the-library-cards-with-their"
     );
   }
 
@@ -1772,7 +1771,7 @@ class MagicCardUtilsPanel extends LitElement {
               ${glyph("error", 20)}
               <div class="body">
                 <p>${this._libraryMessage}</p>
-                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryLibrary()}>${tr("Try again")}</button></div>
+                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryLibrary()}>${tr("mcu-panel.panel.try-again")}</button></div>
               </div>
             </div>
           </div>`
@@ -1793,7 +1792,7 @@ class MagicCardUtilsPanel extends LitElement {
               ${glyph("error", 20)}
               <div class="body">
                 <p>${this._shapesMessage}</p>
-                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryShapes()}>${tr("Try again")}</button></div>
+                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryShapes()}>${tr("mcu-panel.panel.try-again")}</button></div>
               </div>
             </div>
           </div>`
@@ -1815,14 +1814,14 @@ class MagicCardUtilsPanel extends LitElement {
               ${glyph("error", 20)}
               <div class="body">
                 <p>${this._imagesMessage}</p>
-                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryImages()}>${tr("Try again")}</button></div>
+                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryImages()}>${tr("mcu-panel.panel.try-again")}</button></div>
               </div>
             </div>
           </div>`
         : ""}
       <div class="images-host" ?hidden=${this._imagesStatus !== "ready"}></div>
       ${this._imagesStatus === "ready"
-        ? html`<p class="images-hint">${tr("Images are stored in Home Assistant, not in your dashboard YAML. Export all keeps a backup.")}</p>`
+        ? html`<p class="images-hint">${tr("mcu-panel.panel.images-are-stored-in-home-assistant-not")}</p>`
         : ""}
     `;
   }
@@ -1839,7 +1838,7 @@ class MagicCardUtilsPanel extends LitElement {
               ${glyph("error", 20)}
               <div class="body">
                 <p>${this._iconsMessage}</p>
-                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryIcons()}>${tr("Try again")}</button></div>
+                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryIcons()}>${tr("mcu-panel.panel.try-again")}</button></div>
               </div>
             </div>
           </div>`
@@ -1944,7 +1943,7 @@ class MagicCardUtilsPanel extends LitElement {
 
       ${this._editorOpen
         ? html`<div class="editor-host"></div>`
-        : html`<div class="tabs" role="tablist" aria-label=${tr("Magic Card Utils")} @keydown=${this._onTabKeydown}>
+        : html`<div class="tabs" role="tablist" aria-label=${tr("mcu-panel.panel.magic-card-utils")} @keydown=${this._onTabKeydown}>
               ${TABS.map(
                 ([tab, label]) => html`<button
                   class="tab"
@@ -1982,17 +1981,17 @@ class MagicCardUtilsPanel extends LitElement {
           ? html`<div class="notice error" role="alert">${glyph("error", 20)}<div class="body"><p>${this._error}</p></div></div>`
           : ""}
         ${this._templates.length === 0
-          ? html`<div class="empty"><strong>${tr("No templates saved yet.")}</strong></div>`
+          ? html`<div class="empty"><strong>${tr("mcu-panel.panel.no-templates-saved-yet")}</strong></div>`
           : html`
               <table class="templates-table">
                 <thead>
                   <tr>
-                    <th class="col-name">${tr("Name")}</th>
-                    <th class="col-type">${tr("Card Type")}</th>
-                    <th class="col-linked">${tr("Linked Cards")}</th>
-                    <th class="col-date">${tr("Created")}</th>
-                    <th class="col-date">${tr("Last Updated")}</th>
-                    <th class="col-actions">${tr("Actions")}</th>
+                    <th class="col-name">${tr("mcu-panel.panel.name")}</th>
+                    <th class="col-type">${tr("mcu-panel.panel.card-type")}</th>
+                    <th class="col-linked">${tr("mcu-panel.panel.linked-cards")}</th>
+                    <th class="col-date">${tr("mcu-panel.panel.created")}</th>
+                    <th class="col-date">${tr("mcu-panel.panel.last-updated")}</th>
+                    <th class="col-actions">${tr("mcu-panel.panel.actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2016,8 +2015,8 @@ class MagicCardUtilsPanel extends LitElement {
                             <button
                               type="button"
                               class="icon-btn sm action-btn studio"
-                              title=${tr("Open in studio")}
-                              aria-label=${tr("Open {name} in studio", { name: row.name })}
+                              title=${tr("mcu-panel.panel.open-in-studio")}
+                              aria-label=${tr("mcu-panel.panel.open-name-in-studio", { name: row.name })}
                               @click=${() => this._openStudio(row)}
                             >
                               ${glyph("fullscreen")}
@@ -2025,8 +2024,8 @@ class MagicCardUtilsPanel extends LitElement {
                             <button
                               type="button"
                               class="icon-btn sm action-btn edit"
-                              title=${tr("Edit")}
-                              aria-label=${tr("Edit {name}", { name: row.name })}
+                              title=${tr("mcu-panel.panel.edit")}
+                              aria-label=${tr("mcu-panel.panel.edit-name", { name: row.name })}
                               @click=${() => this._openTemplate(row)}
                             >
                               ${glyph("pencil")}
@@ -2034,8 +2033,8 @@ class MagicCardUtilsPanel extends LitElement {
                             <button
                               type="button"
                               class="icon-btn sm action-btn duplicate"
-                              title=${tr("Duplicate")}
-                              aria-label=${tr("Duplicate {name}", { name: row.name })}
+                              title=${tr("mcu-panel.panel.duplicate")}
+                              aria-label=${tr("mcu-panel.panel.duplicate-name", { name: row.name })}
                               @click=${() => this._openDuplicate(row)}
                             >
                               ${glyph("copy")}
@@ -2044,11 +2043,11 @@ class MagicCardUtilsPanel extends LitElement {
                               type="button"
                               class="icon-btn sm danger action-btn"
                               title=${row.linked_cards > 0
-                                ? tr("Cannot delete — {n, plural, one {# linked card} other {# linked cards}}", { n: row.linked_cards })
-                                : tr("Delete")}
+                                ? tr("mcu-panel.panel.cannot-delete-linked-cards", { n: row.linked_cards })
+                                : tr("mcu-panel.panel.delete")}
                               aria-label=${row.linked_cards > 0
-                                ? tr("Cannot delete {name}: {n, plural, one {# linked card} other {# linked cards}}", { name: row.name, n: row.linked_cards })
-                                : tr("Delete {name}", { name: row.name })}
+                                ? tr("mcu-panel.panel.cannot-delete-name-linked-cards", { name: row.name, n: row.linked_cards })
+                                : tr("mcu-panel.panel.delete-name", { name: row.name })}
                               ?disabled=${row.linked_cards > 0}
                               @click=${() => this._openDelete(row)}
                             >
@@ -2076,7 +2075,7 @@ class MagicCardUtilsPanel extends LitElement {
               <div
                 class="dialog"
                 role="dialog"
-                aria-label=${this._viewMode === "edit" ? tr("Edit Template") : tr("Template Preview")}
+                aria-label=${this._viewMode === "edit" ? tr("mcu-panel.panel.edit-template") : tr("mcu-panel.panel.template-preview")}
                 @click=${(e) => e.stopPropagation()}
               >
                 <div class="dialog-header">
@@ -2088,35 +2087,35 @@ class MagicCardUtilsPanel extends LitElement {
                   </div>
                   <div class="dialog-header-actions">
                     ${this._viewMode === "yaml"
-                      ? html`<button type="button" class="icon-btn sm" title=${tr("Edit")} aria-label=${tr("Edit template")} @click=${() => this._openEditTemplate(this._viewRow)}>
+                      ? html`<button type="button" class="icon-btn sm" title=${tr("mcu-panel.panel.edit")} aria-label=${tr("mcu-panel.panel.edit-template-2")} @click=${() => this._openEditTemplate(this._viewRow)}>
                           ${glyph("pencil")}
                         </button>`
                       : ""}
-                    <button type="button" class="icon-btn sm close-btn" @click=${this._closeOverlay} title=${tr("Close")} aria-label=${tr("Close")}>${glyph("close")}</button>
+                    <button type="button" class="icon-btn sm close-btn" @click=${this._closeOverlay} title=${tr("mcu-panel.panel.close")} aria-label=${tr("mcu-panel.panel.close")}>${glyph("close")}</button>
                   </div>
                 </div>
                 <div class="dialog-body">
                   ${this._viewMode === "edit"
                     ? html`
                         <div class="pane metadata-pane">
-                          <div class="pane-header">${tr("Template")}</div>
+                          <div class="pane-header">${tr("mcu-panel.panel.template")}</div>
                           <div class="meta-body">
                             <div class="field">
-                              <div class="field-head"><label for="mcu-meta-name">${tr("Name")}</label></div>
+                              <div class="field-head"><label for="mcu-meta-name">${tr("mcu-panel.panel.name")}</label></div>
                               <input id="mcu-meta-name" class="input" type="text" .value=${this._editMeta.name}
                                 @input=${(e) => (this._editMeta = { ...this._editMeta, name: e.target.value })} />
                             </div>
                             <div class="field">
-                              <div class="field-head"><label for="mcu-meta-description">${tr("Description")}</label></div>
+                              <div class="field-head"><label for="mcu-meta-description">${tr("mcu-panel.panel.description")}</label></div>
                               <input id="mcu-meta-description" class="input" type="text" .value=${this._editMeta.description}
                                 @input=${(e) => (this._editMeta = { ...this._editMeta, description: e.target.value })} />
                             </div>
                             <div class="field">
-                              <div class="field-head"><label for="mcu-meta-type">${tr("Card Type")}</label></div>
+                              <div class="field-head"><label for="mcu-meta-type">${tr("mcu-panel.panel.card-type")}</label></div>
                               <input id="mcu-meta-type" class="input mono" type="text" placeholder=${"custom:magic-card"} .value=${this._editMeta.card_type}
                                 @input=${(e) => (this._editMeta = { ...this._editMeta, card_type: e.target.value })} />
                             </div>
-                            <p class="help">${tr("Edit the card using the editor on the right. Its changes are captured live.")}</p>
+                            <p class="help">${tr("mcu-panel.panel.edit-the-card-using-the-editor-on-the")}</p>
                           </div>
                         </div>
                       `
@@ -2127,7 +2126,7 @@ class MagicCardUtilsPanel extends LitElement {
                         </div>
                       `}
                   <div class="pane editor-pane">
-                    <div class="pane-header">${this._viewMode === "edit" ? tr("Editor") : tr("Preview")}</div>
+                    <div class="pane-header">${this._viewMode === "edit" ? tr("mcu-panel.panel.editor") : tr("mcu-panel.panel.preview")}</div>
                     ${this._viewMode === "edit"
                       ? html`<div class="editor-host" @config-changed=${this._onEditorConfigChanged}></div>`
                       : html`
@@ -2145,8 +2144,8 @@ class MagicCardUtilsPanel extends LitElement {
                     ${this._editError
                       ? html`<div class="footer-note"><div class="notice error" role="alert">${glyph("error", 20)}<div class="body"><p>${this._editError}</p></div></div></div>`
                       : ""}
-                    <button type="button" class="btn btn-secondary" @click=${this._closeOverlay}>${tr("Cancel")}</button>
-                    <button type="button" class="btn btn-primary" @click=${this._saveEditedTemplate} ?disabled=${this._submitting}>${this._submitting ? tr("Saving…") : tr("Save")}</button>
+                    <button type="button" class="btn btn-secondary" @click=${this._closeOverlay}>${tr("mcu-panel.panel.cancel")}</button>
+                    <button type="button" class="btn btn-primary" @click=${this._saveEditedTemplate} ?disabled=${this._submitting}>${this._submitting ? tr("mcu-panel.panel.saving") : tr("mcu-panel.panel.save")}</button>
                   </div>
                 ` : ""}
               </div>
@@ -2179,8 +2178,8 @@ class MagicCardUtilsPanel extends LitElement {
             <div class="dialog-title">
               <span class="dialog-title-name">
                 ${this._actionMode === "duplicate"
-                  ? tr("Duplicate template")
-                  : tr("Delete template")}
+                  ? tr("mcu-panel.panel.duplicate-template")
+                  : tr("mcu-panel.panel.delete-template")}
               </span>
               <span class="chip mono">${row.name}</span>
             </div>
@@ -2189,8 +2188,8 @@ class MagicCardUtilsPanel extends LitElement {
               class="icon-btn sm close-btn"
               @click=${this._closeAction}
               ?disabled=${this._submitting}
-              title=${tr("Close")}
-              aria-label=${tr("Close")}
+              title=${tr("mcu-panel.panel.close")}
+              aria-label=${tr("mcu-panel.panel.close")}
             >
               ${glyph("close")}
             </button>
@@ -2213,7 +2212,7 @@ class MagicCardUtilsPanel extends LitElement {
               @click=${this._closeAction}
               ?disabled=${this._submitting}
             >
-              ${tr("Cancel")}
+              ${tr("mcu-panel.panel.cancel")}
             </button>
             ${this._actionMode === "duplicate"
               ? html`<button
@@ -2222,7 +2221,7 @@ class MagicCardUtilsPanel extends LitElement {
                   @click=${this._submitDuplicate}
                   ?disabled=${this._submitting}
                 >
-                  ${this._submitting ? tr("Duplicating…") : tr("Duplicate")}
+                  ${this._submitting ? tr("mcu-panel.panel.duplicating") : tr("mcu-panel.panel.duplicate")}
                 </button>`
               : ""}
             ${this._actionMode === "delete"
@@ -2232,7 +2231,7 @@ class MagicCardUtilsPanel extends LitElement {
                   @click=${this._submitDelete}
                   ?disabled=${this._submitting || row.linked_cards > 0}
                 >
-                  ${this._submitting ? tr("Deleting…") : tr("Delete")}
+                  ${this._submitting ? tr("mcu-panel.panel.deleting") : tr("mcu-panel.panel.delete")}
                 </button>`
               : ""}
           </div>
@@ -2244,7 +2243,7 @@ class MagicCardUtilsPanel extends LitElement {
   _renderDuplicateForm() {
     return html`
       <div class="field">
-        <div class="field-head"><label for="mcu-duplicate-name">${tr("New template name")}</label></div>
+        <div class="field-head"><label for="mcu-duplicate-name">${tr("mcu-panel.panel.new-template-name")}</label></div>
         <input
           id="mcu-duplicate-name"
           class="input"
@@ -2253,7 +2252,7 @@ class MagicCardUtilsPanel extends LitElement {
           @input=${(e) => (this._duplicateName = e.target.value)}
           ?disabled=${this._submitting}
         />
-        <p class="help">${tr("Copies the config, description, and card type. Created and updated timestamps reset to now.")}</p>
+        <p class="help">${tr("mcu-panel.panel.copies-the-config-description-and-card")}</p>
       </div>
     `;
   }
@@ -2264,13 +2263,13 @@ class MagicCardUtilsPanel extends LitElement {
         <div class="notice warn" role="status">
           ${glyph("warn", 20)}
           <div class="body">
-            <p>${tr("{n, plural, one {This template is still linked to # card and cannot be deleted. Remove the bindings first.} other {This template is still linked to # cards and cannot be deleted. Remove the bindings first.}}", { n: row.linked_cards })}</p>
+            <p>${tr("mcu-panel.panel.this-template-is-still-linked-to-cards", { n: row.linked_cards })}</p>
           </div>
         </div>
       `;
     }
     return html`
-      <div>${trx("Delete {name}? This action cannot be undone.", { name: html`<strong>${row.name}</strong>` })}</div>
+      <div>${trx("mcu-panel.panel.delete-name-this-action-cannot-be-undone", { name: html`<strong>${row.name}</strong>` })}</div>
     `;
   }
 

@@ -1,0 +1,483 @@
+{
+  "mcu-panel.panel.a-template-named-name-already-exists": {
+    "text": "A template named ‘{name}’ already exists.",
+    "note": "Error under the name field when you save or duplicate a template and the name is taken. {name} is the name you typed.",
+    "max": 70,
+    "vars": {
+      "name": "The value that replaces name in the text."
+    }
+  },
+  "mcu-panel.panel.actions": {
+    "text": "Actions",
+    "note": "Column heading in the templates table, above the open, edit, duplicate and delete buttons.",
+    "max": 15
+  },
+  "mcu-panel.panel.animations": {
+    "text": "Animations",
+    "note": "Label of the Animations tab in the panel tab bar.",
+    "max": 20
+  },
+  "mcu-panel.panel.cancel": {
+    "text": "Cancel",
+    "note": "Button that closes the edit, duplicate or delete window without saving anything.",
+    "max": 10
+  },
+  "mcu-panel.panel.cannot-delete-linked-cards": {
+    "text": "Cannot delete — {n, plural, one {# linked card} other {# linked cards}}",
+    "note": "Tooltip on the greyed-out delete button of a template that cards still use. {n} is how many cards use it.",
+    "max": 50,
+    "vars": {
+      "n": "The count the text is about."
+    }
+  },
+  "mcu-panel.panel.cannot-delete-name-linked-cards": {
+    "text": "Cannot delete {name}: {n, plural, one {# linked card} other {# linked cards}}",
+    "note": "Screen reader label of the greyed-out delete button on a template row. {name} is the template name, {n} how many cards use it.",
+    "max": 60,
+    "vars": {
+      "n": "The count the text is about.",
+      "name": "The value that replaces name in the text."
+    }
+  },
+  "mcu-panel.panel.cannot-delete-still-linked-to-cards": {
+    "text": "{n, plural, one {Cannot delete — still linked to # card.} other {Cannot delete — still linked to # cards.}}",
+    "note": "Error shown when a delete is refused because cards still use the template. {n} is the number of those cards.",
+    "max": 65,
+    "vars": {
+      "n": "The count the text is about."
+    }
+  },
+  "mcu-panel.panel.card-type": {
+    "text": "Card Type",
+    "note": "Column heading in the templates table and label of the card type field in the template editor.",
+    "max": 15
+  },
+  "mcu-panel.panel.cards-that-picked-this-shape-from-the": {
+    "text": "Cards that picked this shape from the library follow your changes. A card that holds its own copy, such as a shape drawn in the card editor, keeps its points. To use this version there, pick the shape again under My shapes in the card editor.",
+    "note": "Hint in the shape editor of the Shapes tab that explains which cards follow a change to a library shape.",
+    "max": 390
+  },
+  "mcu-panel.panel.close": {
+    "text": "Close",
+    "note": "Tooltip and screen reader label of the close button on the template editor and on the duplicate and delete windows.",
+    "max": 10
+  },
+  "mcu-panel.panel.copies-the-config-description-and-card": {
+    "text": "Copies the config, description, and card type. Created and updated timestamps reset to now.",
+    "note": "Help text under the name field in the duplicate window, saying what the copy takes over.",
+    "max": 150
+  },
+  "mcu-panel.panel.corner-shape": {
+    "text": "Corner shape",
+    "note": "Detail line on a shape in the Shapes tab when the shape has no points of its own and is a corner shape.",
+    "max": 20
+  },
+  "mcu-panel.panel.created": {
+    "text": "Created",
+    "note": "Column heading in the templates table for the date a template was created.",
+    "max": 15
+  },
+  "mcu-panel.panel.delete": {
+    "text": "Delete",
+    "note": "Tooltip of the delete button on a template row and the button that confirms the delete in its window.",
+    "max": 15
+  },
+  "mcu-panel.panel.delete-failed": {
+    "text": "Delete failed",
+    "note": "Error in the delete window when the template could not be deleted and the server gave no reason.",
+    "max": 25
+  },
+  "mcu-panel.panel.delete-name": {
+    "text": "Delete {name}",
+    "note": "Screen reader label of the delete button on a template row. {name} is the template name.",
+    "max": 25,
+    "vars": {
+      "name": "The value that replaces name in the text."
+    }
+  },
+  "mcu-panel.panel.delete-name-this-action-cannot-be-undone": {
+    "text": "Delete {name}? This action cannot be undone.",
+    "note": "Question in the delete window. {name} is the template name, shown in bold.",
+    "max": 75,
+    "vars": {
+      "name": "The value that replaces name in the text."
+    }
+  },
+  "mcu-panel.panel.delete-template": {
+    "text": "Delete template",
+    "note": "Title of the window that asks you to confirm deleting a template.",
+    "max": 25
+  },
+  "mcu-panel.panel.deleting": {
+    "text": "Deleting…",
+    "note": "Label of the delete button in its window while the delete is running.",
+    "max": 25
+  },
+  "mcu-panel.panel.description": {
+    "text": "Description",
+    "note": "Label of the description field in the template editor.",
+    "max": 20
+  },
+  "mcu-panel.panel.dismiss": {
+    "text": "Dismiss",
+    "note": "Tooltip and screen reader label of the button that hides an error message in the Animations tab.",
+    "max": 15
+  },
+  "mcu-panel.panel.drawing-icons-and-shapes-here-needs": {
+    "text": "Drawing icons and shapes here needs Magic Card {version} or newer. Update Magic Card in HACS.",
+    "note": "Notice in the Icons and Shapes tabs when the installed Magic Card is too old. {version} is the lowest Magic Card version that can draw them.",
+    "max": 150,
+    "vars": {
+      "version": "The value that replaces version in the text."
+    }
+  },
+  "mcu-panel.panel.drawing-images-here-needs-magic-card": {
+    "text": "Drawing images here needs Magic Card {version} or newer. Update Magic Card in HACS.",
+    "note": "Notice in the Images tab when the installed Magic Card is too old. {version} is the lowest Magic Card version that can draw images.",
+    "max": 135,
+    "vars": {
+      "version": "The value that replaces version in the text."
+    }
+  },
+  "mcu-panel.panel.duplicate": {
+    "text": "Duplicate",
+    "note": "Tooltip of the duplicate button on a template row and the button that makes the copy in its window.",
+    "max": 15
+  },
+  "mcu-panel.panel.duplicate-failed": {
+    "text": "Duplicate failed",
+    "note": "Error in the duplicate window when the copy could not be made and the server gave no reason.",
+    "max": 30
+  },
+  "mcu-panel.panel.duplicate-name": {
+    "text": "Duplicate {name}",
+    "note": "Screen reader label of the duplicate button on a template row. {name} is the template name.",
+    "max": 30,
+    "vars": {
+      "name": "The value that replaces name in the text."
+    }
+  },
+  "mcu-panel.panel.duplicate-template": {
+    "text": "Duplicate template",
+    "note": "Title of the window where you name and make a copy of a template.",
+    "max": 30
+  },
+  "mcu-panel.panel.duplicating": {
+    "text": "Duplicating…",
+    "note": "Label of the duplicate button in its window while the copy is being made.",
+    "max": 25
+  },
+  "mcu-panel.panel.edit": {
+    "text": "Edit",
+    "note": "Tooltip of the edit button on a template row and of the button that switches the preview to editing.",
+    "max": 10
+  },
+  "mcu-panel.panel.edit-name": {
+    "text": "Edit {name}",
+    "note": "Screen reader label of the edit button on a template row. {name} is the template name.",
+    "max": 20,
+    "vars": {
+      "name": "The value that replaces name in the text."
+    }
+  },
+  "mcu-panel.panel.edit-template": {
+    "text": "Edit Template",
+    "note": "Screen reader name of the template window while it is in edit mode.",
+    "max": 25
+  },
+  "mcu-panel.panel.edit-template-2": {
+    "text": "Edit template",
+    "note": "Screen reader label of the button in the template preview that switches to editing.",
+    "max": 25
+  },
+  "mcu-panel.panel.edit-the-card-using-the-editor-on-the": {
+    "text": "Edit the card using the editor on the right. Its changes are captured live.",
+    "note": "Help text in the left pane of the template editor, pointing to the card editor on the right.",
+    "max": 120
+  },
+  "mcu-panel.panel.editor": {
+    "text": "Editor",
+    "note": "Heading of the right-hand pane of the template window while you edit the card.",
+    "max": 10
+  },
+  "mcu-panel.panel.failed-to-render-preview": {
+    "text": "Failed to render preview.",
+    "note": "Error in the template preview when the card could not be drawn and gave no message of its own.",
+    "max": 45
+  },
+  "mcu-panel.panel.icons": {
+    "text": "Icons",
+    "note": "Label of the Icons tab in the panel tab bar.",
+    "max": 15
+  },
+  "mcu-panel.panel.images": {
+    "text": "Images",
+    "note": "Label of the Images tab in the panel tab bar.",
+    "max": 15
+  },
+  "mcu-panel.panel.images-are-stored-in-home-assistant-not": {
+    "text": "Images are stored in Home Assistant, not in your dashboard YAML. Export all keeps a backup.",
+    "note": "Hint above the image list in the Images tab, saying where images are kept and how to back them up.",
+    "max": 150
+  },
+  "mcu-panel.panel.install-magic-card-to-draw-icons-and": {
+    "text": "Install Magic Card to draw icons and shapes here.",
+    "note": "Notice in the Icons and Shapes tabs when Magic Card is not installed.",
+    "max": 80
+  },
+  "mcu-panel.panel.install-magic-card-to-draw-images-here": {
+    "text": "Install Magic Card to draw images here.",
+    "note": "Notice in the Images tab when Magic Card is not installed.",
+    "max": 65
+  },
+  "mcu-panel.panel.last-updated": {
+    "text": "Last Updated",
+    "note": "Column heading in the templates table for the date a template was last changed.",
+    "max": 20
+  },
+  "mcu-panel.panel.library": {
+    "text": "Library",
+    "note": "Label of the Library tab in the panel tab bar.",
+    "max": 15
+  },
+  "mcu-panel.panel.linked-cards": {
+    "text": "Linked Cards",
+    "note": "Column heading in the templates table for how many cards use each template.",
+    "max": 20
+  },
+  "mcu-panel.panel.lovelace-card-helpers-are-unavailable": {
+    "text": "Lovelace card helpers are unavailable until a dashboard has been opened.",
+    "note": "Error in the template preview when Home Assistant has not yet loaded the helpers for drawing cards. Opening any dashboard fixes it.",
+    "max": 120
+  },
+  "mcu-panel.panel.magic-card-could-not-be-loaded-from-url": {
+    "text": "Magic Card could not be loaded from {url}.",
+    "note": "Notice in the template editor and preview when the Magic Card file is not found. {url} is the address the panel tried.",
+    "max": 70,
+    "vars": {
+      "url": "The value that replaces url in the text."
+    }
+  },
+  "mcu-panel.panel.magic-card-isn-t-installed-install-it": {
+    "text": "Magic Card isn't installed. Install it from HACS and add it as a dashboard resource.",
+    "note": "Notice in the template editor and preview when Magic Card is not installed.",
+    "max": 135
+  },
+  "mcu-panel.panel.magic-card-utils": {
+    "text": "Magic Card Utils",
+    "note": "Screen reader name of the panel tab bar.",
+    "max": 30
+  },
+  "mcu-panel.panel.magic-card-version-is-too-old-for-magic": {
+    "text": "Magic Card {version} is too old for Magic Card Utils (needs API version {min} or newer). Update Magic Card.",
+    "note": "Notice in the template editor and preview when Magic Card is too old. {version} is the installed Magic Card API version, {min} the lowest one the panel accepts.",
+    "max": 175,
+    "vars": {
+      "min": "The value that replaces min in the text.",
+      "version": "The value that replaces version in the text."
+    }
+  },
+  "mcu-panel.panel.name": {
+    "text": "Name",
+    "note": "Column heading in the templates table and label of the name field in the template editor.",
+    "max": 10
+  },
+  "mcu-panel.panel.name-copy": {
+    "text": "{name} (copy)",
+    "note": "Name offered in the duplicate window for the copy of a template. {name} is the name of the original.",
+    "max": 25,
+    "vars": {
+      "name": "The value that replaces name in the text."
+    }
+  },
+  "mcu-panel.panel.name-copy-n": {
+    "text": "{name} (copy {n})",
+    "note": "Name offered in the duplicate window when ‘(copy)’ is taken. {name} is the original name, {n} the first free number.",
+    "max": 30,
+    "vars": {
+      "n": "The value that replaces n in the text.",
+      "name": "The value that replaces name in the text."
+    }
+  },
+  "mcu-panel.panel.name-is-required": {
+    "text": "Name is required.",
+    "note": "Error under the name field when you save or duplicate a template with an empty name.",
+    "max": 30
+  },
+  "mcu-panel.panel.new-template-name": {
+    "text": "New template name",
+    "note": "Label of the name field in the duplicate window.",
+    "max": 30
+  },
+  "mcu-panel.panel.no-card-type-available-neither-the": {
+    "text": "No card type available — neither the config nor the template carries a `type`.",
+    "note": "Error in the template preview when the card has no type to draw. `type` is the config key and stays as written.",
+    "max": 125
+  },
+  "mcu-panel.panel.no-config-to-preview": {
+    "text": "No config to preview.",
+    "note": "Message in the template preview when the template has no card settings to show.",
+    "max": 35
+  },
+  "mcu-panel.panel.no-templates-saved-yet": {
+    "text": "No templates saved yet.",
+    "note": "Empty state of the Templates tab when no template exists.",
+    "max": 40
+  },
+  "mcu-panel.panel.only-administrators-can-create-or-change": {
+    "text": "Only administrators can create or change images.",
+    "note": "Notice in the Images tab for users who are not Home Assistant administrators.",
+    "max": 80
+  },
+  "mcu-panel.panel.only-administrators-can-create-or-change-2": {
+    "text": "Only administrators can create or change icons and shapes.",
+    "note": "Notice in the Icons and Shapes tabs for users who are not Home Assistant administrators.",
+    "max": 95
+  },
+  "mcu-panel.panel.open-in-studio": {
+    "text": "Open in studio",
+    "note": "Tooltip of the button on a template row that opens the template in the studio.",
+    "max": 25
+  },
+  "mcu-panel.panel.open-name-in-studio": {
+    "text": "Open {name} in studio",
+    "note": "Screen reader label of the open in studio button on a template row. {name} is the template name.",
+    "max": 35,
+    "vars": {
+      "name": "The value that replaces name in the text."
+    }
+  },
+  "mcu-panel.panel.points": {
+    "text": "{n, plural, one {# point} other {# points}}",
+    "note": "Detail line on a shape in the Shapes tab. {n} is how many points the shape has.",
+    "max": 15,
+    "vars": {
+      "n": "The count the text is about."
+    }
+  },
+  "mcu-panel.panel.preview": {
+    "text": "Preview",
+    "note": "Heading of the right-hand pane of the template window while it only shows the card.",
+    "max": 15
+  },
+  "mcu-panel.panel.request-failed": {
+    "text": "Request failed",
+    "note": "Fallback error message when a request to Home Assistant fails and returns no reason.",
+    "max": 25
+  },
+  "mcu-panel.panel.save": {
+    "text": "Save",
+    "note": "Button in the template editor that saves your changes.",
+    "max": 10
+  },
+  "mcu-panel.panel.saved-to-the-library-cards-with-their": {
+    "text": "Saved to the library. Cards with their own copy of this shape keep it. To use this version in such a card, pick the shape again under My shapes in the card editor.",
+    "note": "Message in the shape editor after a shape is saved, explaining that cards with their own copy are not changed.",
+    "max": 265
+  },
+  "mcu-panel.panel.saving": {
+    "text": "Saving…",
+    "note": "Label of the save button in the template editor while the save is running.",
+    "max": 20
+  },
+  "mcu-panel.panel.shapes": {
+    "text": "Shapes",
+    "note": "Label of the Shapes tab in the panel tab bar.",
+    "max": 10
+  },
+  "mcu-panel.panel.template": {
+    "text": "Template",
+    "note": "Heading of the left-hand pane of the template editor, above the name, description and card type.",
+    "max": 15
+  },
+  "mcu-panel.panel.template-preview": {
+    "text": "Template Preview",
+    "note": "Screen reader name of the template window while it only shows the card.",
+    "max": 30
+  },
+  "mcu-panel.panel.templates": {
+    "text": "Templates",
+    "note": "Label of the Templates tab in the panel tab bar.",
+    "max": 15
+  },
+  "mcu-panel.panel.that-shape-could-not-be-read-try-again": {
+    "text": "That shape could not be read. Try again.",
+    "note": "Notice in the Shapes tab when a chosen shape fails to open in the shape editor.",
+    "max": 65
+  },
+  "mcu-panel.panel.that-shape-no-longer-exists": {
+    "text": "That shape no longer exists.",
+    "note": "Notice in the Shapes tab when a chosen shape has been deleted in the meantime.",
+    "max": 45
+  },
+  "mcu-panel.panel.the-animation-could-not-be-deleted": {
+    "text": "The animation could not be deleted",
+    "note": "Error in the Animations tab when deleting an animation fails and the server gave no reason.",
+    "max": 55
+  },
+  "mcu-panel.panel.the-animation-could-not-be-saved": {
+    "text": "The animation could not be saved",
+    "note": "Error in the Animations tab when saving an animation fails and the server gave no reason.",
+    "max": 55
+  },
+  "mcu-panel.panel.the-animation-library-could-not-be": {
+    "text": "The animation library could not be loaded.",
+    "note": "Notice in the Animations tab when the list of saved animations cannot be fetched. A Try again button follows.",
+    "max": 70
+  },
+  "mcu-panel.panel.the-animation-studio-could-not-be-loaded": {
+    "text": "The animation studio could not be loaded. It ships with Magic Card as {file}: update Magic Card to a version that includes it.",
+    "note": "Notice in the Animations tab when the studio file is missing from Magic Card. {file} is the name of that file.",
+    "max": 205,
+    "vars": {
+      "file": "The value that replaces file in the text."
+    }
+  },
+  "mcu-panel.panel.the-editor-files-could-not-be-loaded": {
+    "text": "The editor files could not be loaded from Magic Card. Reload the page and try again.",
+    "note": "Notice in the Icons, Shapes and Images tabs when the editor files from Magic Card fail to load.",
+    "max": 135
+  },
+  "mcu-panel.panel.the-magic-card-editor-could-not-be": {
+    "text": "The Magic Card editor could not be loaded.",
+    "note": "Notice in the template editor when the Magic Card card editor fails to load.",
+    "max": 70
+  },
+  "mcu-panel.panel.the-template-could-not-be-saved": {
+    "text": "The template could not be saved.",
+    "note": "Error in the template editor when saving fails and the server gave no reason.",
+    "max": 55
+  },
+  "mcu-panel.panel.the-theme-editor-could-not-be-loaded-it": {
+    "text": "The theme editor could not be loaded. It ships with Magic Card as {file}: update Magic Card to {version} or newer.",
+    "note": "Notice in the Themes tab when the theme editor file is missing. {file} is the name of that file, {version} the lowest Magic Card version that has it.",
+    "max": 185,
+    "vars": {
+      "file": "The value that replaces file in the text.",
+      "version": "The value that replaces version in the text."
+    }
+  },
+  "mcu-panel.panel.themes": {
+    "text": "Themes",
+    "note": "Label of the Themes tab in the panel tab bar.",
+    "max": 10
+  },
+  "mcu-panel.panel.this-magic-card-utils-version-doesn-t": {
+    "text": "This Magic Card Utils version doesn't match the theme editor in Magic Card. Update both to their latest versions.",
+    "note": "Notice in the Themes tab when the theme editor and this panel are from versions that do not work together.",
+    "max": 185
+  },
+  "mcu-panel.panel.this-template-is-still-linked-to-cards": {
+    "text": "{n, plural, one {This template is still linked to # card and cannot be deleted. Remove the bindings first.} other {This template is still linked to # cards and cannot be deleted. Remove the bindings first.}}",
+    "note": "Message in the delete window when cards still use the template. {n} is the number of those cards.",
+    "max": 145,
+    "vars": {
+      "n": "The count the text is about."
+    }
+  },
+  "mcu-panel.panel.try-again": {
+    "text": "Try again",
+    "note": "Button under a load error in the Animations, Themes, Library, Shapes, Images and Icons tabs that tries the load again.",
+    "max": 20
+  }
+}

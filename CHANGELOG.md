@@ -6,9 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2026.10.12-beta.2] - 2026-10-29
+
+This is a pre-release. Everything works with Magic Card 2026.10.12-beta.12 or newer; in HACS, turn on **Show beta versions** to install it.
+
 ### Changed
 
+- The panel's texts are now bound by key, such as `mcu-panel.panel.save`, instead of by their English wording. Every text has a key in `i18n/en-GB.json`, a Dutch text in `i18n/nl.json` and a US English text in `i18n/en-US.json`. An empty US English or Dutch cell shows the British English text. What you see in the panel does not change.
+- Each panel text carries a note for translators and a length limit in `i18n/en-GB.json`.
 - The notes for a manual Magic Card install now list the two files the animation studio's drawing tools load next to `magic-card.js`: `magic-card-path-canvas.<hash>.js` and `magic-card-path-core.<hash>.js`. HACS installs them with the card. The panel code is unchanged: it never copied these files, the studio asks for them from the card's folder.
+- The generated `www/mc-i18n.js` follows Magic Card i18n contract 2.0.0, and `www/VENDORED.md` lists the new checksum.
+
+### Added
+
+- A Panel i18n check in the validate workflow regenerates the panel text files from the Magic Card commit named in `.magic-card-ref` and fails when a file is stale, a key is missing or a text sits outside `tr()`.
 
 ## [2026.10.12-beta.1] - 2026-10-26
 
