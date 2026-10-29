@@ -80,8 +80,8 @@ The panel imports `t`, `tx` and `locale` from `mc-i18n-panel.js`, already bound 
 | Field | Value |
 | --- | --- |
 | Files | `mc-i18n.js`, `mc-i18n-panel.js` |
-| Magic Card commit | `dfc768e5` (branch `aico/roadmap-leftovers`) for both files; full id in `.magic-card-ref` |
-| SHA-256 `mc-i18n.js` | `517566a61a0b897542a9ba77c22112741e7d9bb22f3e9c3272e0d4ec7118a1c3` |
+| Magic Card commit | the Magic Card main commit written in `.magic-card-ref` (2026.10.12-beta.12), for both files |
+| SHA-256 `mc-i18n.js` | `99edc4586bf8f6f46be2c65a08349fea2bd286baaeab091e605b745ceb818da2` |
 | SHA-256 `mc-i18n-panel.js` | `f8faf5661c8a286a297f7135c8dc8482bd936c0b469850f8ce7a407cf9532188` |
 | Sources in this repo | `magic_card_utils_panel.js` (the `tr()` calls), `i18n/en-GB.json` (English, notes and length limits), `i18n/nl.json` (written by hand, with the hash of the English it was made from), `i18n/en-US.json` (generated) |
 
