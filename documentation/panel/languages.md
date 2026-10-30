@@ -17,7 +17,9 @@ Change it in your Home Assistant profile (your name at the bottom of the sidebar
 - The setup screen of the integration (title, description and the **Show side panel** option). Home Assistant reads `translations/en.json`, `en-GB.json` and `nl.json` in the integration folder for this.
 - The editors and the animation and theme tools inside the panel come from Magic Card and follow the same language, as long as Magic Card is recent enough to include them.
 
-Not translated: the sidebar entry **Magic Card Templates** (set when the integration starts), names you typed yourself, and the text Home Assistant returns when a request fails.
+The sidebar entry follows the language of the Home Assistant server (Settings > System > General), not your profile, because Home Assistant sets it once when the integration starts: in Dutch it reads **Magic Card-sjablonen**, in every other language **Magic Card Templates**. After you change the server language, restart Home Assistant to update it.
+
+Not translated: names you typed yourself, and the text Home Assistant returns when a request fails.
 
 ## For contributors
 
