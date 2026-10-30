@@ -8,7 +8,7 @@ from homeassistant.components import panel_custom
 from homeassistant.components.frontend import add_extra_js_url
 from homeassistant.components.http import StaticPathConfig
 
-from .const import DOMAIN, PANEL_ICON, PANEL_TITLE, PANEL_URL, STATIC_URL
+from .const import DOMAIN, PANEL_ICON, PANEL_URL, STATIC_URL, panel_title
 from .animations import async_setup_animations
 from .images import async_setup_images
 from .library import async_setup_library
@@ -67,7 +67,7 @@ async def async_register_panel(hass: HomeAssistant) -> None:
         hass,
         webcomponent_name="magic-card-utils-panel",
         frontend_url_path=PANEL_URL,
-        sidebar_title=PANEL_TITLE,
+        sidebar_title=panel_title(hass.config.language),
         sidebar_icon=PANEL_ICON,
         module_url=panel_url,
         embed_iframe=False,

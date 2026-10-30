@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2026.10.12-beta.3] - 2026-10-30
+
+This is a pre-release. In HACS, turn on **Show beta versions** to install it.
+
+### Fixed
+
+- The sidebar title follows the language of your Home Assistant server: in Dutch it reads **Magic Card-sjablonen**. Home Assistant cannot translate a custom panel's sidebar title per user, so the panel takes the server language (Settings > System > General) when it starts. Other languages keep **Magic Card Templates**.
+
 ## [2026.10.12-beta.2] - 2026-10-29
 
 This is a pre-release. Everything works with Magic Card 2026.10.12-beta.12 or newer; in HACS, turn on **Show beta versions** to install it.
