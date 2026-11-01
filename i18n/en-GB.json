@@ -205,6 +205,11 @@
     "note": "Error in the template preview when the card could not be drawn and gave no message of its own.",
     "max": 45
   },
+  "mcu-panel.panel.forum-shot": {
+    "text": "Forum shot",
+    "note": "Label of the Forum shot tab in the panel tab bar.",
+    "max": 15
+  },
   "mcu-panel.panel.icons": {
     "text": "Icons",
     "note": "Label of the Icons tab in the panel tab bar.",
@@ -244,6 +249,11 @@
     "text": "Linked Cards",
     "note": "Column heading in the templates table for how many cards use each template.",
     "max": 20
+  },
+  "mcu-panel.panel.loading-the-forum-shot": {
+    "text": "Loading the forum shot",
+    "note": "Spoken label of the progress indicator while the Forum shot tab loads.",
+    "max": 35
   },
   "mcu-panel.panel.lovelace-card-helpers-are-unavailable": {
     "text": "Lovelace card helpers are unavailable until a dashboard has been opened.",
@@ -437,6 +447,23 @@
     "text": "The editor files could not be loaded from Magic Card. Reload the page and try again.",
     "note": "Notice in the Icons, Shapes and Images tabs when the editor files from Magic Card fail to load.",
     "max": 135
+  },
+  "mcu-panel.panel.the-forum-shot-could-not-be-loaded-it": {
+    "text": "The forum shot could not be loaded. It ships with Magic Card as {file}: update Magic Card to {version} or newer.",
+    "note": "Notice in the Forum shot tab when the forum shot file is missing or will not load. {file} is the name of that file, {version} the lowest Magic Card version that has it.",
+    "max": 185,
+    "vars": {
+      "file": "The value that replaces file in the text.",
+      "version": "The value that replaces version in the text."
+    }
+  },
+  "mcu-panel.panel.the-forum-shot-needs-magic-card-or": {
+    "text": "The forum shot needs Magic Card {version} or newer. Update Magic Card.",
+    "note": "Notice in the Forum shot tab when the installed Magic Card is too old or does not work with this panel. {version} is the lowest Magic Card version that has the forum shot.",
+    "max": 100,
+    "vars": {
+      "version": "The value that replaces version in the text."
+    }
   },
   "mcu-panel.panel.the-magic-card-editor-could-not-be": {
     "text": "The Magic Card editor could not be loaded.",

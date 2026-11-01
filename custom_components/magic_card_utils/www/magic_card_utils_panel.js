@@ -105,6 +105,14 @@ const THEME_EDITOR_FILE = "magic-card-theme-editor.js";
 const THEME_EDITOR_TAG = "magic-card-theme-editor";
 const THEME_NAME_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 const THEME_QUERY_KEY = "theme";
+// Forum shot (contract forum-shot 1.0.0 in Magic Card): a lazy entry that sits next to magic-card.js.
+const FORUM_SHOT_FILE = "magic-card-forum-shot.js";
+const FORUM_SHOT_TAG = "magic-card-forum-shot";
+const FORUM_SHOT_MAJOR = 1;
+// The oldest Magic Card (window.MagicCard.version) that ships the forum shot entry.
+const MIN_MAGIC_CARD_FOR_FORUM_SHOT = "2026.10.12-beta.13";
+// The only places a Magic Card file is served from; the forum shot is loaded from the same folder as magic-card.js.
+const FORUM_SHOT_BASES = ["/local/", "/hacsfiles/"];
 const CMD_THEMES_LIST = "magic_card_utils/themes_list";
 const CMD_THEMES_GET = "magic_card_utils/themes_get";
 const CMD_THEMES_SAVE = "magic_card_utils/themes_save";
@@ -134,6 +142,7 @@ const msgNoCardImages = () => tr("mcu-panel.panel.install-magic-card-to-draw-ima
 const msgUpdateImages = () => tr("mcu-panel.panel.drawing-images-here-needs-magic-card", { version: MIN_MAGIC_CARD_FOR_IMAGES });
 const msgAdminOnlyImages = () => tr("mcu-panel.panel.only-administrators-can-create-or-change");
 const msgAdminOnly = () => tr("mcu-panel.panel.only-administrators-can-create-or-change-2");
+const msgUpdateForumShot = () => tr("mcu-panel.panel.the-forum-shot-needs-magic-card-or", { version: MIN_MAGIC_CARD_FOR_FORUM_SHOT });
 const msgEditorLoad = () => tr("mcu-panel.panel.the-editor-files-could-not-be-loaded");
 /**
  * Compare two Magic Card versions: `YYYY.M.N` with an optional `-pre.release` suffix (and `+build`, ignored).
@@ -173,6 +182,7 @@ const TABS = [
   ["icons", () => tr("mcu-panel.panel.icons")],
   ["shapes", () => tr("mcu-panel.panel.shapes")],
   ["images", () => tr("mcu-panel.panel.images")],
+  ["forum-shot", () => tr("mcu-panel.panel.forum-shot")],
 ];
 // Kept for the page's lifetime: the editor holds the draft and the dashboard trial, and the trial
 // bar's "Back to theme editor" re-opens the panel, which builds a new panel element.
@@ -275,6 +285,24 @@ function _siblingUrl(cardUrl, file) {
   if (!cardUrl) return null;
   const m = /^(.*\/)magic-card\.js(\?.*)?$/.exec(cardUrl);
   return m ? `${m[1]}${file}${m[2] || ""}` : null;
+}
+
+/**
+ * The forum shot entry's URL: the sibling of magic-card.js, kept only when it is an http(s) address on the
+ * Home Assistant origin under /local/ or /hacsfiles/. Anything else is null and nothing is imported.
+ */
+function _forumShotUrl(cardUrl) {
+  const sibling = _siblingUrl(cardUrl, FORUM_SHOT_FILE);
+  if (!sibling) return null;
+  try {
+    const base = window.location.href;
+    const u = new URL(sibling, base);
+    if (u.origin !== new URL(base).origin || (u.protocol !== "https:" && u.protocol !== "http:")) return null;
+    if (!FORUM_SHOT_BASES.some((b) => u.pathname.startsWith(b))) return null;
+    return u.href;
+  } catch (_err) {
+    return null;
+  }
 }
 
 // ---- Shapes tab thumbnails. The card's builder is a lazy chunk the panel does not load for a list, so the list
@@ -467,6 +495,8 @@ class MagicCardUtilsPanel extends LitElement {
       // themes tab
       _themeStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _themeMessage: { type: String, state: true },
+      _forumStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
+      _forumMessage: { type: String, state: true },
       // library, icons and shapes tabs
       _libraryStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _libraryMessage: { type: String, state: true },
@@ -511,6 +541,9 @@ class MagicCardUtilsPanel extends LitElement {
     this._themeStatus = "";
     this._themeMessage = "";
     this._themeEl = null;
+    this._forumStatus = "";
+    this._forumMessage = "";
+    this._forumEl = null;
     this._animations = {};
     this._animStatus = "";
     this._animMessage = "";
@@ -684,6 +717,10 @@ class MagicCardUtilsPanel extends LitElement {
     if (changedProps.has("hass") && this._studioEl && this.hass) {
       this._studioEl.hass = this.hass;
     }
+    if (this._forumEl && this.hass && (changedProps.has("hass") || changedProps.has("narrow"))) {
+      this._forumEl.hass = this.hass;
+      this._forumEl.narrow = !!this.narrow;
+    }
     if (this._themeEl && this.hass && (changedProps.has("hass") || changedProps.has("narrow"))) {
       this._themeEl.hass = this.hass;
       this._themeEl.narrow = !!this.narrow;
@@ -719,6 +756,10 @@ class MagicCardUtilsPanel extends LitElement {
       this._mountThemeEditor();
     }
     if (this._tab === "themes" && this._themeStatus === "ready") this._attachThemeEditor();
+    if (this._tab === "forum-shot" && this.hass && !this._forumEl && this._forumStatus === "") {
+      this._mountForumShot();
+    }
+    if (this._tab === "forum-shot" && this._forumStatus === "ready") this._attachForumShot();
     if (this._tab === "animations" && this.hass && !this._studioEl && this._animStatus === "") {
       this._mountAnimationStudio();
     }
@@ -1349,6 +1390,87 @@ class MagicCardUtilsPanel extends LitElement {
     this._themeMessage = "";
   }
 
+  // ---- Forum shot tab -------------------------------------------------------
+
+  /**
+   * Load Magic Card, check its version, then import the forum shot entry from the folder magic-card.js came
+   * from. One attempt per page load: a failure is shown and not retried. Resolves to `{ ok: true }` or `{ ok: false, message }`.
+   */
+  async _ensureForumShot() {
+    const card = await this._ensureMagicCard();
+    if (!card.ok) return card;
+    const cmp = _compareCalVer(window.MagicCard && window.MagicCard.version, MIN_MAGIC_CARD_FOR_FORUM_SHOT);
+    if (cmp === null || cmp < 0) return { ok: false, message: msgUpdateForumShot() };
+    if (!customElements.get(FORUM_SHOT_TAG)) {
+      if (!this._forumLoad) {
+        this._forumLoad = (async () => {
+          const url = _forumShotUrl(this._magicCardUrl);
+          if (!url) return;
+          try {
+            await import(url);
+          } catch (_err) {
+            console.warn("[magic_card_utils] forum shot not loaded");
+          }
+        })();
+      }
+      await this._forumLoad;
+    }
+    const ctor = customElements.get(FORUM_SHOT_TAG);
+    if (!ctor) {
+      return {
+        ok: false,
+        message: tr("mcu-panel.panel.the-forum-shot-could-not-be-loaded-it", { file: FORUM_SHOT_FILE, version: MIN_MAGIC_CARD_FOR_FORUM_SHOT }),
+      };
+    }
+    const major = parseInt(String(ctor.contractVersion || "").split(".")[0], 10);
+    if (major !== FORUM_SHOT_MAJOR) return { ok: false, message: msgUpdateForumShot() };
+    return { ok: true };
+  }
+
+  async _mountForumShot() {
+    if (this._forumEl || this._forumStatus === "loading") return;
+    this._forumStatus = "loading";
+    this._forumMessage = "";
+    const status = await this._ensureForumShot();
+    if (!status.ok) {
+      this._forumStatus = "error";
+      this._forumMessage = status.message;
+      return;
+    }
+    const el = document.createElement(FORUM_SHOT_TAG);
+    el.hass = this.hass;
+    el.narrow = !!this.narrow;
+    this._forumEl = el;
+    this._forumStatus = "ready";
+    await this.updateComplete;
+    this._attachForumShot();
+  }
+
+  /** The element is kept while the panel lives; put it (back) into the tab's host. */
+  _attachForumShot() {
+    const host = this.shadowRoot.querySelector(".forum-host");
+    if (!host || !this._forumEl || this._forumEl.parentNode === host) return;
+    host.innerHTML = "";
+    host.appendChild(this._forumEl);
+  }
+
+  _renderForumShotTab() {
+    return html`
+      ${this._forumStatus === "loading" || this._forumStatus === ""
+        ? html`<div class="studio-status" role="status" aria-label=${tr("mcu-panel.panel.loading-the-forum-shot")}><ha-circular-progress active></ha-circular-progress></div>`
+        : ""}
+      ${this._forumStatus === "error"
+        ? html`<div class="content">
+            <div class="notice error" role="alert">
+              ${glyph("error", 20)}
+              <div class="body"><p>${this._forumMessage}</p></div>
+            </div>
+          </div>`
+        : ""}
+      <div class="forum-host" ?hidden=${this._forumStatus !== "ready"}></div>
+    `;
+  }
+
   // ---- Library, Icons and Shapes tabs ---------------------------------------------
 
   /**
@@ -1883,6 +2005,9 @@ class MagicCardUtilsPanel extends LitElement {
     // The editor element survives in _themeElCache; this panel instance just lets go of it.
     if (this._themeEl && this._themeEl.parentNode) this._themeEl.parentNode.removeChild(this._themeEl);
     this._themeEl = null;
+    if (this._forumEl && this._forumEl.parentNode) this._forumEl.parentNode.removeChild(this._forumEl);
+    this._forumEl = null;
+    if (this._forumStatus !== "error") this._forumStatus = "";
     if (this._editorEl) {
       for (const [type, fn] of this._editorListeners || []) this._editorEl.removeEventListener(type, fn);
       if (this._editorEl.parentNode) this._editorEl.parentNode.removeChild(this._editorEl);
@@ -1960,6 +2085,8 @@ class MagicCardUtilsPanel extends LitElement {
 
             ${this._tab === "animations"
               ? this._renderAnimationsTab()
+              : this._tab === "forum-shot"
+              ? this._renderForumShotTab()
               : this._tab === "themes"
               ? this._renderThemesTab()
               : this._tab === "library"
@@ -2379,7 +2506,8 @@ class MagicCardUtilsPanel extends LitElement {
         min-height: 480px;
       }
       .studio-host[hidden],
-      .theme-host[hidden] {
+      .theme-host[hidden],
+      .forum-host[hidden] {
         display: none;
       }
       .library-host,
@@ -2412,6 +2540,10 @@ class MagicCardUtilsPanel extends LitElement {
       }
       .shape-note {
         margin: 16px 16px 0;
+      }
+      .forum-host {
+        display: block;
+        min-height: 480px;
       }
       .theme-host {
         display: block;
@@ -2649,6 +2781,8 @@ export const _testing = {
   MIN_MAGIC_CARD_FOR_EDITORS,
   EDITORS_MIN_CONTRACT_REVISION,
   MIN_MAGIC_CARD_FOR_IMAGES,
+  MIN_MAGIC_CARD_FOR_FORUM_SHOT,
+  forumShotUrl: _forumShotUrl,
   IMAGES_MIN_CONTRACT_REVISION,
   TABS,
 };
