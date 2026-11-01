@@ -35,6 +35,20 @@ jobs:
         with:
           category: integration
 
+  action-pins:
+    name: Pinned actions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run the pin check self-test
+        run: python3 -I scripts/check_action_pins.py --selftest
+      - name: Check every action is pinned to a commit
+        run: python3 -I scripts/check_action_pins.py --root .
+
   panel-i18n:
     name: Panel i18n
     runs-on: ubuntu-latest
