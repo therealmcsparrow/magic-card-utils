@@ -18,6 +18,9 @@ USES_LINE = re.compile(r"^\s*(?:-\s+)?uses:\s*(?P<rest>.*?)\s*$")
 SHA_REF = re.compile(r"[A-Za-z0-9_.\-]+(?:/[A-Za-z0-9_.\-]+)+@[0-9a-f]{40}")
 DOCKER_REF = re.compile(r"docker://\S+@sha256:[0-9a-f]{64}")
 COMMENT = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/\-]*")
+# `uses` as a key in a shape USES_LINE does not read: quoted, a space before the colon, or inside { }.
+ODD_KEY = re.compile(r"""(?:^\s*(?:-\s+)*|[{,]\s*)(["']?)uses\1\s*:""")
+TRAILING_COMMENT = re.compile(r"\s#.*$")
 
 
 def _split(rest: str) -> tuple[str, str | None]:
@@ -47,8 +50,12 @@ def check_text(text: str, name: str) -> list[str]:
     """Check one workflow file's text and return one message per problem."""
     problems = []
     for number, line in enumerate(text.splitlines(), start=1):
+        if line.lstrip().startswith("#"):
+            continue
         match = USES_LINE.match(line)
         if not match:
+            if ODD_KEY.search(TRAILING_COMMENT.sub("", line)):
+                problems.append(f"{name}:{number}: uses key is written in a form this check cannot read: {line.strip()}")
             continue
         reason = check_line(match.group("rest"))
         if reason:
@@ -82,6 +89,14 @@ def selftest() -> int:
         ("- uses: actions/checkout@v4 # v4", False),
         ("- uses: docker://alpine:3.20", False),
         ("- uses: ./local", True),
+        (f"- uses: actions/checkout@{sha} # v1 and more", False),
+        ("- uses : a/b@v4", False),
+        ('- "uses": a/b@v4', False),
+        ("- 'uses': a/b@v4", False),
+        ("- { uses: a/b@v4 }", False),
+        ("- { name: x, uses: a/b@v4 }", False),
+        ('"uses": a/b@v4', False),
+        ("run: echo uses: a/b@v4", True),
     ]
     with tempfile.TemporaryDirectory() as tmp:
         failed = 0
@@ -107,6 +122,9 @@ def main(argv: list[str] | None = None) -> int:
         if not status:
             print("selftest passed")
         return status
+    if not workflow_files(Path(args.root)):
+        print(f"no workflow files found under {args.root}")
+        return 1
     problems = check_pins(Path(args.root))
     for problem in problems:
         print(problem)

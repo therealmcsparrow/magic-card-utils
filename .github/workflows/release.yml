@@ -148,4 +148,4 @@ jobs:
           case "$TAG" in
             *-*) flags+=(--prerelease --latest=false) ;;
           esac
-          gh release create "$TAG" magic_card_utils.zip magic_card_utils.sbom.cdx.json             --verify-tag --title "$TAG" --generate-notes "${flags[@]}"
+          gh release create "$TAG" magic_card_utils.zip magic_card_utils.sbom.cdx.json --verify-tag --title "$TAG" --generate-notes "${flags[@]}"

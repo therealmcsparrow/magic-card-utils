@@ -70,8 +70,10 @@ Report problems on [GitHub](https://github.com/therealmcsparrow/magic-card-utils
 
 ### Manual installation
 
-1. Copy the `custom_components/magic_card_utils` folder from the latest release into the `custom_components` folder of your Home Assistant configuration directory.
-2. Restart Home Assistant.
+1. Download `magic_card_utils.zip` from the latest release.
+2. In your Home Assistant configuration directory, make the folder `custom_components/magic_card_utils`.
+3. Unpack the zip into that folder, so that `custom_components/magic_card_utils/manifest.json` exists.
+4. Restart Home Assistant.
 
 ## Configuration
 

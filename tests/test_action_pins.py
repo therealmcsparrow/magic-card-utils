@@ -74,6 +74,38 @@ def test_rejects_unpinned(tmp_path, value):
     assert "bad.yml:4" in problems[0]
 
 
+@pytest.mark.parametrize(
+    "line",
+    [
+        "- uses : a/b@v4",
+        f"- uses : a/b@{SHA} # v1",
+        '- "uses": a/b@v4',
+        "- 'uses': a/b@v4",
+        "- { uses: a/b@v4 }",
+        f"- {{uses: a/b@{SHA}}}",
+        "- { name: x, uses: a/b@v4 }",
+        '  "uses": a/b@v4',
+        "  'uses' : a/b@v4",
+    ],
+)
+def test_fails_closed_on_unreadable_uses_key(tmp_path, line):
+    _write(tmp_path, "odd.yml", f"jobs:\n  a:\n    steps:\n      {line}\n")
+    problems = pins.check_pins(tmp_path)
+    assert len(problems) == 1
+    assert "odd.yml:4" in problems[0]
+    assert "cannot read" in problems[0]
+
+
+def test_does_not_read_uses_in_run_lines_or_comments(tmp_path):
+    _write(tmp_path, "t.yml", 'run: echo uses: a/b@v4\n# { uses: a/b@v4 }\n- name: x # "uses": y\n')
+    assert pins.check_pins(tmp_path) == []
+
+
+def test_main_fails_when_no_workflow_files(tmp_path, capsys):
+    assert pins.main(["--root", str(tmp_path)]) == 1
+    assert "no workflow files" in capsys.readouterr().out
+
+
 def test_scans_yaml_extension_and_composite_actions(tmp_path):
     _write(tmp_path, "one.yaml", _uses("actions/checkout@v4"))
     action = tmp_path / ".github" / "actions" / "deep" / "x" / "action.yml"
