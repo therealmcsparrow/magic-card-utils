@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+-   **Forum shot.** The panel can turn one of your Magic Cards into a single picture to post in a forum, in light, dark or both, with an option for the Quiet, Living and Glow looks of animated icons. A privacy warning sits above the Download button. The picture is made in your browser and nothing leaves Home Assistant. See [Forum shot](documentation/panel/forum-shot.md).
+
 ## [2026.10.12-beta.3] - 2026-10-30
 
 This is a pre-release. In HACS, turn on **Show beta versions** to install it.

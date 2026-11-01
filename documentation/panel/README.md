@@ -2,7 +2,7 @@
 
 The integration adds a **Magic Card Templates** panel to the sidebar when **Show side panel** is on (see [Set up the integration](../getting-started/README.md#set-up-the-integration)). Only admin users see it.
 
-The panel has seven tabs:
+The panel has eight tabs, including Forum shot:
 
 | Tab | What you do there |
 | --- | --- |
@@ -13,6 +13,7 @@ The panel has seven tabs:
 | [Icons](library.md#the-icons-tab) | Your saved icons: New icon, Edit, Rename, Delete and Export |
 | [Shapes](library.md#the-shapes-tab) | Your saved shapes, with a thumbnail and point count: New shape, Edit, Rename, Delete and Export |
 | [Images](images.md) | Your library images: New image, Edit, Rename, Duplicate, Delete, Export, Export all images and Import |
+| [Forum shot](forum-shot.md) | Turn one of your Magic Cards into a picture to post in a forum, in light, dark or both |
 
 Click a tab, or move between them with the arrow keys when a tab has focus. The panel opens on the Templates tab, unless the URL has `?animation=<id>` (see [Open one animation directly](animations.md#open-one-animation-directly)) or `?theme=<name>` (see [Themes](themes.md#deep-link)).
 
@@ -25,4 +26,5 @@ Everything in the panel updates live. When a template or animation changes anywh
 - [Themes](themes.md): what the tab needs, how the editor loads, the `?theme=` link, which files it reads and writes, and importing a theme file.
 - [Library](library.md): icons, shapes, animations and theme presets, the Icons and Shapes tabs, import and export, and the icon picker.
 - [Images](images.md): the Images tab, its requirements, who can change images, creating an image, Export all images and the limits.
+- [Forum shot](forum-shot.md): picking a card, light and dark, the three looks, the privacy warning, cards that cannot be picked and what the area sends.
 - [Languages](languages.md): English (UK), English (US) and Dutch, and what follows your profile language.
