@@ -39,9 +39,10 @@ The Library, Icons and Shapes tabs and template cards for non-admin users need M
 
 ## Install by hand
 
-1. Download the latest release from the [releases page](https://github.com/therealmcsparrow/magic-card-utils/releases).
-2. Copy the `custom_components/magic_card_utils` folder into the `custom_components` folder of your Home Assistant configuration directory, so you end up with `config/custom_components/magic_card_utils/manifest.json`.
-3. Restart Home Assistant.
+1. Download `magic_card_utils.zip` from the latest release on the [releases page](https://github.com/therealmcsparrow/magic-card-utils/releases).
+2. In your Home Assistant configuration directory, make the folder `custom_components/magic_card_utils`.
+3. Unpack the zip into that folder, so that `config/custom_components/magic_card_utils/manifest.json` exists.
+4. Restart Home Assistant.
 
 ## Set up the integration
 

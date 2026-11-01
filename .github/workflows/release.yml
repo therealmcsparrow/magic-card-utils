@@ -1,29 +1,45 @@
-name: Release assets
+name: Release
 
-# Runs when a release is published manually (`gh release create <CalVer>`).
-# It only attaches assets. It never creates releases or tags.
+# Runs when a calendar-version tag is pushed. It builds the integration zip and
+# the SBOM, attests both, then creates the release for the existing tag.
+# It never creates or moves tags.
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "[0-9]*"
 
-permissions: {}
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  assets:
-    name: Zip and SBOM
+  release:
+    name: Build, attest and release
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
-      contents: write # upload assets to the existing release
+      contents: write # create the release and upload assets
+      id-token: write # sign attestations
+      attestations: write # store attestations
     env:
-      TAG: ${{ github.event.release.tag_name }}
-      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ github.ref_name }}
       GH_REPO: ${{ github.repository }}
       LIT_VERSION: "3.3.3"
       MDI_VERSION: "7.4.47"
     steps:
+      - name: Check tag format
+        run: |
+          set -euo pipefail
+          if ! printf '%s' "$TAG" | grep -Eq '^[0-9]{4}\.[0-9]{2}\.[0-9]{2}(-beta\.[0-9]+)?$'; then
+            echo "::error::Tag is not a calendar version (YYYY.MM.DD or YYYY.MM.DD-beta.N)"
+            exit 1
+          fi
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.release.tag_name }}
           persist-credentials: false
 
       - name: Check tag matches manifest version
@@ -110,10 +126,26 @@ jobs:
           PY
           python3 -m json.tool magic_card_utils.sbom.cdx.json > /dev/null
 
-      - name: Upload assets to the release
-        run: gh release upload "$TAG" magic_card_utils.zip magic_card_utils.sbom.cdx.json --clobber
+      - name: Attest build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: |
+            magic_card_utils.zip
+            magic_card_utils.sbom.cdx.json
 
-      - name: Keep a hyphenated tag a pre-release
-        # 2026.10.11-beta.1 / -rc.1: force the pre-release flag on and keep the Latest badge off, whatever the release was created with
-        if: ${{ contains(github.event.release.tag_name, '-') }}
-        run: gh release edit "$TAG" --prerelease --latest=false
+      - name: Attest SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: magic_card_utils.zip
+          sbom-path: magic_card_utils.sbom.cdx.json
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          flags=()
+          case "$TAG" in
+            *-*) flags+=(--prerelease --latest=false) ;;
+          esac
+          gh release create "$TAG" magic_card_utils.zip magic_card_utils.sbom.cdx.json --verify-tag --title "$TAG" --generate-notes "${flags[@]}"
