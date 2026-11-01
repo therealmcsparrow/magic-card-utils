@@ -14,13 +14,22 @@ import sys
 import tempfile
 from pathlib import Path
 
-USES_LINE = re.compile(r"^\s*(?:-\s+)?uses:\s*(?P<rest>.*?)\s*$")
+NEWLINE = re.compile(r"\r\n|\n|\r")
+USES_WORD = re.compile(r"(?<![A-Za-z0-9_])uses(?![A-Za-z0-9_])")
+USES_LINE = re.compile(r"^ *(?:- +)?uses:[ ]*(?P<rest>.*?)\s*$")
 SHA_REF = re.compile(r"[A-Za-z0-9_.\-]+(?:/[A-Za-z0-9_.\-]+)+@[0-9a-f]{40}")
 DOCKER_REF = re.compile(r"docker://\S+@sha256:[0-9a-f]{64}")
 COMMENT = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/\-]*")
-# `uses` as a key in a shape USES_LINE does not read: quoted, a space before the colon, or inside { }.
-ODD_KEY = re.compile(r"""(?:^\s*(?:-\s+)*|[{,]\s*)(["']?)uses\1\s*:""")
-TRAILING_COMMENT = re.compile(r"\s#.*$")
+# The only shapes a line holding the word `uses` may have.
+CANON_SHA = re.compile(r" *(?:- )?uses: [A-Za-z0-9_.\-]+(?:/[A-Za-z0-9_.\-]+)+@[0-9a-f]{40} # [A-Za-z0-9][A-Za-z0-9._/\-]* *")
+CANON_LOCAL = re.compile(r" *(?:- )?uses: \./[A-Za-z0-9_./\-]* *")
+CANON_DOCKER = re.compile(
+    r" *(?:- )?uses: docker://[A-Za-z0-9_.:/\-]+@sha256:[0-9a-f]{64}(?: # [A-Za-z0-9][A-Za-z0-9._/\-]*)? *"
+)
+COMMENT_LINE = re.compile(r"[ \t]*#")
+RUN_BLOCK = re.compile(r"( *)(- +)?run: *[|>][-+0-9]* *(?:#.*)?")
+RUN_LINE = re.compile(r" *(?:- +)?run:(?: |$)")
+BLANK = re.compile(r"[ \t]*")
 
 
 def _split(rest: str) -> tuple[str, str | None]:
@@ -30,36 +39,45 @@ def _split(rest: str) -> tuple[str, str | None]:
     return ref, (comment.strip() if hash_mark else None)
 
 
-def check_line(rest: str) -> str | None:
-    """Return the reason a uses value is not pinned, or None when it is."""
+def check_line(rest: str) -> str:
+    """Return why a uses value is not in the canonical form."""
     ref, comment = _split(rest)
-    if ref.startswith("./"):
-        return None
     if ref.startswith("docker://"):
-        if DOCKER_REF.fullmatch(ref):
-            return None
         return "docker image is not pinned to a sha256 digest"
     if not SHA_REF.fullmatch(ref):
         return "action is not pinned to a full 40-character commit id"
     if not comment or not COMMENT.fullmatch(comment):
         return "pinned commit has no version comment"
-    return None
+    return "uses cannot read this form, write it as - uses: owner/repo@<sha> # <version>"
 
 
 def check_text(text: str, name: str) -> list[str]:
-    """Check one workflow file's text and return one message per problem."""
+    """Check one workflow file's text and return one message per problem.
+
+    Outside a `run:` block and a whole-line comment, a line holding the word
+    `uses` must have exactly the canonical shape; anything else fails, so a form
+    this check cannot read never passes.
+    """
     problems = []
-    for number, line in enumerate(text.splitlines(), start=1):
-        if line.lstrip().startswith("#"):
+    block_col = -1
+    for number, line in enumerate(NEWLINE.split(text), start=1):
+        if block_col >= 0:
+            if BLANK.fullmatch(line) or len(line) - len(line.lstrip(" ")) > block_col:
+                continue
+            block_col = -1
+        run = RUN_BLOCK.fullmatch(line)
+        if run:
+            block_col = len(run.group(1)) + len(run.group(2) or "")
+            continue
+        if COMMENT_LINE.match(line) or RUN_LINE.match(line) or not USES_WORD.search(line):
+            continue
+        if CANON_SHA.fullmatch(line) or CANON_LOCAL.fullmatch(line) or CANON_DOCKER.fullmatch(line):
             continue
         match = USES_LINE.match(line)
         if not match:
-            if ODD_KEY.search(TRAILING_COMMENT.sub("", line)):
-                problems.append(f"{name}:{number}: uses key is written in a form this check cannot read: {line.strip()}")
+            problems.append(f"{name}:{number}: uses key is written in a form this check cannot read: {line.strip()}")
             continue
-        reason = check_line(match.group("rest"))
-        if reason:
-            problems.append(f"{name}:{number}: {reason}: {match.group('rest')}")
+        problems.append(f"{name}:{number}: {check_line(match.group('rest'))}: {match.group('rest')}")
     return problems
 
 
@@ -74,7 +92,7 @@ def check_pins(root: Path) -> list[str]:
     """Check every workflow and composite action under root."""
     problems = []
     for path in workflow_files(Path(root)):
-        text = path.read_text(encoding="utf-8")
+        text = path.read_bytes().decode("utf-8")
         problems += check_text(text, path.relative_to(root).as_posix())
     return problems
 
@@ -89,6 +107,7 @@ def selftest() -> int:
         ("- uses: actions/checkout@v4 # v4", False),
         ("- uses: docker://alpine:3.20", False),
         ("- uses: ./local", True),
+        (f'- uses: "actions/checkout@{sha}" # v1', False),
         (f"- uses: actions/checkout@{sha} # v1 and more", False),
         ("- uses : a/b@v4", False),
         ('- "uses": a/b@v4', False),
@@ -97,13 +116,30 @@ def selftest() -> int:
         ("- { name: x, uses: a/b@v4 }", False),
         ('"uses": a/b@v4', False),
         ("run: echo uses: a/b@v4", True),
+        ('- { name: "a #b", uses: a/b@v4 }', False),
+        (f'- {{ name: "a #b", uses: a/b@{sha} # v1 }}', False),
+        ("- ? uses\n  : a/b@v4", False),
+        ("- &k uses: a/b@v4", False),
+        ("- !!str uses: a/b@v4", False),
+        ("- name: x\ruses: a/b@v4", False),
+        ("- uses:\n    a/b@v4", False),
+        ("- uses: >\n    a/b@v4", False),
+        ("- uses: *x", False),
+        ("- {\n    uses: a/b@v4\n  }", False),
+        ("- [{ uses: a/b@v4 }]", False),
+        ("- name: this uses a cache", False),
+        ("- run: |\n    echo uses: a/b@v4\n    uses: x\n- name: x", True),
+        ("- run: |\n    echo hi\n  uses: a/b@v4", False),
+        ("  # uses: a/b@v4", True),
+        (f"- uses: a/b@{sha} # v1 uses x", False),
+        ("-\tuses: a/b@v4", False),
     ]
     with tempfile.TemporaryDirectory() as tmp:
         failed = 0
         for index, (line, expect_ok) in enumerate(cases):
             workflow = Path(tmp) / ".github" / "workflows" / f"case{index}.yml"
             workflow.parent.mkdir(parents=True, exist_ok=True)
-            workflow.write_text(f"jobs:\n  a:\n    steps:\n      {line}\n", encoding="utf-8")
+            workflow.write_bytes(f"{line}\n".encode("utf-8"))
             ok = not check_pins(Path(tmp))
             workflow.unlink()
             if ok != expect_ok:

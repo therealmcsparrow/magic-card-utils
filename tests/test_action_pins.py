@@ -40,7 +40,6 @@ def _uses(value):
         f"hacs/action@{SHA} # 22.5.0",
         f"home-assistant/actions/hassfest@{SHA} # master",
         f"owner/repo/.github/workflows/x.yml@{SHA} # v1",
-        f"'actions/checkout@{SHA}' # v7.0.1",
         f"docker://alpine@sha256:{DIGEST}",
         "./local-action",
     ],
@@ -65,6 +64,7 @@ def test_accepts_pinned(tmp_path, value):
         "actions/checkout",
         "docker://alpine:3.20",
         f"docker://alpine@sha256:{DIGEST[:63]}",
+        f"'actions/checkout@{SHA}' # v7.0.1",
     ],
 )
 def test_rejects_unpinned(tmp_path, value):
@@ -96,9 +96,39 @@ def test_fails_closed_on_unreadable_uses_key(tmp_path, line):
     assert "cannot read" in problems[0]
 
 
-def test_does_not_read_uses_in_run_lines_or_comments(tmp_path):
-    _write(tmp_path, "t.yml", 'run: echo uses: a/b@v4\n# { uses: a/b@v4 }\n- name: x # "uses": y\n')
-    assert pins.check_pins(tmp_path) == []
+@pytest.mark.parametrize(
+    "text",
+    [
+        '- { name: "a #b", uses: a/b@v4 }',
+        f'- {{ name: "a #b", uses: a/b@{SHA} # v1 }}',
+        "- ? uses\n  : a/b@v4",
+        "- &k uses: a/b@v4",
+        "- !!str uses: a/b@v4",
+        "- name: x\ruses: a/b@v4",
+        "- name: x\r\n  uses: a/b@v4\r- run: y",
+        "- uses:\n    a/b@v4",
+        "- uses: >\n    a/b@v4",
+        "- uses: *x",
+        "- {\n    uses: a/b@v4\n  }",
+        "- [{ uses: a/b@v4 }]",
+        "- name: this uses a cache",
+        f"- uses: a/b@{SHA} # v1 uses x",
+        "- run: |\n    echo hi\n  uses: a/b@v4",
+        f'- uses: "a/b@{SHA}" # v1',
+    ],
+)
+def test_fails_closed_on_every_other_form_with_the_word_uses(text):
+    assert pins.check_text(text, "a.yml")
+
+
+def test_bare_cr_is_a_line_break_and_counts_one_line():
+    problems = pins.check_text("a: 1\rb: 2\r- uses: a/b@v4", "a.yml")
+    assert problems and "a.yml:3" in problems[0]
+
+
+def test_does_not_read_uses_in_run_lines_run_blocks_or_comments():
+    text = "run: echo uses: a/b@v4\n# { uses: a/b@v4 }\n- run: |\n    echo uses: a/b@v4\n\n    uses: x\n- name: x"
+    assert pins.check_text(text, "t.yml") == []
 
 
 def test_main_fails_when_no_workflow_files(tmp_path, capsys):

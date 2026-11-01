@@ -6,7 +6,7 @@ HACS installs the file `magic_card_utils.zip` from the release. That is the file
 
 ## Which releases can be checked
 
-Signed attestations (the proof the full check reads) exist from version 2026.10.12-beta.4 on. For that version and every later one, a failed full check means the file is not genuine: do not install it. A release before that version has no attestation, so the full check fails on it and only the quick check applies. Its author may be a person's name, because those releases were not all made by the workflow.
+Signed attestations (the proof the full check reads) exist from version 2026.10.12-beta.4 on. For that version and every later one, a failed full check means the file is not genuine: do not install it. No existing Utils release was made by the workflow, and releases before the first attested version have no attestation, so they can't be checked this way.
 
 ## Quick check, no tools
 
