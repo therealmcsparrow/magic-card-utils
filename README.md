@@ -40,6 +40,10 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 - Magic Card **2026.10.11-beta.2** or newer for template cards that non-admin users can see.
 - Magic Card **2026.10.12-beta.8** or newer for the Images tab and for library images on cards.
 
+## Check a genuine release
+
+Releases are built by a GitHub Actions workflow, and HACS installs the `magic_card_utils.zip` it attaches. Each release also carries an SBOM, `magic_card_utils.sbom.cdx.json`. You can check a download in the browser or with the GitHub CLI: see [Check a genuine release](documentation/security/check-a-genuine-release.md).
+
 ## Installation
 
 ### HACS (recommended)

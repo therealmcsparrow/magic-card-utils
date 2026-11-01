@@ -38,7 +38,7 @@ We handle reports on a best-effort basis. You will get a first reply within 7 da
 
 ## If a release is compromised
 
-Release tags are protected, and releases are built by the release workflow. If we find out that a published release has been tampered with, or that it contains a vulnerability that is being exploited, we do the following.
+Release tags are protected, and releases are built by the release workflow. You can check a download yourself: see [Check a genuine release](documentation/security/check-a-genuine-release.md). If we find out that a published release has been tampered with, or that it contains a vulnerability that is being exploited, we do the following.
 
 Within 24 hours of confirming it:
 
