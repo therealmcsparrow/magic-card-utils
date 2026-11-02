@@ -139,6 +139,10 @@
     "text": "Het voorbeeld kon niet worden weergegeven.",
     "hash": "aeade066"
   },
+  "mcu-panel.panel.forum-shot": {
+    "text": "Forumplaatje",
+    "hash": "de9aca8d"
+  },
   "mcu-panel.panel.icons": {
     "text": "Pictogrammen",
     "hash": "eae96e02"
@@ -170,6 +174,10 @@
   "mcu-panel.panel.linked-cards": {
     "text": "Gekoppelde kaarten",
     "hash": "1b795cc6"
+  },
+  "mcu-panel.panel.loading-the-forum-shot": {
+    "text": "Forumplaatje wordt geladen",
+    "hash": "a2cc7b19"
   },
   "mcu-panel.panel.lovelace-card-helpers-are-unavailable": {
     "text": "De Lovelace-kaarthulpmiddelen zijn pas beschikbaar nadat een dashboard is geopend.",
@@ -306,6 +314,14 @@
   "mcu-panel.panel.the-editor-files-could-not-be-loaded": {
     "text": "De editorbestanden konden niet uit Magic Card worden geladen. Laad de pagina opnieuw en probeer het nog eens.",
     "hash": "dd90f518"
+  },
+  "mcu-panel.panel.the-forum-shot-could-not-be-loaded-it": {
+    "text": "Het forumplaatje kon niet worden geladen. Het wordt met Magic Card meegeleverd als {file}: werk Magic Card bij naar {version} of nieuwer.",
+    "hash": "510fe6ba"
+  },
+  "mcu-panel.panel.the-forum-shot-needs-magic-card-or": {
+    "text": "Voor het forumplaatje is Magic Card {version} of nieuwer nodig. Werk Magic Card bij.",
+    "hash": "2db60bfd"
   },
   "mcu-panel.panel.the-magic-card-editor-could-not-be": {
     "text": "De Magic Card-editor kon niet worden geladen.",
