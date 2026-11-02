@@ -31,6 +31,7 @@ class FakeEl {
 globalThis.window = globalThis;
 window.addEventListener ||= () => {};
 window.removeEventListener ||= () => {};
+window.dispatchEvent ||= () => true;
 window.location = { href: "http://ha.local:8123/magic-card-utils", origin: "http://ha.local:8123", search: "" };
 globalThis.HTMLElement = FakeEl;
 globalThis.document = { createElement: (t) => new FakeEl(t), createElementNS: (ns, t) => new FakeEl(t), createTreeWalker: () => ({}), addEventListener() {} };

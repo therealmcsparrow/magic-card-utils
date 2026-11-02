@@ -6,9 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2026.10.12-beta.4] - 2026-11-02
+
+This is a pre-release. Everything works with Magic Card 2026.10.12-beta.14 or newer; in HACS, turn on **Show beta versions** to install it.
+
 ### Added
 
 -   **Forum shot.** The panel can turn one of your Magic Cards into a single picture to post in a forum, in light, dark or both, with an option for the Quiet, Living and Glow looks of animated icons. A privacy warning sits above the Download button. The picture is made in your browser and nothing leaves Home Assistant. See [Forum shot](documentation/panel/forum-shot.md).
+
+### Changed
+
+- The generated files `www/mc-i18n.js` and `www/mc-ui-kit.js` are rebuilt from Magic Card 2026.10.12-beta.14, and `www/VENDORED.md` lists the new checksums.
 
 ## [2026.10.12-beta.3] - 2026-10-30
 
