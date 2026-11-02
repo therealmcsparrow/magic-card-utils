@@ -118,7 +118,7 @@ test("a card older than the minimum names the minimum version", async () => {
   installCard({ version: "2026.10.12-beta.12" });
   const r = await makePanel()._ensureForumShot();
   assert.equal(r.ok, false);
-  assert.match(r.message, new RegExp(MIN.replace(/\./g, "\.")));
+  assert.ok(r.message.includes(MIN));
   assert.match(r.message, /needs Magic Card/);
 });
 
@@ -148,7 +148,7 @@ test("an element on another contract major shows the minimum version", async () 
   installCard({ contract: "2.0.0" });
   const r = await makePanel()._ensureForumShot();
   assert.equal(r.ok, false);
-  assert.match(r.message, new RegExp(MIN.replace(/\./g, "\.")));
+  assert.ok(r.message.includes(MIN));
 });
 
 test("no element and no usable URL names the file and the minimum, and the load is tried once", async () => {
@@ -160,7 +160,7 @@ test("no element and no usable URL names the file and the minimum, and the load 
   const b = await p._ensureForumShot();
   assert.equal(a.ok, false);
   assert.match(a.message, /magic-card-forum-shot\.js/);
-  assert.match(a.message, new RegExp(MIN.replace(/\./g, "\.")));
+  assert.ok(a.message.includes(MIN));
   assert.equal(b.message, a.message);
   assert.equal(p._forumLoad, first);
 });
