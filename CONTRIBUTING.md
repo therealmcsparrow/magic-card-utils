@@ -28,6 +28,10 @@ The integration needs Home Assistant 2024.7 or newer. The Animations and Themes 
 
 CI runs hassfest and HACS validation on every push and pull request, and once a week. Check the result on your pull request before you ask for a review.
 
+## Screenshots
+
+Screenshots in issues and pull requests are public. Before you attach one, follow [Screenshots for issues and pull requests](documentation/contributing/screenshots.md): it lists what must not be visible and how to strip the metadata from the file.
+
 ## Commit messages
 
 Write a plain description of what the commit does, with no prefix such as `feat:` or `fix:`. For example: `Return the theme list in the order it was saved`.

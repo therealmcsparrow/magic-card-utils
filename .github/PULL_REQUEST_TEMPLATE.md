@@ -24,7 +24,18 @@
 
 ## Screenshots
 
-<!-- For a panel change, attach a light and a dark mode screenshot. Delete this section if it does not apply. -->
+<!-- For a panel change, attach a light and a dark mode screenshot. Delete this section if it does not apply. Screenshots are public: see https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/contributing/screenshots.md for how to take and clean one. -->
+
+If you attach a screenshot, I checked that it shows none of these:
+
+- [ ] No household names (people, pets, address, rooms named after someone)
+- [ ] No entity IDs, such as `light.<name>`
+- [ ] No URLs, including the browser address bar
+- [ ] No IP addresses
+- [ ] No QR codes
+- [ ] No toasts or notifications
+- [ ] EXIF and other metadata stripped from the file
+- [ ] Taken on a demo Home Assistant with a throwaway user, not on my home setup
 
 ## Notes for the reviewer
 

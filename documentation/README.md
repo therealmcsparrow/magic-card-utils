@@ -10,6 +10,12 @@ This folder documents the Magic Card Utils integration: installing it, the sideb
 | [Panel](panel/README.md) | The Magic Card Templates sidebar panel: the Templates tab with its table, template view, editor and studio, the Animations tab, and the Themes tab |
 | [Concepts](concepts/README.md) | What a template is, how cards link to one, how linked cards are counted, the animation library, and where the data is stored |
 
+## Security
+
+| Folder | Covers |
+| --- | --- |
+| [Security](security/check-a-genuine-release.md) | How to check that a release came from the release workflow, in the browser or with the GitHub CLI |
+
 ## Reference
 
 | Folder | Covers |

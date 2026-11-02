@@ -1,5 +1,7 @@
 {
   "name": "Magic Card Utils",
   "render_readme": true,
+  "zip_release": true,
+  "filename": "magic_card_utils.zip",
   "homeassistant": "2024.7.0"
 }
