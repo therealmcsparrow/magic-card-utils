@@ -26,5 +26,5 @@ Everything in the panel updates live. When a template or animation changes anywh
 - [Themes](themes.md): what the tab needs, how the editor loads, the `?theme=` link, which files it reads and writes, and importing a theme file.
 - [Library](library.md): icons, shapes, animations and theme presets, the Icons and Shapes tabs, import and export, and the icon picker.
 - [Images](images.md): the Images tab, its requirements, who can change images, creating an image, Export all images and the limits.
-- [Forum shot](forum-shot.md): picking a card, light and dark, the three looks, the privacy warning, cards that cannot be picked and what the area sends.
+- [Forum shot](forum-shot.md): the card table, light and dark, the three looks, the privacy warning, locked cards, fonts and what the area sends.
 - [Languages](languages.md): English (UK), English (US) and Dutch, and what follows your profile language.
