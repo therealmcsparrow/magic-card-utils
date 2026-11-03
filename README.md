@@ -22,7 +22,7 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 - **Animation library:** keep the custom animations from the Magic Card animation studio in one place, for every card and every user.
 - **Icon and shape library:** draw icons and shapes without a card, in the Library, Icons and Shapes tabs. Saved icons appear in Home Assistant's icon picker after a reload, and Magic Card draws them in full colour. Home Assistant's own cards show them as one-colour silhouettes.
 - **Image library:** draw images in Magic Card's image editor, keep them in the Images tab and show them in image modules and background layers. Saved images are included in Home Assistant backups, and every user can see them. See [Images](documentation/panel/images.md) and the [Images section](#images) below.
-- **Forum shot:** turn one of your Magic Cards into a picture to post in a forum, in light, dark or both. The picture is made in your browser and nothing leaves Home Assistant. See [Forum shot](documentation/panel/forum-shot.md).
+- **Forum shot:** turn one of your Magic Cards into a picture to post in a forum, in light, dark or both. The picture is made in your browser. For a card with web fonts, your browser asks the font sites shown on the tab for them. See [Forum shot](documentation/panel/forum-shot.md).
 - **Theme presets:** keep your own theme presets in the shared library, and import or export them as files.
 - **Import and export:** move icons, shapes, animations and theme presets between Home Assistant installations. Imports are size-limited and checked before anything is saved. See [Library](documentation/panel/library.md).
 - **Theme editor:** create and edit Home Assistant themes in a Themes tab, with a live preview and a Try on dashboard button. Saves write the theme file to `/config/themes`.
@@ -116,7 +116,7 @@ The [documentation](https://github.com/therealmcsparrow/magic-card-utils/tree/ma
 | --- | --- |
 | [Getting started](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/getting-started/README.md) | Requirements, installing (including the pre-release), setting up, updating and removing |
 | [Panel](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/README.md) | All seven tabs |
-| [Forum shot](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/forum-shot.md) | Picking a card, the three looks, the privacy warning and what the area sends |
+| [Forum shot](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/forum-shot.md) | The card table, locked cards, fonts, the three looks, the privacy warning and what the area sends |
 | [Library](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/library.md) | Icons, shapes, animations and theme presets, the Icons and Shapes tabs, import and export, and the icon picker |
 | [Languages](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/languages.md) | English (UK), English (US) and Dutch, and what follows your profile language |
 | [Concepts](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/concepts/README.md) | Templates and linking, linked-card counting, the animation library and where the data is stored |
