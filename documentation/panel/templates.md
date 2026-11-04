@@ -21,6 +21,8 @@ The Templates tab lists every template saved in Home Assistant. A template is a 
 | Last Updated | When the template was last saved |
 | Actions | The buttons described below |
 
+The **Search templates** field above the table keeps only the templates whose name, description or card type holds the text you type. Upper and lower case don't matter. When nothing matches, the table says "No templates match your search."
+
 Without templates the tab shows "No templates saved yet." Templates are usually created from the Magic Card editor on a dashboard, with its template bar.
 
 ## Actions

@@ -227,6 +227,10 @@
     "text": "No config to preview.",
     "hash": "2280220b"
   },
+  "mcu-panel.panel.no-templates-match-search": {
+    "text": "No templates match your search.",
+    "hash": "daae35aa"
+  },
   "mcu-panel.panel.no-templates-saved-yet": {
     "text": "No templates saved yet.",
     "hash": "6d4c6b7c"
@@ -270,6 +274,10 @@
   "mcu-panel.panel.saving": {
     "text": "Saving…",
     "hash": "23e39291"
+  },
+  "mcu-panel.panel.search-templates": {
+    "text": "Search templates",
+    "hash": "04b9835b"
   },
   "mcu-panel.panel.shapes": {
     "text": "Shapes",
