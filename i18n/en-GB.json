@@ -329,6 +329,11 @@
     "note": "Message in the template preview when the template has no card settings to show.",
     "max": 35
   },
+  "mcu-panel.panel.no-templates-match-search": {
+    "text": "No templates match your search.",
+    "note": "Shown in the templates table when the search matches no template.",
+    "max": 80
+  },
   "mcu-panel.panel.no-templates-saved-yet": {
     "text": "No templates saved yet.",
     "note": "Empty state of the Templates tab when no template exists.",
@@ -389,6 +394,11 @@
     "text": "Saving…",
     "note": "Label of the save button in the template editor while the save is running.",
     "max": 20
+  },
+  "mcu-panel.panel.search-templates": {
+    "text": "Search templates",
+    "note": "Label of the search field above the templates table. It filters rows by name, description or card type.",
+    "max": 30
   },
   "mcu-panel.panel.shapes": {
     "text": "Shapes",

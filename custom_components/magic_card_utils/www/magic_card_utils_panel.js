@@ -472,6 +472,7 @@ class MagicCardUtilsPanel extends LitElement {
       route: { type: Object },
       panel: { type: Object },
       _templates: { type: Array, state: true },
+      _templateFilter: { type: String, state: true },
       _error: { type: String, state: true },
       // template detail overlay
       _viewRow: { type: Object, state: true },
@@ -516,6 +517,7 @@ class MagicCardUtilsPanel extends LitElement {
   constructor() {
     super();
     this._templates = [];
+    this._templateFilter = "";
     this._error = "";
     this._viewRow = null;
     this._viewMode = "yaml";
@@ -2101,6 +2103,14 @@ class MagicCardUtilsPanel extends LitElement {
     `;
   }
 
+  _filteredTemplates() {
+    const q = (this._templateFilter || "").trim().toLocaleLowerCase();
+    if (!q) return this._templates;
+    return this._templates.filter((row) =>
+      [row.name, row.description, row.card_type].some((v) => String(v || "").toLocaleLowerCase().includes(q))
+    );
+  }
+
   _renderTemplatesTab() {
     return html`
       <div class="content">
@@ -2110,6 +2120,11 @@ class MagicCardUtilsPanel extends LitElement {
         ${this._templates.length === 0
           ? html`<div class="empty"><strong>${tr("mcu-panel.panel.no-templates-saved-yet")}</strong></div>`
           : html`
+              <div class="field templates-search">
+                <div class="field-head"><label for="mcu-template-search">${tr("mcu-panel.panel.search-templates")}</label></div>
+                <input id="mcu-template-search" class="input" type="search" .value=${this._templateFilter}
+                  @input=${(e) => (this._templateFilter = e.target.value)} />
+              </div>
               <table class="templates-table">
                 <thead>
                   <tr>
@@ -2122,7 +2137,7 @@ class MagicCardUtilsPanel extends LitElement {
                   </tr>
                 </thead>
                 <tbody>
-                  ${this._templates.map(
+                  ${this._filteredTemplates().map(
                     (row) => html`
                       <tr>
                         <td class="col-name">
@@ -2185,6 +2200,9 @@ class MagicCardUtilsPanel extends LitElement {
                       </tr>
                     `
                   )}
+                  ${this._filteredTemplates().length
+                    ? ""
+                    : html`<tr><td colspan="6" class="secondary">${tr("mcu-panel.panel.no-templates-match-search")}</td></tr>`}
                 </tbody>
               </table>
             `}
@@ -2550,9 +2568,12 @@ class MagicCardUtilsPanel extends LitElement {
         height: calc(100vh - 64px - 49px);
         min-height: 480px;
       }
+      .templates-search {
+        max-width: 360px;
+      }
       .templates-table {
         width: 100%;
-        border-collapse: collapse;
+        border-spacing: 0;
         background: var(--mc-surface);
         border: 1px solid var(--mc-divider);
         border-radius: var(--mc-radius-lg);

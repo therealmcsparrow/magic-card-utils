@@ -227,6 +227,10 @@
     "text": "Geen configuratie om te bekijken.",
     "hash": "2280220b"
   },
+  "mcu-panel.panel.no-templates-match-search": {
+    "text": "Geen sjablonen gevonden voor je zoekopdracht.",
+    "hash": "daae35aa"
+  },
   "mcu-panel.panel.no-templates-saved-yet": {
     "text": "Nog geen sjablonen opgeslagen.",
     "hash": "6d4c6b7c"
@@ -270,6 +274,10 @@
   "mcu-panel.panel.saving": {
     "text": "Bezig met opslaan…",
     "hash": "23e39291"
+  },
+  "mcu-panel.panel.search-templates": {
+    "text": "Sjablonen zoeken",
+    "hash": "04b9835b"
   },
   "mcu-panel.panel.shapes": {
     "text": "Vormen",
