@@ -6,11 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2026.10.12-beta.5] - 2026-11-04
+
+This is a pre-release. Everything works with Magic Card 2026.10.12-beta.16 or newer; in HACS, turn on **Show beta versions** to install it.
+
 ### Changed
 
 -   **Forum shot.** Cards are listed in a table with the columns Card, Dashboard, View and Status. Click a header to sort, and click a row to pick a card. A card that cannot be used shows Locked with the reason. Google fonts and font addresses in a card are now allowed: the tab shows which sites your browser will ask for the fonts, and the privacy notice above Download says what those requests show. If a font cannot be loaded, no picture is saved. The "nothing leaves Home Assistant" claim is gone from the docs, because font requests go to the font sites. See [Forum shot](documentation/panel/forum-shot.md).
 -   **Search templates.** A search field above the Templates table keeps only the templates whose name, description or card type holds the text you type. See [Templates tab](documentation/panel/templates.md#the-table).
 -   **Templates table frame.** The rounded frame around the Templates table now shows in Chrome and Edge too.
+-   The generated file `www/mc-ui-kit.js` is rebuilt from Magic Card 2026.10.12-beta.16, and `www/VENDORED.md` lists the new checksum.
 
 ## [2026.10.12-beta.4] - 2026-11-02
 
