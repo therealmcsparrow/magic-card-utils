@@ -107,7 +107,7 @@ preset-transfer 1.0.0 r2 context 'mcu-panel'):
   The three numbers decide first; with equal numbers a release is newer than its pre-releases and two
   pre-releases compare field by field (numbers numerically), so 2026.10.11-beta.1 and 2026.10.11 both
   satisfy a minimum of 2026.10.11-beta.1. Too old -> "Drawing icons and shapes here needs Magic Card
-  <MIN_MAGIC_CARD_FOR_EDITORS> or newer. Update Magic Card in HACS." Internal sanity checks fail into that
+  <MIN_MAGIC_CARD_FOR_EDITORS> or newer. Update Magic Card." Internal sanity checks fail into that
   same message without naming a cause: loadEditor or a loader missing (read from window.MagicCard again
   after loadEditor(), which adds them to it), and customElements.get(tag).contractRevision (also
   <mc-library-view>) missing or < EDITORS_MIN_CONTRACT_REVISION. Two plain messages remain: no Magic Card

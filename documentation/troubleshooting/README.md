@@ -5,7 +5,7 @@ Find the message you see, or the symptom, below.
 - [Messages in the panel](#messages-in-the-panel)
 - [The panel isn't in the sidebar](#the-panel-isnt-in-the-sidebar)
 - [Changes don't show after an update](#changes-dont-show-after-an-update)
-- [The pre-release isn't in HACS](#the-pre-release-isnt-in-hacs)
+- [The pre-release isn't listed](#the-pre-release-isnt-listed)
 - [A new icon is missing from the icon picker](#a-new-icon-is-missing-from-the-icon-picker)
 - [An icon is one colour in a Home Assistant card](#an-icon-is-one-colour-in-a-home-assistant-card)
 - [Delete is disabled](#delete-is-disabled)
@@ -17,17 +17,17 @@ Find the message you see, or the symptom, below.
 
 | Message | Cause | Fix |
 | --- | --- | --- |
-| Magic Card isn't installed. Install it from HACS and add it as a dashboard resource. | No dashboard resource ends in `/magic-card.js` | Install Magic Card with HACS, or add its resource under **Settings → Dashboards → ⋮ → Resources** as a JavaScript module. Then reload the panel. |
+| Magic Card isn't installed. Install it from the Marketplace or HACS and add it as a dashboard resource. | No dashboard resource ends in `/magic-card.js` | Install Magic Card through the Marketplace or HACS, or add its resource under **Settings → Dashboards → ⋮ → Resources** as a JavaScript module. Then reload the panel. |
 | Install Magic Card to draw icons and shapes here. | The Library, Icons or Shapes tab can't find Magic Card | Install Magic Card as above, then reload the panel. |
-| Drawing icons and shapes here needs Magic Card 2026.10.11-beta.1 or newer. Update Magic Card in HACS. | The installed Magic Card is older than 2026.10.11-beta.1. A Magic Card that doesn't report its version also counts as older. | Update Magic Card in HACS. For the pre-release, turn on **Show beta versions** (see [The pre-release isn't in HACS](#the-pre-release-isnt-in-hacs)). Reload the browser tab. See [Version check](../compatibility/README.md#which-magic-card-version-you-need). |
+| Drawing icons and shapes here needs Magic Card 2026.10.11-beta.1 or newer. Update Magic Card. | The installed Magic Card is older than 2026.10.11-beta.1. A Magic Card that doesn't report its version also counts as older. | Update Magic Card. For a pre-release, see [The pre-release isn't listed](#the-pre-release-isnt-listed). Reload the browser tab. See [Version check](../compatibility/README.md#which-magic-card-version-you-need). |
 | Install Magic Card to draw images here. | The Images tab can't find Magic Card | Install Magic Card as above, then reload the panel. |
-| Drawing images here needs Magic Card 2026.10.12-beta.8 or newer. Update Magic Card in HACS. | The installed Magic Card is older than 2026.10.12-beta.8, or doesn't report its version | Update Magic Card in HACS, then reload the browser tab. For the pre-release, turn on **Show beta versions** (see [The pre-release isn't in HACS](#the-pre-release-isnt-in-hacs)). See [Version check](../compatibility/README.md#which-version-the-editors-need). |
+| Drawing images here needs Magic Card 2026.10.12-beta.8 or newer. Update Magic Card. | The installed Magic Card is older than 2026.10.12-beta.8, or doesn't report its version | Update Magic Card, then reload the browser tab. For a pre-release, see [The pre-release isn't listed](#the-pre-release-isnt-listed). See [Version check](../compatibility/README.md#which-version-the-editors-need). |
 | Picture not available | An image module or background layer names an image that isn't in the library | Check the id after `mcu-image:` in your YAML, or choose another image. |
 | The library is full. | The Images tab lists 200 images, the most the library holds | Delete an image you don't need, then try again. Export it first if you want to keep a copy. |
 | The library is full (200 images). Delete one to add another. | You saved a new image in the image editor while the library holds 200 | Delete an image you don't need, then save again. |
 | The editor files could not be loaded from Magic Card. Reload the page and try again. | Magic Card is installed, but its editor files didn't load | Reload the page. If it stays, open the browser console (F12) and check for a failed file, then update Magic Card. |
 | Magic Card could not be loaded from *url*. | The resource exists but the file failed to load | Open the URL in your browser to check it exists. For a manual install, check the file is at that path. The browser console (F12) has the exact error. |
-| Magic Card *version* is too old for Magic Card Utils (…). Update Magic Card. | The installed Magic Card has an older contract version | Update Magic Card in HACS and reload. See [Version check](../compatibility/README.md#version-check). |
+| Magic Card *version* is too old for Magic Card Utils (…). Update Magic Card. | The installed Magic Card has an older contract version | Update Magic Card and reload. See [Version check](../compatibility/README.md#version-check). |
 | Only administrators can create or change icons and shapes. | You are signed in as a non-admin user | Sign in as an admin user. |
 | The Magic Card editor could not be loaded. | Magic Card loaded, but creating its editor failed | Reload the panel. If it stays, check the browser console and update Magic Card. |
 | Lovelace card helpers are unavailable until a dashboard has been opened. | Previewing a template for a card type other than Magic Card, before any dashboard was opened in this browser tab | Open any dashboard, then come back to the panel |
@@ -47,13 +47,15 @@ Find the message you see, or the symptom, below.
 
 ## Changes don't show after an update
 
-1. Make sure HACS installed the new version: the version in HACS should match the release.
+1. Make sure the new version is installed: the version in the Marketplace or HACS should match the release.
 2. Restart Home Assistant. The panel's script URL gets a new timestamp only when Home Assistant starts, so without a restart your browser keeps the old panel.
 3. Reload the browser tab, with Ctrl+F5 on a desktop.
 
-## The pre-release isn't in HACS
+## The pre-release isn't listed
 
-Pre-releases are hidden until you turn on **Show beta versions** in HACS settings. Turn it on, then open Magic Card and choose **Redownload** from the menu (⋮) to pick the newest 2026.10.11-beta version. See [Magic Card pre-release](../../README.md#magic-card-pre-release).
+In the Marketplace, pre-releases are hidden until you open Magic Card and choose **Include pre-releases** from the menu (⋮). Then choose **Install another version** to pick the newest 2026.10.11-beta version. The list holds the newest 30 releases.
+
+In HACS, pre-releases are hidden until you turn on **Show beta versions** in the settings. Turn it on, then open Magic Card and choose **Redownload** from the menu (⋮) to pick the newest 2026.10.11-beta version. See [Magic Card pre-release](../../README.md#magic-card-pre-release).
 
 ## A new icon is missing from the icon picker
 

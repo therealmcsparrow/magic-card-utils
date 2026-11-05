@@ -4,7 +4,7 @@ The Themes tab is the Magic Card theme editor, shown in the Magic Card Templates
 
 ## Requirements
 
--   Magic Card 2026.10.06 or newer, with `magic-card-theme-editor.js` in the same folder as `magic-card.js`. HACS installs it there. If the file or the element is missing, the tab shows a message and a **Try again** button.
+-   Magic Card 2026.10.06 or newer, with `magic-card-theme-editor.js` in the same folder as `magic-card.js`. The Marketplace and HACS install it there. If the file or the element is missing, the tab shows a message and a **Try again** button.
 -   An admin user. The panel and its commands are for admins only.
 -   The include lines in `configuration.yaml` before you can save. The tab shows them when they are missing, and the editor's own page explains them.
 

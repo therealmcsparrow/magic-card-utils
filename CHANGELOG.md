@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+-   **Home Assistant Marketplace.** The install, update, pre-release and troubleshooting steps now cover the Marketplace in Home Assistant 2026.11 next to HACS, and the bug report form lists it as an install method. See [Getting started](documentation/getting-started/README.md#install-through-the-marketplace).
+-   **Panel messages.** The message for a missing Magic Card now mentions the Marketplace too. The messages for a Magic Card that is too old now say "Update Magic Card."
+-   **Forum shot.** Tests now cover a Magic Card installed under the Marketplace path `/local/community/magic-card/`.
+
 ## [2026.10.12-beta.5] - 2026-11-04
 
 This is a pre-release. Everything works with Magic Card 2026.10.12-beta.16 or newer; in HACS, turn on **Show beta versions** to install it.

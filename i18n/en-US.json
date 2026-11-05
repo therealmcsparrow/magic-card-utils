@@ -84,12 +84,12 @@
     "hash": "48845bff"
   },
   "mcu-panel.panel.drawing-icons-and-shapes-here-needs": {
-    "text": "Drawing icons and shapes here needs Magic Card {version} or newer. Update Magic Card in HACS.",
-    "hash": "7bd8082a"
+    "text": "Drawing icons and shapes here needs Magic Card {version} or newer. Update Magic Card.",
+    "hash": "c4aa6503"
   },
   "mcu-panel.panel.drawing-images-here-needs-magic-card": {
-    "text": "Drawing images here needs Magic Card {version} or newer. Update Magic Card in HACS.",
-    "hash": "3be5111c"
+    "text": "Drawing images here needs Magic Card {version} or newer. Update Magic Card.",
+    "hash": "0dcdf007"
   },
   "mcu-panel.panel.duplicate": {
     "text": "Duplicate",
@@ -188,8 +188,8 @@
     "hash": "a1a97249"
   },
   "mcu-panel.panel.magic-card-isn-t-installed-install-it": {
-    "text": "Magic Card isn't installed. Install it from HACS and add it as a dashboard resource.",
-    "hash": "cd61b1ec"
+    "text": "Magic Card isn't installed. Install it from the Marketplace or HACS and add it as a dashboard resource.",
+    "hash": "3de2c996"
   },
   "mcu-panel.panel.magic-card-utils": {
     "text": "Magic Card Utils",

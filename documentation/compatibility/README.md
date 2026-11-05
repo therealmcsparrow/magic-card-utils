@@ -12,7 +12,7 @@ Home Assistant doesn't load dashboard resources on custom panels, so the panel l
 
 | Part | Loaded from |
 | --- | --- |
-| Card and editor | Your dashboard resource whose URL ends in `/magic-card.js`. With HACS that's `/hacsfiles/magic-card/magic-card.js`. |
+| Card and editor | Your dashboard resource whose URL ends in `/magic-card.js`. With the Marketplace that's `/local/community/magic-card/magic-card.js`, with HACS `/hacsfiles/magic-card/magic-card.js`. |
 | Theme editor | `magic-card-theme-editor.js` in the same folder as `magic-card.js`, with the same query string. Loaded when you open the Themes tab. |
 | Editor | Created with the card's own `getConfigElement()`, the same way a dashboard does. This keeps working when Magic Card loads its editor on demand. |
 | Animation studio | `magic-card-animation-studio.js` in the same folder as `magic-card.js`, with the same query string. Its drawing tools load `magic-card-path-canvas.<hash>.js` and `magic-card-path-core.<hash>.js` from that folder too. |
@@ -65,6 +65,6 @@ The Library, Icons and Shapes tabs check the installed Magic Card's `window.Magi
 - Pre-releases compare field by field. `2026.10.11-beta.2` is newer than `2026.10.11-beta.1`. `2026.10.11-beta` is older than `2026.10.11-beta.1`, because it has fewer parts.
 - Build metadata after a `+` is ignored.
 
-Magic Card versions below the minimum, or a Magic Card that doesn't report its version, show this message in place of the editors: "Drawing icons and shapes here needs Magic Card 2026.10.11-beta.1 or newer. Update Magic Card in HACS." See [Troubleshooting](../troubleshooting/README.md#messages-in-the-panel).
+Magic Card versions below the minimum, or a Magic Card that doesn't report its version, show this message in place of the editors: "Drawing icons and shapes here needs Magic Card 2026.10.11-beta.1 or newer. Update Magic Card." See [Troubleshooting](../troubleshooting/README.md#messages-in-the-panel).
 
-The Images tab uses the same check with its own minimum, 2026.10.12-beta.8. Magic Card versions below it, or a Magic Card that doesn't report its version, show "Drawing images here needs Magic Card 2026.10.12-beta.8 or newer. Update Magic Card in HACS." in place of the editor. The same comparison rules apply.
+The Images tab uses the same check with its own minimum, 2026.10.12-beta.8. Magic Card versions below it, or a Magic Card that doesn't report its version, show "Drawing images here needs Magic Card 2026.10.12-beta.8 or newer. Update Magic Card." in place of the editor. The same comparison rules apply.
