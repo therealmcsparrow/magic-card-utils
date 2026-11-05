@@ -33,8 +33,8 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 ## Requirements
 
 - Home Assistant **2024.7** or newer.
-- The integration icon and logo show in Home Assistant from **2026.3**. In the HACS list they show from **HACS 2026.11**; until then HACS shows a placeholder, because a HACS fix is still pending. Older versions show a placeholder.
-- [Magic Card](https://github.com/therealmcsparrow/magic-card), installed with HACS (or added as a dashboard resource of type JavaScript module). The panel uses the installed Magic Card; Magic Card Utils doesn't ship its own copy.
+- The integration icon and logo show in Home Assistant from **2026.3**. They also show in the Marketplace list on Home Assistant 2026.11 and newer. Older versions and the older HACS list show a placeholder.
+- [Magic Card](https://github.com/therealmcsparrow/magic-card), installed through the Marketplace or HACS (or added as a dashboard resource of type JavaScript module). The panel uses the installed Magic Card; Magic Card Utils doesn't ship its own copy.
 - Magic Card **2026.10.01** or newer for the Animations tab.
 - Magic Card **2026.10.06** or newer for the Themes tab.
 - Magic Card **2026.10.11-beta.1** or newer for the Library, Icons and Shapes tabs and for icons in Home Assistant's icon picker.
@@ -43,15 +43,24 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 
 ## Check a genuine release
 
-Releases are built by a GitHub Actions workflow, and HACS installs the `magic_card_utils.zip` it attaches. Each release also carries an SBOM, `magic_card_utils.sbom.cdx.json`. You can check a download in the browser or with the GitHub CLI: see [Check a genuine release](documentation/security/check-a-genuine-release.md).
+Releases are built by a GitHub Actions workflow, and the Marketplace and HACS install the `magic_card_utils.zip` it attaches. Each release also carries an SBOM, `magic_card_utils.sbom.cdx.json`. You can check a download in the browser or with the GitHub CLI: see [Check a genuine release](documentation/security/check-a-genuine-release.md).
 
 ## Installation
 
-### HACS (recommended)
-
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=therealmcsparrow&repository=magic-card-utils&category=integration)
 
-Click the button above to open the repository in HACS, then click **Download** and restart Home Assistant. Or add it by hand:
+Click the button above to open the repository on your own Home Assistant. On 2026.11 or newer it opens the Marketplace. On older versions it opens HACS, which must be installed. Install it and restart Home Assistant. Or add it by hand:
+
+### Marketplace (Home Assistant 2026.11 or newer)
+
+Magic Card Utils isn't in the Marketplace catalogue, so you add it by its link.
+
+1. Go to **Settings → Marketplace**.
+2. Choose **Add from link** and enter `https://github.com/therealmcsparrow/magic-card-utils`. The first time, Home Assistant asks you to accept its risk notice and to connect GitHub.
+3. Install **Magic Card Utils**.
+4. Restart Home Assistant.
+
+### HACS (Home Assistant before 2026.11)
 
 1. Open HACS in Home Assistant.
 2. Open the menu (⋮) in the top right and select **Custom repositories**.
@@ -61,9 +70,17 @@ Click the button above to open the repository in HACS, then click **Download** a
 
 ### Magic Card pre-release
 
-The Images tab needs Magic Card 2026.10.12-beta.8 or newer, which is a pre-release. The Library, Icons and Shapes tabs and template cards for non-admin users need Magic Card 2026.10.11-beta.2 or newer. HACS hides pre-releases unless you turn on **Show beta versions**.
+The Images tab needs Magic Card 2026.10.12-beta.8 or newer, which is a pre-release. The Library, Icons and Shapes tabs and template cards for non-admin users need Magic Card 2026.10.11-beta.2 or newer. The Marketplace and HACS hide pre-releases until you ask for them.
 
-1. In HACS, open **Settings** and turn on **Show beta versions**.
+In the Marketplace:
+
+1. Open **Magic Card**, choose **Include pre-releases** from the menu (⋮).
+2. Choose **Install another version** from the same menu and select the newest `2026.10.12-beta` version.
+3. Reload the browser tab.
+
+In HACS:
+
+1. Open **Settings** and turn on **Show beta versions**.
 2. Open **Magic Card**, choose **Redownload** from the menu (⋮), and select the newest `2026.10.12-beta` version.
 3. Reload the browser tab.
 

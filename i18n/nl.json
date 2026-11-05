@@ -84,12 +84,12 @@
     "hash": "48845bff"
   },
   "mcu-panel.panel.drawing-icons-and-shapes-here-needs": {
-    "text": "Om hier pictogrammen en vormen te tekenen is Magic Card {version} of nieuwer nodig. Werk Magic Card bij in HACS.",
-    "hash": "7bd8082a"
+    "text": "Om hier pictogrammen en vormen te tekenen is Magic Card {version} of nieuwer nodig. Werk Magic Card bij.",
+    "hash": "c4aa6503"
   },
   "mcu-panel.panel.drawing-images-here-needs-magic-card": {
-    "text": "Om hier afbeeldingen te tekenen is Magic Card {version} of nieuwer nodig. Werk Magic Card bij in HACS.",
-    "hash": "3be5111c"
+    "text": "Om hier afbeeldingen te tekenen is Magic Card {version} of nieuwer nodig. Werk Magic Card bij.",
+    "hash": "0dcdf007"
   },
   "mcu-panel.panel.duplicate": {
     "text": "Dupliceren",
@@ -188,8 +188,8 @@
     "hash": "a1a97249"
   },
   "mcu-panel.panel.magic-card-isn-t-installed-install-it": {
-    "text": "Magic Card is niet geïnstalleerd. Installeer het via HACS en voeg het toe als dashboardresource.",
-    "hash": "cd61b1ec"
+    "text": "Magic Card is niet geïnstalleerd. Installeer het via de Marketplace of HACS en voeg het toe als dashboardresource.",
+    "hash": "3de2c996"
   },
   "mcu-panel.panel.magic-card-utils": {
     "text": "Magic Card Utils",

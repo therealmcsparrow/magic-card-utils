@@ -82,7 +82,7 @@ The panel imports `t`, `tx` and `locale` from `mc-i18n-panel.js`, already bound 
 | Files | `mc-i18n.js`, `mc-i18n-panel.js` |
 | Magic Card commit | the Magic Card main commit written in `.magic-card-ref` (2026.10.12-beta.16), for both files |
 | SHA-256 `mc-i18n.js` | `aefa56ac90aed1d114571fe8db490c90365dcc072e0db57ecabd7e058f0f92a5` |
-| SHA-256 `mc-i18n-panel.js` | `a2b1ee29d8534c2c74168c9f17ee028c92b0a9dbae6a961b5ffa0a9c84723e2b` |
+| SHA-256 `mc-i18n-panel.js` | `e2b4a8d550f8e39b0d4fab605f52ece43430371c3a296dc23aec3d2b918bbf60` |
 | Sources in this repo | `magic_card_utils_panel.js` (the `tr()` calls), `i18n/en-GB.json` (English, notes and length limits), `i18n/nl.json` (written by hand, with the hash of the English it was made from), `i18n/en-US.json` (generated) |
 
 The exporter reads the panel source and runs the drift checks: every message is a literal, has an en-US and a nl

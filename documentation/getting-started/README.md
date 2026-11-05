@@ -1,6 +1,7 @@
 # Getting started
 
 - [Requirements](#requirements)
+- [Install through the Marketplace](#install-through-the-marketplace)
 - [Install with HACS](#install-with-hacs)
 - [Install the Magic Card pre-release](#install-the-magic-card-pre-release)
 - [Install by hand](#install-by-hand)
@@ -16,10 +17,23 @@
 | --- | --- | --- |
 | Home Assistant | 2024.7 or newer | The integration serves its panel with `async_register_static_paths`, added in 2024.7. HACS refuses to install it on older versions. |
 | [Magic Card](https://github.com/therealmcsparrow/magic-card) | Any version for templates; 2026.10.01 or newer for the Animations tab; 2026.10.11-beta.1 or newer for the Library, Icons and Shapes tabs; Magic Card 2026.10.12-beta.8 or newer for the Images tab | The panel uses the installed Magic Card for its editor, studio, preview and animation studio. Magic Card Utils doesn't ship its own copy. See [Magic Card compatibility](../compatibility/README.md). |
-| Magic Card as a dashboard resource | Type JavaScript module | The panel finds Magic Card through your dashboard resources. HACS adds the resource for you. |
+| Magic Card as a dashboard resource | Type JavaScript module | The panel finds Magic Card through your dashboard resources. The Marketplace and HACS add the resource for you. |
 | An admin user | | The panel is only in the sidebar of admin users, and the template commands need an admin. |
 
+## Install through the Marketplace
+
+On Home Assistant 2026.11 or newer:
+
+1. Go to **Settings → Marketplace**.
+2. Choose **Add from link** and enter `https://github.com/therealmcsparrow/magic-card-utils`. The first time, Home Assistant asks you to accept its risk notice and to connect GitHub.
+3. Install **Magic Card Utils**.
+4. Restart Home Assistant.
+
+Add and install `https://github.com/therealmcsparrow/magic-card` the same way.
+
 ## Install with HACS
+
+On Home Assistant before 2026.11:
 
 1. Open HACS in Home Assistant.
 2. Open the menu (⋮) in the top right and select **Custom repositories**.
@@ -27,13 +41,21 @@
 4. Search for **Magic Card Utils** in HACS and click **Download**.
 5. Restart Home Assistant.
 
-Install Magic Card in HACS as well. The Images tab needs Magic Card 2026.10.12-beta.8 or newer. If your Magic Card is older, the tab says so and asks you to update Magic Card in HACS.
+Install Magic Card in HACS as well. The Images tab needs Magic Card 2026.10.12-beta.8 or newer. If your Magic Card is older, the tab says so and asks you to update Magic Card.
 
 ## Install the Magic Card pre-release
 
-The Library, Icons and Shapes tabs and template cards for non-admin users need Magic Card 2026.10.11-beta.2 or newer. Magic Card 2026.10.11 is still a pre-release, and HACS hides it until you turn on **Show beta versions**.
+The Library, Icons and Shapes tabs and template cards for non-admin users need Magic Card 2026.10.11-beta.2 or newer. Magic Card 2026.10.11 is still a pre-release, and the Marketplace and HACS hide it until you ask for pre-releases.
 
-1. In HACS, open **Settings** and turn on **Show beta versions**.
+In the Marketplace:
+
+1. Open **Magic Card**, choose **Include pre-releases** from the menu (⋮).
+2. Choose **Install another version** from the same menu and select the newest `2026.10.11-beta` version.
+3. Reload the browser tab.
+
+In HACS:
+
+1. Open **Settings** and turn on **Show beta versions**.
 2. Open **Magic Card**, choose **Redownload** from the menu (⋮), and select the newest `2026.10.11-beta` version.
 3. Reload the browser tab.
 
@@ -69,7 +91,7 @@ The image is listed in the Images tab. To show it in a card, refer to it in YAML
 
 ## Update
 
-1. In HACS, open **Magic Card Utils** and choose **Update information** in the menu (⋮) if the new version doesn't show yet.
+1. In the Marketplace, open **Magic Card Utils** and choose **Refresh information** in the menu (⋮) if the new version doesn't show yet. In HACS, the menu item is **Update information**.
 2. Click **Update**.
 3. Restart Home Assistant.
 
@@ -78,7 +100,7 @@ The restart matters for the panel too. Its script URL carries a timestamp from w
 ## Remove
 
 1. Delete the integration under **Settings → Devices & Services**.
-2. Remove it in HACS, or delete `config/custom_components/magic_card_utils` by hand.
+2. Remove it in the Marketplace or HACS, or delete `config/custom_components/magic_card_utils` by hand.
 3. Restart Home Assistant.
 
 Removing the integration doesn't delete your templates and animations. To remove them as well, delete the two storage files listed in [Where the data is stored](../concepts/storage.md) while Home Assistant is stopped.

@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Only the latest release receives security fixes. Releases use CalVer (for example `2026.10.08`). Update through HACS before you report a problem.
+Only the latest release receives security fixes. Releases use CalVer (for example `2026.10.08`). Update through the Marketplace or HACS before you report a problem.
 
 ## Status of this project
 

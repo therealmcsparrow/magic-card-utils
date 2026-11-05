@@ -124,7 +124,7 @@
     "max": 15
   },
   "mcu-panel.panel.drawing-icons-and-shapes-here-needs": {
-    "text": "Drawing icons and shapes here needs Magic Card {version} or newer. Update Magic Card in HACS.",
+    "text": "Drawing icons and shapes here needs Magic Card {version} or newer. Update Magic Card.",
     "note": "Notice in the Icons and Shapes tabs when the installed Magic Card is too old. {version} is the lowest Magic Card version that can draw them.",
     "max": 150,
     "vars": {
@@ -132,7 +132,7 @@
     }
   },
   "mcu-panel.panel.drawing-images-here-needs-magic-card": {
-    "text": "Drawing images here needs Magic Card {version} or newer. Update Magic Card in HACS.",
+    "text": "Drawing images here needs Magic Card {version} or newer. Update Magic Card.",
     "note": "Notice in the Images tab when the installed Magic Card is too old. {version} is the lowest Magic Card version that can draw images.",
     "max": 135,
     "vars": {
@@ -269,7 +269,7 @@
     }
   },
   "mcu-panel.panel.magic-card-isn-t-installed-install-it": {
-    "text": "Magic Card isn't installed. Install it from HACS and add it as a dashboard resource.",
+    "text": "Magic Card isn't installed. Install it from the Marketplace or HACS and add it as a dashboard resource.",
     "note": "Notice in the template editor and preview when Magic Card is not installed.",
     "max": 135
   },

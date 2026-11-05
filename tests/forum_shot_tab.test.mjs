@@ -58,7 +58,7 @@ function makePanel({ cardOk = true, cardUrl = "http://ha.local:8123/hacsfiles/ma
   p._forumStatus = "";
   p._forumMessage = "";
   p._forumEl = null;
-  p._ensureMagicCard = async () => (cardOk ? { ok: true } : { ok: false, message: "Magic Card isn't installed. Install it from HACS and add it as a dashboard resource." });
+  p._ensureMagicCard = async () => (cardOk ? { ok: true } : { ok: false, message: "Magic Card isn't installed. Install it from the Marketplace or HACS and add it as a dashboard resource." });
   p.__host = host;
   return p;
 }
@@ -100,6 +100,10 @@ test("the entry URL is the sibling of magic-card.js on the same origin under /lo
     "http://ha.local:8123/hacsfiles/magic-card/magic-card-forum-shot.js?v=3"
   );
   assert.equal(T.forumShotUrl("/local/magic-card.js"), "http://ha.local:8123/local/magic-card-forum-shot.js");
+  assert.equal(
+    T.forumShotUrl("/local/community/magic-card/magic-card.js?v=1-2026.11.1"),
+    "http://ha.local:8123/local/community/magic-card/magic-card-forum-shot.js?v=1-2026.11.1"
+  );
   assert.equal(T.forumShotUrl("http://ha.local:8123/local/magic-card.js"), "http://ha.local:8123/local/magic-card-forum-shot.js");
 });
 

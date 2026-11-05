@@ -2,7 +2,7 @@
 
 Magic Card Utils releases are built by a GitHub Actions workflow in the Magic Card Utils repository, not on a personal computer. This page shows two ways to check that a download came from that workflow: a quick look in the browser, and a command-line check for people who use GitHub's tools.
 
-HACS installs the file `magic_card_utils.zip` from the release. That is the file this page checks.
+The Marketplace and HACS install the file `magic_card_utils.zip` from the release. That is the file this page checks.
 
 ## Which releases can be checked
 

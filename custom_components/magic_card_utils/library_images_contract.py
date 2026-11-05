@@ -105,7 +105,7 @@ _openEditor({kind: "image", id?, opener}), which mounts <mc-svg-editor host="mcu
 "image-blank"} or {kind: "image", id}. The Library tab lists images too. Version gate as the Icons tab,
 with its own minimum MIN_MAGIC_CARD_FOR_IMAGES and the element's contractRevision >=
 IMAGES_MIN_CONTRACT_REVISION; the too-old message names images ("Drawing images here needs Magic Card
-<version> or newer. Update Magic Card in HACS."). Non-admin users see the list read-only (no New,
+<version> or newer. Update Magic Card."). Non-admin users see the list read-only (no New,
 Rename, Duplicate, Delete, Import).
 """
 
