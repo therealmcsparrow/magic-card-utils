@@ -41,6 +41,8 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 - Magic Card **2026.10.11-beta.2** or newer for template cards that non-admin users can see.
 - Magic Card **2026.10.12-beta.8** or newer for the Images tab and for library images on cards.
 
+Magic Card 2026.11.01 meets all of these.
+
 ## Check a genuine release
 
 Releases are built by a GitHub Actions workflow, and the Marketplace and HACS install the `magic_card_utils.zip` it attaches. Each release also carries an SBOM, `magic_card_utils.sbom.cdx.json`. You can check a download in the browser or with the GitHub CLI: see [Check a genuine release](documentation/security/check-a-genuine-release.md).
@@ -67,24 +69,6 @@ Magic Card Utils isn't in the Marketplace catalogue, so you add it by its link.
 3. Add `https://github.com/therealmcsparrow/magic-card-utils` with type **Integration**.
 4. Search for **Magic Card Utils** in HACS and click **Download**.
 5. Restart Home Assistant.
-
-### Magic Card pre-release
-
-The Images tab needs Magic Card 2026.10.12-beta.8 or newer, which is a pre-release. The Library, Icons and Shapes tabs and template cards for non-admin users need Magic Card 2026.10.11-beta.2 or newer. The Marketplace and HACS hide pre-releases until you ask for them.
-
-In the Marketplace:
-
-1. Open **Magic Card**, choose **Include pre-releases** from the menu (⋮).
-2. Choose **Install another version** from the same menu and select the newest `2026.10.12-beta` version.
-3. Reload the browser tab.
-
-In HACS:
-
-1. Open **Settings** and turn on **Show beta versions**.
-2. Open **Magic Card**, choose **Redownload** from the menu (⋮), and select the newest `2026.10.12-beta` version.
-3. Reload the browser tab.
-
-Report problems on [GitHub](https://github.com/therealmcsparrow/magic-card-utils/issues).
 
 ### Manual installation
 
@@ -121,7 +105,7 @@ Library images are drawings you make in Magic Card's image editor and save to th
 - The library holds up to 200 images. Each image can be up to 256 KiB.
 - Every user who can log in to Home Assistant can see and use the images. Only administrators can create, change, rename, delete or import them.
 - The Images tab lists the images. Each row has Duplicate, Rename and Delete, and Export all images saves every image to a file on your device.
-- The Images tab needs Magic Card **2026.10.12-beta.8** or newer. See [Magic Card pre-release](#magic-card-pre-release).
+- The Images tab needs Magic Card **2026.10.12-beta.8** or newer.
 
 A drawing can show the layout of your home, so check what goes into it. For what is stored, who can read it and what an export file holds, see the [Magic Card privacy page for images](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/images/privacy.md). The [Images tab page](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/images.md) covers the tab in detail.
 
@@ -131,7 +115,7 @@ The [documentation](https://github.com/therealmcsparrow/magic-card-utils/tree/ma
 
 | Topic | Covers |
 | --- | --- |
-| [Getting started](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/getting-started/README.md) | Requirements, installing (including the pre-release), setting up, updating and removing |
+| [Getting started](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/getting-started/README.md) | Requirements, installing, setting up, updating and removing |
 | [Panel](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/README.md) | All seven tabs |
 | [Forum shot](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/forum-shot.md) | The card table, locked cards, fonts, the three looks, the privacy warning and what the area sends |
 | [Library](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/library.md) | Icons, shapes, animations and theme presets, the Icons and Shapes tabs, import and export, and the icon picker |

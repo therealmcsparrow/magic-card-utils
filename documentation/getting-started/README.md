@@ -3,7 +3,6 @@
 - [Requirements](#requirements)
 - [Install through the Marketplace](#install-through-the-marketplace)
 - [Install with HACS](#install-with-hacs)
-- [Install the Magic Card pre-release](#install-the-magic-card-pre-release)
 - [Install by hand](#install-by-hand)
 - [Set up the integration](#set-up-the-integration)
 - [Show or hide the side panel](#show-or-hide-the-side-panel)
@@ -41,23 +40,7 @@ On Home Assistant before 2026.11:
 4. Search for **Magic Card Utils** in HACS and click **Download**.
 5. Restart Home Assistant.
 
-Install Magic Card in HACS as well. The Images tab needs Magic Card 2026.10.12-beta.8 or newer. If your Magic Card is older, the tab says so and asks you to update Magic Card.
-
-## Install the Magic Card pre-release
-
-The Library, Icons and Shapes tabs and template cards for non-admin users need Magic Card 2026.10.11-beta.2 or newer. Magic Card 2026.10.11 is still a pre-release, and the Marketplace and HACS hide it until you ask for pre-releases.
-
-In the Marketplace:
-
-1. Open **Magic Card**, choose **Include pre-releases** from the menu (⋮).
-2. Choose **Install another version** from the same menu and select the newest `2026.10.11-beta` version.
-3. Reload the browser tab.
-
-In HACS:
-
-1. Open **Settings** and turn on **Show beta versions**.
-2. Open **Magic Card**, choose **Redownload** from the menu (⋮), and select the newest `2026.10.11-beta` version.
-3. Reload the browser tab.
+Install Magic Card in HACS as well. The Images tab needs Magic Card 2026.10.12-beta.8 or newer. If your Magic Card is older, the tab says so and asks you to update Magic Card. Magic Card 2026.11.01 meets every requirement of the panel.
 
 ## Install by hand
 

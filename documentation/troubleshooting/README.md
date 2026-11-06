@@ -53,9 +53,9 @@ Find the message you see, or the symptom, below.
 
 ## The pre-release isn't listed
 
-In the Marketplace, pre-releases are hidden until you open Magic Card and choose **Include pre-releases** from the menu (⋮). Then choose **Install another version** to pick the newest 2026.10.11-beta version. The list holds the newest 30 releases.
+In the Marketplace, pre-releases are hidden until you open Magic Card and choose **Include pre-releases** from the menu (⋮). Then choose **Install another version** to pick the newest beta version. The list holds the newest 30 releases.
 
-In HACS, pre-releases are hidden until you turn on **Show beta versions** in the settings. Turn it on, then open Magic Card and choose **Redownload** from the menu (⋮) to pick the newest 2026.10.11-beta version. See [Magic Card pre-release](../../README.md#magic-card-pre-release).
+In HACS, pre-releases are hidden until you turn on **Show beta versions** in the settings. Turn it on, then open Magic Card and choose **Redownload** from the menu (⋮) to pick the newest beta version.
 
 ## A new icon is missing from the icon picker
 
