@@ -42,9 +42,9 @@ panel needs no other Magic Card file to load.
 | Field | Value |
 | --- | --- |
 | File | `mc-ui-kit.js` |
-| Magic Card version | `2026.10.12-beta.17` (`MC_UI_KIT_VERSION`) |
-| Magic Card commit | `fda8c3b` (tag `v2026.10.12-beta.17`), exported from a clean `git archive` of that commit |
-| SHA-256 | `fe749af59cb78deb09271afbc9b19f4756728f8dcb2c010ac72908f3e958b179` |
+| Magic Card version | `2026.10.12-beta.18` (`MC_UI_KIT_VERSION`) |
+| Magic Card commit | `8666cb3` (tag `v2026.10.12-beta.18`), exported from a clean `git archive` of that commit |
+| SHA-256 | `42a1bc42286853546f06ccfeab12274b79f1766504e21317309ecec14b7f18f6` |
 | Icons | `@mdi/js` 7.4.47, Apache-2.0 (https://github.com/Templarian/MaterialDesign-JS), licence text in `LICENSE-mdi.txt` |
 | Imports | `lit-core.min.js` (`css`, `html`) |
 
@@ -80,7 +80,7 @@ The panel imports `t`, `tx` and `locale` from `mc-i18n-panel.js`, already bound 
 | Field | Value |
 | --- | --- |
 | Files | `mc-i18n.js`, `mc-i18n-panel.js` |
-| Magic Card commit | the Magic Card main commit written in `.magic-card-ref` (2026.10.12-beta.17), for both files |
+| Magic Card commit | the Magic Card main commit written in `.magic-card-ref` (2026.10.12-beta.18), for both files |
 | SHA-256 `mc-i18n.js` | `aefa56ac90aed1d114571fe8db490c90365dcc072e0db57ecabd7e058f0f92a5` |
 | SHA-256 `mc-i18n-panel.js` | `06ba1a6644df2f22ea6ef2efe8c3423d4acedbe6867c477455385f77700916bd` |
 | Sources in this repo | `magic_card_utils_panel.js` (the `tr()` calls), `i18n/en-GB.json` (English, notes and length limits), `i18n/nl.json` (written by hand, with the hash of the English it was made from), `i18n/en-US.json` (generated) |
