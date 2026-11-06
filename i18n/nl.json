@@ -3,10 +3,6 @@
     "text": "Er bestaat al een sjabloon met de naam ‘{name}’.",
     "hash": "bd93b912"
   },
-  "mcu-panel.panel.actions": {
-    "text": "Acties",
-    "hash": "ff8059dc"
-  },
   "mcu-panel.panel.animations": {
     "text": "Animaties",
     "hash": "7f7c3306"
@@ -47,9 +43,9 @@
     "text": "Hoekvorm",
     "hash": "7833e955"
   },
-  "mcu-panel.panel.created": {
-    "text": "Aangemaakt",
-    "hash": "d70b9e24"
+  "mcu-panel.panel.count-templates": {
+    "text": "{n, plural, one {# sjabloon} other {# sjablonen}}",
+    "hash": "2343a9e7"
   },
   "mcu-panel.panel.delete": {
     "text": "Verwijderen",
@@ -135,6 +131,14 @@
     "text": "Editor",
     "hash": "936a161c"
   },
+  "mcu-panel.panel.export-all": {
+    "text": "Alles exporteren",
+    "hash": "51427688"
+  },
+  "mcu-panel.panel.export-n-selected": {
+    "text": "{n} geselecteerde exporteren",
+    "hash": "32abc6cb"
+  },
   "mcu-panel.panel.failed-to-render-preview": {
     "text": "Het voorbeeld kon niet worden weergegeven.",
     "hash": "aeade066"
@@ -155,6 +159,18 @@
     "text": "Afbeeldingen worden bewaard in Home Assistant, niet in de YAML van je dashboard. Met Alle afbeeldingen exporteren maak je een back-up.",
     "hash": "ae2b9610"
   },
+  "mcu-panel.panel.import": {
+    "text": "Importeren",
+    "hash": "2cff9baa"
+  },
+  "mcu-panel.panel.imported-n-of-total-templates": {
+    "text": "{n} van {total} sjablonen geïmporteerd. De andere konden niet worden opgeslagen.",
+    "hash": "a2cfbf16"
+  },
+  "mcu-panel.panel.imported-n-templates": {
+    "text": "{n, plural, one {# sjabloon geïmporteerd} other {# sjablonen geïmporteerd}}",
+    "hash": "9166b2de"
+  },
   "mcu-panel.panel.install-magic-card-to-draw-icons-and": {
     "text": "Installeer Magic Card om hier pictogrammen en vormen te tekenen.",
     "hash": "9fcb9cfe"
@@ -163,17 +179,9 @@
     "text": "Installeer Magic Card om hier afbeeldingen te tekenen.",
     "hash": "0fdc1e5b"
   },
-  "mcu-panel.panel.last-updated": {
-    "text": "Laatst bijgewerkt",
-    "hash": "048c7f2e"
-  },
   "mcu-panel.panel.library": {
     "text": "Bibliotheek",
     "hash": "dc20b3d5"
-  },
-  "mcu-panel.panel.linked-cards": {
-    "text": "Gekoppelde kaarten",
-    "hash": "1b795cc6"
   },
   "mcu-panel.panel.loading-the-forum-shot": {
     "text": "Forumplaatje wordt geladen",
@@ -199,6 +207,10 @@
     "text": "Magic Card {version} is te oud voor Magic Card Utils (API-versie {min} of nieuwer nodig). Werk Magic Card bij.",
     "hash": "ecaa55e6"
   },
+  "mcu-panel.panel.n-linked-cards": {
+    "text": "{n, plural, one {# gekoppelde kaart} other {# gekoppelde kaarten}}",
+    "hash": "72f415cb"
+  },
   "mcu-panel.panel.name": {
     "text": "Naam",
     "hash": "dcd1d522"
@@ -214,6 +226,10 @@
   "mcu-panel.panel.name-is-required": {
     "text": "Een naam is verplicht.",
     "hash": "f83a4bc1"
+  },
+  "mcu-panel.panel.new-template": {
+    "text": "Nieuw sjabloon",
+    "hash": "30d87ec4"
   },
   "mcu-panel.panel.new-template-name": {
     "text": "Naam van het nieuwe sjabloon",
@@ -279,6 +295,10 @@
     "text": "Sjablonen zoeken",
     "hash": "04b9835b"
   },
+  "mcu-panel.panel.select-name": {
+    "text": "{name} selecteren",
+    "hash": "cbe2f067"
+  },
   "mcu-panel.panel.shapes": {
     "text": "Vormen",
     "hash": "75e8028a"
@@ -294,6 +314,14 @@
   "mcu-panel.panel.templates": {
     "text": "Sjablonen",
     "hash": "56b564b7"
+  },
+  "mcu-panel.panel.that-file-has-no-templates-to-import": {
+    "text": "Dat bestand bevat geen sjablonen om te importeren.",
+    "hash": "3f0dea95"
+  },
+  "mcu-panel.panel.that-file-is-too-big-to-import": {
+    "text": "Dat bestand is te groot om te importeren.",
+    "hash": "27a6049b"
   },
   "mcu-panel.panel.that-shape-could-not-be-read-try-again": {
     "text": "Die vorm kon niet worden gelezen. Probeer het opnieuw.",
@@ -358,5 +386,9 @@
   "mcu-panel.panel.try-again": {
     "text": "Opnieuw proberen",
     "hash": "d8b8392e"
+  },
+  "mcu-panel.panel.updated-date": {
+    "text": "Bijgewerkt {date}",
+    "hash": "328a4d4c"
   }
 }

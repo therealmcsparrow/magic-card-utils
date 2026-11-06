@@ -143,6 +143,7 @@ const msgUpdateImages = () => tr("mcu-panel.panel.drawing-images-here-needs-magi
 const msgAdminOnlyImages = () => tr("mcu-panel.panel.only-administrators-can-create-or-change");
 const msgAdminOnly = () => tr("mcu-panel.panel.only-administrators-can-create-or-change-2");
 const msgUpdateForumShot = () => tr("mcu-panel.panel.the-forum-shot-needs-magic-card-or", { version: MIN_MAGIC_CARD_FOR_FORUM_SHOT });
+const MAX_TEMPLATE_IMPORT_BYTES = 5 * 1024 * 1024;
 const msgEditorLoad = () => tr("mcu-panel.panel.the-editor-files-could-not-be-loaded");
 /**
  * Compare two Magic Card versions: `YYYY.M.N` with an optional `-pre.release` suffix (and `+build`, ignored).
@@ -473,6 +474,8 @@ class MagicCardUtilsPanel extends LitElement {
       panel: { type: Object },
       _templates: { type: Array, state: true },
       _templateFilter: { type: String, state: true },
+      _templatePicked: { state: true },
+      _templateNotice: { state: true },
       _error: { type: String, state: true },
       // template detail overlay
       _viewRow: { type: Object, state: true },
@@ -518,6 +521,9 @@ class MagicCardUtilsPanel extends LitElement {
     super();
     this._templates = [];
     this._templateFilter = "";
+    this._templatePicked = new Set();
+    this._templateNotice = null;
+    this.addEventListener("mc-editor-fullscreen", () => this.requestUpdate());
     this._error = "";
     this._viewRow = null;
     this._viewMode = "yaml";
@@ -905,7 +911,7 @@ class MagicCardUtilsPanel extends LitElement {
       },
     };
     if (meta.card_type) payload.card_type = meta.card_type;
-    if (renamed) payload.old_name = this._viewRow.name;
+    if (renamed && this._viewRow.name) payload.old_name = this._viewRow.name;
     this._submitting = true;
     this._editError = "";
     try {
@@ -940,8 +946,7 @@ class MagicCardUtilsPanel extends LitElement {
     this._submitting = false;
   }
 
-  _uniqueCopyName(base) {
-    const existing = new Set(this._templates.map((t) => t.name));
+  _uniqueCopyName(base, existing = new Set(this._templates.map((t) => t.name))) {
     let candidate = tr("mcu-panel.panel.name-copy", { name: base });
     let i = 2;
     while (existing.has(candidate)) {
@@ -2059,8 +2064,9 @@ class MagicCardUtilsPanel extends LitElement {
       return html`<ha-circular-progress active></ha-circular-progress>`;
     }
 
+    const covered = this._editorCoversPanel();
     return html`
-      <div class="header">
+      <div class="header" ?inert=${covered}>
         <ha-menu-button
           .hass=${this.hass}
           .narrow=${this.narrow}
@@ -2070,7 +2076,7 @@ class MagicCardUtilsPanel extends LitElement {
 
       ${this._editorOpen
         ? html`<div class="editor-host"></div>`
-        : html`<div class="tabs" role="tablist" aria-label=${tr("mcu-panel.panel.magic-card-utils")} @keydown=${this._onTabKeydown}>
+        : html`<div class="tabs" ?inert=${covered} role="tablist" aria-label=${tr("mcu-panel.panel.magic-card-utils")} @keydown=${this._onTabKeydown}>
               ${TABS.map(
                 ([tab, label]) => html`<button
                   class="tab"
@@ -2111,102 +2117,158 @@ class MagicCardUtilsPanel extends LitElement {
     );
   }
 
+  /** True while the Animations or Themes editor fills the screen; the header and tabs then sit behind it. */
+  _editorCoversPanel() {
+    const el = this._tab === "animations" ? this._studioEl : this._tab === "themes" ? this._themeEl : null;
+    return !!el && el.hasAttribute("editing");
+  }
+
+  _pickTemplate(name, on) {
+    const next = new Set(this._templatePicked);
+    if (on) next.add(name);
+    else next.delete(name);
+    this._templatePicked = next;
+  }
+
+  _pickedTemplates() {
+    return this._templates.filter((row) => this._templatePicked.has(row.name));
+  }
+
+  _openNewTemplate() {
+    this._templateNotice = null;
+    this._openEditTemplate({ name: "", description: "", card_type: "", raw: { config: { type: "custom:magic-card" } } });
+  }
+
+  _exportTemplates() {
+    const picked = this._pickedTemplates();
+    const rows = picked.length ? picked : this._templates;
+    const templates = rows.map((row) => ({
+      name: row.name,
+      description: row.description || "",
+      card_type: row.card_type || "",
+      config: row.raw && row.raw.config ? row.raw.config : row.raw || {},
+    }));
+    const url = URL.createObjectURL(new Blob([JSON.stringify({ templates }, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "magic-card-templates.json";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async _importTemplates(e) {
+    const input = e.target;
+    const file = input.files && input.files[0];
+    input.value = "";
+    if (!file) return;
+    const fail = (text) => (this._templateNotice = { tone: "error", text });
+    if (file.size > MAX_TEMPLATE_IMPORT_BYTES) return fail(tr("mcu-panel.panel.that-file-is-too-big-to-import"));
+    let items = null;
+    try {
+      const parsed = JSON.parse(await file.text());
+      items = Array.isArray(parsed && parsed.templates) ? parsed.templates : null;
+    } catch (_err) {
+      items = null;
+    }
+    const usable = (items || []).filter(
+      (t) => t && typeof t.name === "string" && t.name.trim() && t.config && typeof t.config === "object" && !Array.isArray(t.config)
+    );
+    if (!usable.length) return fail(tr("mcu-panel.panel.that-file-has-no-templates-to-import"));
+    const taken = new Set(this._templates.map((t) => t.name));
+    let saved = 0;
+    for (const t of usable) {
+      const base = t.name.trim();
+      const name = taken.has(base) ? this._uniqueCopyName(base, taken) : base;
+      const payload = {
+        type: "magic_card_utils/save_template",
+        name,
+        template: { config: t.config, description: typeof t.description === "string" ? t.description : "" },
+      };
+      if (typeof t.card_type === "string" && t.card_type) payload.card_type = t.card_type;
+      try {
+        await this.hass.callWS(payload);
+        taken.add(name);
+        saved += 1;
+      } catch (err) {
+        console.error("[magic_card_utils] import failed", err);
+      }
+    }
+    this._templateNotice =
+      saved === usable.length
+        ? { tone: "success", text: tr("mcu-panel.panel.imported-n-templates", { n: saved }) }
+        : { tone: "error", text: tr("mcu-panel.panel.imported-n-of-total-templates", { n: saved, total: usable.length }) };
+  }
+
+  _renderTemplateRow(row) {
+    const checkId = `mcu-template-${this._templates.indexOf(row)}`;
+    const checked = this._templatePicked.has(row.name);
+    const sub = [
+      row.description,
+      row.card_type,
+      tr("mcu-panel.panel.n-linked-cards", { n: row.linked_cards }),
+      tr("mcu-panel.panel.updated-date", { date: this._formatDate(row.last_updated) }),
+    ].filter(Boolean).join(" · ");
+    return html`
+      <div class="row ${checked ? "selected" : ""}" role="listitem">
+        <input type="checkbox" class="check" id=${checkId} aria-label=${tr("mcu-panel.panel.select-name", { name: row.name })}
+          .checked=${checked} @change=${(e) => this._pickTemplate(row.name, e.target.checked)} />
+        <label class="name" for=${checkId}><bdi>${row.name}</bdi><small>${sub}</small></label>
+        <span class="acts">
+          <button type="button" class="icon-btn xs action-btn studio" title=${tr("mcu-panel.panel.open-in-studio")}
+            aria-label=${tr("mcu-panel.panel.open-name-in-studio", { name: row.name })} @click=${() => this._openStudio(row)}>${glyph("fullscreen")}</button>
+          <button type="button" class="icon-btn xs action-btn edit" title=${tr("mcu-panel.panel.edit")}
+            aria-label=${tr("mcu-panel.panel.edit-name", { name: row.name })} @click=${() => this._openTemplate(row)}>${glyph("pencil")}</button>
+          <button type="button" class="icon-btn xs action-btn duplicate" title=${tr("mcu-panel.panel.duplicate")}
+            aria-label=${tr("mcu-panel.panel.duplicate-name", { name: row.name })} @click=${() => this._openDuplicate(row)}>${glyph("copy")}</button>
+          <button type="button" class="icon-btn xs danger action-btn"
+            title=${row.linked_cards > 0 ? tr("mcu-panel.panel.cannot-delete-linked-cards", { n: row.linked_cards }) : tr("mcu-panel.panel.delete")}
+            aria-label=${row.linked_cards > 0
+              ? tr("mcu-panel.panel.cannot-delete-name-linked-cards", { name: row.name, n: row.linked_cards })
+              : tr("mcu-panel.panel.delete-name", { name: row.name })}
+            ?disabled=${row.linked_cards > 0} @click=${() => this._openDelete(row)}>${glyph("delete")}</button>
+        </span>
+      </div>
+    `;
+  }
+
   _renderTemplatesTab() {
+    const shown = this._filteredTemplates();
+    const picked = this._pickedTemplates().length;
+    const notice = this._templateNotice;
     return html`
       <div class="content">
         ${this._error
           ? html`<div class="notice error" role="alert">${glyph("error", 20)}<div class="body"><p>${this._error}</p></div></div>`
           : ""}
+        <div class="field">
+          <div class="field-head"><label for="mcu-template-search">${tr("mcu-panel.panel.search-templates")}</label></div>
+          <div class="with-icon">
+            <ha-icon icon="mdi:magnify"></ha-icon>
+            <input id="mcu-template-search" class="input" type="search" .value=${this._templateFilter}
+              @input=${(e) => (this._templateFilter = e.target.value)} />
+          </div>
+        </div>
+        <div class="bar">
+          <button type="button" class="btn btn-secondary" ?disabled=${!this._templates.length} @click=${this._exportTemplates}>
+            <ha-icon icon="mdi:export-variant"></ha-icon>${picked ? tr("mcu-panel.panel.export-n-selected", { n: picked }) : tr("mcu-panel.panel.export-all")}
+          </button>
+          <button type="button" class="btn btn-primary" @click=${this._openNewTemplate}>
+            <ha-icon icon="mdi:plus"></ha-icon>${tr("mcu-panel.panel.new-template")}
+          </button>
+          <button type="button" class="btn btn-secondary" @click=${(e) => e.currentTarget.nextElementSibling.click()}>
+            <ha-icon icon="mdi:import"></ha-icon>${tr("mcu-panel.panel.import")}
+          </button>
+          <input type="file" accept=".json,application/json" hidden @change=${this._importTemplates} />
+        </div>
+        ${notice
+          ? html`<div class="notice ${notice.tone}" role=${notice.tone === "error" ? "alert" : "status"}>${glyph(notice.tone, 20)}<div class="body"><p>${notice.text}</p></div></div>`
+          : ""}
+        <div role="status" aria-live="polite" class="help">${tr("mcu-panel.panel.count-templates", { n: shown.length })}</div>
         ${this._templates.length === 0
           ? html`<div class="empty"><strong>${tr("mcu-panel.panel.no-templates-saved-yet")}</strong></div>`
-          : html`
-              <div class="field templates-search">
-                <div class="field-head"><label for="mcu-template-search">${tr("mcu-panel.panel.search-templates")}</label></div>
-                <input id="mcu-template-search" class="input" type="search" .value=${this._templateFilter}
-                  @input=${(e) => (this._templateFilter = e.target.value)} />
-              </div>
-              <table class="templates-table">
-                <thead>
-                  <tr>
-                    <th class="col-name">${tr("mcu-panel.panel.name")}</th>
-                    <th class="col-type">${tr("mcu-panel.panel.card-type")}</th>
-                    <th class="col-linked">${tr("mcu-panel.panel.linked-cards")}</th>
-                    <th class="col-date">${tr("mcu-panel.panel.created")}</th>
-                    <th class="col-date">${tr("mcu-panel.panel.last-updated")}</th>
-                    <th class="col-actions">${tr("mcu-panel.panel.actions")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${this._filteredTemplates().map(
-                    (row) => html`
-                      <tr>
-                        <td class="col-name">
-                          <span class="template-name">${row.name}</span>
-                          ${row.description
-                            ? html`<div class="secondary">
-                                ${row.description}
-                              </div>`
-                            : ""}
-                        </td>
-                        <td class="col-type">${row.card_type || ""}</td>
-                        <td>${row.linked_cards}</td>
-                        <td>${this._formatDate(row.created_at)}</td>
-                        <td>${this._formatDate(row.last_updated)}</td>
-                        <td class="col-actions">
-                          <div class="action-buttons">
-                            <button
-                              type="button"
-                              class="icon-btn sm action-btn studio"
-                              title=${tr("mcu-panel.panel.open-in-studio")}
-                              aria-label=${tr("mcu-panel.panel.open-name-in-studio", { name: row.name })}
-                              @click=${() => this._openStudio(row)}
-                            >
-                              ${glyph("fullscreen")}
-                            </button>
-                            <button
-                              type="button"
-                              class="icon-btn sm action-btn edit"
-                              title=${tr("mcu-panel.panel.edit")}
-                              aria-label=${tr("mcu-panel.panel.edit-name", { name: row.name })}
-                              @click=${() => this._openTemplate(row)}
-                            >
-                              ${glyph("pencil")}
-                            </button>
-                            <button
-                              type="button"
-                              class="icon-btn sm action-btn duplicate"
-                              title=${tr("mcu-panel.panel.duplicate")}
-                              aria-label=${tr("mcu-panel.panel.duplicate-name", { name: row.name })}
-                              @click=${() => this._openDuplicate(row)}
-                            >
-                              ${glyph("copy")}
-                            </button>
-                            <button
-                              type="button"
-                              class="icon-btn sm danger action-btn"
-                              title=${row.linked_cards > 0
-                                ? tr("mcu-panel.panel.cannot-delete-linked-cards", { n: row.linked_cards })
-                                : tr("mcu-panel.panel.delete")}
-                              aria-label=${row.linked_cards > 0
-                                ? tr("mcu-panel.panel.cannot-delete-name-linked-cards", { name: row.name, n: row.linked_cards })
-                                : tr("mcu-panel.panel.delete-name", { name: row.name })}
-                              ?disabled=${row.linked_cards > 0}
-                              @click=${() => this._openDelete(row)}
-                            >
-                              ${glyph("delete")}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    `
-                  )}
-                  ${this._filteredTemplates().length
-                    ? ""
-                    : html`<tr><td colspan="6" class="secondary">${tr("mcu-panel.panel.no-templates-match-search")}</td></tr>`}
-                </tbody>
-              </table>
-            `}
-
+          : shown.length
+          ? html`<div class="rows" role="list">${shown.map((row) => this._renderTemplateRow(row))}</div>`
+          : html`<p class="help">${tr("mcu-panel.panel.no-templates-match-search")}</p>`}
       </div>
 
       ${this._viewRow
@@ -2225,7 +2287,7 @@ class MagicCardUtilsPanel extends LitElement {
               >
                 <div class="dialog-header">
                   <div class="dialog-title">
-                    <span class="dialog-title-name">${this._viewRow.name}</span>
+                    <span class="dialog-title-name">${this._viewRow.name || tr("mcu-panel.panel.new-template")}</span>
                     ${this._viewRow.card_type
                       ? html`<span class="chip mono">${this._viewRow.card_type}</span>`
                       : ""}
@@ -2568,68 +2630,11 @@ class MagicCardUtilsPanel extends LitElement {
         height: calc(100vh - 64px - 49px);
         min-height: 480px;
       }
-      .templates-search {
-        max-width: 360px;
-      }
-      .templates-table {
-        width: 100%;
-        border-spacing: 0;
-        background: var(--mc-surface);
-        border: 1px solid var(--mc-divider);
-        border-radius: var(--mc-radius-lg);
-        overflow: hidden;
-      }
-      .templates-table th,
-      .templates-table td {
-        text-align: left;
-        padding: 8px 16px;
-        border-bottom: 1px solid var(--mc-divider);
-        vertical-align: middle;
-      }
-      .templates-table tbody tr:last-child td {
-        border-bottom: none;
-      }
-      .templates-table th {
-        font-size: 0.8125rem;
-        font-weight: 500;
-        color: var(--mc-text-2);
-        background: var(--mc-surface-2);
-      }
-      .col-name {
-        width: 1%;
-        white-space: nowrap;
-        max-width: 280px;
-      }
-      .col-type,
-      .col-linked,
-      .col-date,
-      .col-actions {
-        width: 1%;
-        white-space: nowrap;
-      }
-      .templates-table th.col-actions,
-      .templates-table td.col-actions {
-        text-align: right;
-      }
-      .action-buttons {
+      .bar {
         display: flex;
-        gap: 4px;
+        flex-wrap: wrap;
+        gap: 8px;
         align-items: center;
-        justify-content: flex-end;
-      }
-      .template-name {
-        font-weight: 500;
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        display: inline-block;
-      }
-      .secondary {
-        font-size: 0.75rem;
-        color: var(--mc-text-2);
-        margin-top: 2px;
-        white-space: normal;
       }
       .overlay {
         position: fixed;

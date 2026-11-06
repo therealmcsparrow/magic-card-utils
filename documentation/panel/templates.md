@@ -2,7 +2,8 @@
 
 The Templates tab lists every template saved in Home Assistant. A template is a card configuration that cards on any dashboard can link to by name; see [Templates and linking](../concepts/templates.md).
 
-- [The table](#the-table)
+- [The list](#the-list)
+- [Export and import](#export-and-import)
 - [Actions](#actions)
 - [Template view](#template-view)
 - [Edit a template](#edit-a-template)
@@ -10,20 +11,19 @@ The Templates tab lists every template saved in Home Assistant. A template is a 
 - [Duplicate](#duplicate)
 - [Delete](#delete)
 
-## The table
+## The list
 
-| Column | Shows |
-| --- | --- |
-| Name | The template name, with its description underneath when it has one |
-| Card Type | The card type the template is for, for example `custom:magic-card`. Empty when the template has none. |
-| Linked Cards | How many cards on your dashboards link to the template. See [How linked cards are counted](../concepts/templates.md#how-linked-cards-are-counted). |
-| Created | When the template was first saved, in your Home Assistant language |
-| Last Updated | When the template was last saved |
-| Actions | The buttons described below |
+Each row shows the template name. The line under it holds the description, the card type (for example `custom:magic-card`), how many cards link to the template and when it was last saved. See [How linked cards are counted](../concepts/templates.md#how-linked-cards-are-counted). The buttons at the end of the row are described under [Actions](#actions).
 
-The **Search templates** field above the table keeps only the templates whose name, description or card type holds the text you type. Upper and lower case don't matter. When nothing matches, the table says "No templates match your search."
+The **Search templates** field above the list keeps only the templates whose name, description or card type holds the text you type. Upper and lower case don't matter. When nothing matches, the table says "No templates match your search."
 
-Without templates the tab shows "No templates saved yet." Templates are usually created from the Magic Card editor on a dashboard, with its template bar.
+Without templates the tab shows "No templates saved yet." Templates are usually created from the Magic Card editor on a dashboard, with its template bar. **New template** above the list creates one here: it opens the [edit view](#edit-a-template) with an empty Magic Card.
+
+## Export and import
+
+Tick the rows you want and click **Export** to download them as `magic-card-templates.json`. With no row ticked the button says **Export all** and downloads every template.
+
+**Import** reads such a file, up to 5 MB, and saves its templates. A template whose name is already in use comes in as a copy, for example "Name (copy)", so an import never overwrites a template. Entries without a name or a card configuration are skipped. When some templates can't be saved, a message says how many came in. Linked cards are not part of the file.
 
 ## Actions
 

@@ -9,6 +9,8 @@ The studio itself is part of Magic Card. How to use it is documented in the [Mag
 - [Saving and deleting](#saving-and-deleting)
 - [Open one animation directly](#open-one-animation-directly)
 
+The list of animations stays inside the tab. Opening an animation fills the whole screen, like the icon, shape and image editors. Going back to the library returns to the tab.
+
 ## Requirements
 
 - Magic Card 2026.10.01 or newer, added as a dashboard resource of type JavaScript module.

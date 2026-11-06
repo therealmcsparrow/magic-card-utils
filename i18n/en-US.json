@@ -3,10 +3,6 @@
     "text": "A template named ‘{name}’ already exists.",
     "hash": "bd93b912"
   },
-  "mcu-panel.panel.actions": {
-    "text": "Actions",
-    "hash": "ff8059dc"
-  },
   "mcu-panel.panel.animations": {
     "text": "Animations",
     "hash": "7f7c3306"
@@ -47,9 +43,9 @@
     "text": "Corner shape",
     "hash": "7833e955"
   },
-  "mcu-panel.panel.created": {
-    "text": "Created",
-    "hash": "d70b9e24"
+  "mcu-panel.panel.count-templates": {
+    "text": "{n, plural, one {# template} other {# templates}}",
+    "hash": "2343a9e7"
   },
   "mcu-panel.panel.delete": {
     "text": "Delete",
@@ -135,6 +131,14 @@
     "text": "Editor",
     "hash": "936a161c"
   },
+  "mcu-panel.panel.export-all": {
+    "text": "Export all",
+    "hash": "51427688"
+  },
+  "mcu-panel.panel.export-n-selected": {
+    "text": "Export {n} selected",
+    "hash": "32abc6cb"
+  },
   "mcu-panel.panel.failed-to-render-preview": {
     "text": "Failed to render preview.",
     "hash": "aeade066"
@@ -155,6 +159,18 @@
     "text": "Images are stored in Home Assistant, not in your dashboard YAML. Export all keeps a backup.",
     "hash": "ae2b9610"
   },
+  "mcu-panel.panel.import": {
+    "text": "Import",
+    "hash": "2cff9baa"
+  },
+  "mcu-panel.panel.imported-n-of-total-templates": {
+    "text": "Imported {n} of {total} templates. The others could not be saved.",
+    "hash": "a2cfbf16"
+  },
+  "mcu-panel.panel.imported-n-templates": {
+    "text": "{n, plural, one {Imported # template} other {Imported # templates}}",
+    "hash": "9166b2de"
+  },
   "mcu-panel.panel.install-magic-card-to-draw-icons-and": {
     "text": "Install Magic Card to draw icons and shapes here.",
     "hash": "9fcb9cfe"
@@ -163,17 +179,9 @@
     "text": "Install Magic Card to draw images here.",
     "hash": "0fdc1e5b"
   },
-  "mcu-panel.panel.last-updated": {
-    "text": "Last Updated",
-    "hash": "048c7f2e"
-  },
   "mcu-panel.panel.library": {
     "text": "Library",
     "hash": "dc20b3d5"
-  },
-  "mcu-panel.panel.linked-cards": {
-    "text": "Linked Cards",
-    "hash": "1b795cc6"
   },
   "mcu-panel.panel.loading-the-forum-shot": {
     "text": "Loading the forum shot",
@@ -199,6 +207,10 @@
     "text": "Magic Card {version} is too old for Magic Card Utils (needs API version {min} or newer). Update Magic Card.",
     "hash": "ecaa55e6"
   },
+  "mcu-panel.panel.n-linked-cards": {
+    "text": "{n, plural, one {# linked card} other {# linked cards}}",
+    "hash": "72f415cb"
+  },
   "mcu-panel.panel.name": {
     "text": "Name",
     "hash": "dcd1d522"
@@ -214,6 +226,10 @@
   "mcu-panel.panel.name-is-required": {
     "text": "Name is required.",
     "hash": "f83a4bc1"
+  },
+  "mcu-panel.panel.new-template": {
+    "text": "New template",
+    "hash": "30d87ec4"
   },
   "mcu-panel.panel.new-template-name": {
     "text": "New template name",
@@ -279,6 +295,10 @@
     "text": "Search templates",
     "hash": "04b9835b"
   },
+  "mcu-panel.panel.select-name": {
+    "text": "Select {name}",
+    "hash": "cbe2f067"
+  },
   "mcu-panel.panel.shapes": {
     "text": "Shapes",
     "hash": "75e8028a"
@@ -294,6 +314,14 @@
   "mcu-panel.panel.templates": {
     "text": "Templates",
     "hash": "56b564b7"
+  },
+  "mcu-panel.panel.that-file-has-no-templates-to-import": {
+    "text": "That file has no templates to import.",
+    "hash": "3f0dea95"
+  },
+  "mcu-panel.panel.that-file-is-too-big-to-import": {
+    "text": "That file is too big to import.",
+    "hash": "27a6049b"
   },
   "mcu-panel.panel.that-shape-could-not-be-read-try-again": {
     "text": "That shape could not be read. Try again.",
@@ -358,5 +386,9 @@
   "mcu-panel.panel.try-again": {
     "text": "Try again",
     "hash": "d8b8392e"
+  },
+  "mcu-panel.panel.updated-date": {
+    "text": "Updated {date}",
+    "hash": "328a4d4c"
   }
 }
