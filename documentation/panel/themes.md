@@ -2,6 +2,8 @@
 
 The Themes tab is the Magic Card theme editor, shown in the Magic Card Templates panel. You create, edit, save and delete Home Assistant themes here. The editor itself, with its fields, presets, modes and Try on dashboard, is documented in the [Magic Card theme pages](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/themes/README.md). This page covers the panel side.
 
+The list of themes stays inside the tab. Opening a theme fills the whole screen, like the icon, shape and image editors. During Try on dashboard the editor returns to the tab, so the sidebar stays reachable.
+
 ## Requirements
 
 -   Magic Card 2026.10.06 or newer, with `magic-card-theme-editor.js` in the same folder as `magic-card.js`. The Marketplace and HACS install it there. If the file or the element is missing, the tab shows a message and a **Try again** button.

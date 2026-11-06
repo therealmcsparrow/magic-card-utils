@@ -7,11 +7,6 @@
       "name": "The value that replaces name in the text."
     }
   },
-  "mcu-panel.panel.actions": {
-    "text": "Actions",
-    "note": "Column heading in the templates table, above the open, edit, duplicate and delete buttons.",
-    "max": 15
-  },
   "mcu-panel.panel.animations": {
     "text": "Animations",
     "note": "Label of the Animations tab in the panel tab bar.",
@@ -72,10 +67,13 @@
     "note": "Detail line on a shape in the Shapes tab when the shape has no points of its own and is a corner shape.",
     "max": 20
   },
-  "mcu-panel.panel.created": {
-    "text": "Created",
-    "note": "Column heading in the templates table for the date a template was created.",
-    "max": 15
+  "mcu-panel.panel.count-templates": {
+    "text": "{n, plural, one {# template} other {# templates}}",
+    "note": "Count above the template list, updated as you search.",
+    "max": 30,
+    "vars": {
+      "n": "How many templates are shown."
+    }
   },
   "mcu-panel.panel.delete": {
     "text": "Delete",
@@ -200,6 +198,19 @@
     "note": "Heading of the right-hand pane of the template window while you edit the card.",
     "max": 10
   },
+  "mcu-panel.panel.export-all": {
+    "text": "Export all",
+    "note": "Button above the template list when no row is ticked: downloads every template as a file.",
+    "max": 24
+  },
+  "mcu-panel.panel.export-n-selected": {
+    "text": "Export {n} selected",
+    "note": "Button above the template list when rows are ticked: downloads those templates as a file.",
+    "max": 30,
+    "vars": {
+      "n": "How many rows are ticked."
+    }
+  },
   "mcu-panel.panel.failed-to-render-preview": {
     "text": "Failed to render preview.",
     "note": "Error in the template preview when the card could not be drawn and gave no message of its own.",
@@ -225,6 +236,28 @@
     "note": "Hint above the image list in the Images tab, saying where images are kept and how to back them up.",
     "max": 150
   },
+  "mcu-panel.panel.import": {
+    "text": "Import",
+    "note": "Button above the template list: reads templates from a file exported earlier.",
+    "max": 16
+  },
+  "mcu-panel.panel.imported-n-of-total-templates": {
+    "text": "Imported {n} of {total} templates. The others could not be saved.",
+    "note": "Error after an import where some templates failed to save.",
+    "max": 90,
+    "vars": {
+      "n": "How many were saved.",
+      "total": "How many the file held."
+    }
+  },
+  "mcu-panel.panel.imported-n-templates": {
+    "text": "{n, plural, one {Imported # template} other {Imported # templates}}",
+    "note": "Message after a successful template import. A name already in use gets a copy suffix.",
+    "max": 50,
+    "vars": {
+      "n": "How many were saved."
+    }
+  },
   "mcu-panel.panel.install-magic-card-to-draw-icons-and": {
     "text": "Install Magic Card to draw icons and shapes here.",
     "note": "Notice in the Icons and Shapes tabs when Magic Card is not installed.",
@@ -235,20 +268,10 @@
     "note": "Notice in the Images tab when Magic Card is not installed.",
     "max": 65
   },
-  "mcu-panel.panel.last-updated": {
-    "text": "Last Updated",
-    "note": "Column heading in the templates table for the date a template was last changed.",
-    "max": 20
-  },
   "mcu-panel.panel.library": {
     "text": "Library",
     "note": "Label of the Library tab in the panel tab bar.",
     "max": 15
-  },
-  "mcu-panel.panel.linked-cards": {
-    "text": "Linked Cards",
-    "note": "Column heading in the templates table for how many cards use each template.",
-    "max": 20
   },
   "mcu-panel.panel.loading-the-forum-shot": {
     "text": "Loading the forum shot",
@@ -287,6 +310,14 @@
       "version": "The value that replaces version in the text."
     }
   },
+  "mcu-panel.panel.n-linked-cards": {
+    "text": "{n, plural, one {# linked card} other {# linked cards}}",
+    "note": "Part of the second line of a template row: how many cards use the template.",
+    "max": 30,
+    "vars": {
+      "n": "How many cards use the template."
+    }
+  },
   "mcu-panel.panel.name": {
     "text": "Name",
     "note": "Column heading in the templates table and label of the name field in the template editor.",
@@ -313,6 +344,11 @@
     "text": "Name is required.",
     "note": "Error under the name field when you save or duplicate a template with an empty name.",
     "max": 30
+  },
+  "mcu-panel.panel.new-template": {
+    "text": "New template",
+    "note": "Primary button above the template list, and the dialog title until the new template has a name.",
+    "max": 24
   },
   "mcu-panel.panel.new-template-name": {
     "text": "New template name",
@@ -400,6 +436,14 @@
     "note": "Label of the search field above the templates table. It filters rows by name, description or card type.",
     "max": 30
   },
+  "mcu-panel.panel.select-name": {
+    "text": "Select {name}",
+    "note": "Screen reader label of the checkbox on a template row. {name} is the template name.",
+    "max": 60,
+    "vars": {
+      "name": "The template name."
+    }
+  },
   "mcu-panel.panel.shapes": {
     "text": "Shapes",
     "note": "Label of the Shapes tab in the panel tab bar.",
@@ -419,6 +463,16 @@
     "text": "Templates",
     "note": "Label of the Templates tab in the panel tab bar.",
     "max": 15
+  },
+  "mcu-panel.panel.that-file-has-no-templates-to-import": {
+    "text": "That file has no templates to import.",
+    "note": "Error when the chosen file is not a template export or holds no usable template.",
+    "max": 60
+  },
+  "mcu-panel.panel.that-file-is-too-big-to-import": {
+    "text": "That file is too big to import.",
+    "note": "Error when the chosen template file is over the size limit.",
+    "max": 50
   },
   "mcu-panel.panel.that-shape-could-not-be-read-try-again": {
     "text": "That shape could not be read. Try again.",
@@ -516,5 +570,13 @@
     "text": "Try again",
     "note": "Button under a load error in the Animations, Themes, Library, Shapes, Images and Icons tabs that tries the load again.",
     "max": 20
+  },
+  "mcu-panel.panel.updated-date": {
+    "text": "Updated {date}",
+    "note": "Part of the second line of a template row: when the template last changed. {date} is a formatted date.",
+    "max": 40,
+    "vars": {
+      "date": "The formatted date."
+    }
   }
 }

@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Template export and import.** The Templates tab can download the ticked templates, or all of them, as one JSON file and read such a file back. A template whose name is already in use comes in as a copy, so an import never overwrites anything.
+- **New template.** A New template button above the list opens the edit view with an empty Magic Card.
+
+### Changed
+
+- **Same look on every tab.** The Templates tab now looks like the Images tab: a full-width search field, the action buttons above the list, a count, and rows with a tick box, a second line of details and the action icons. The columns for created date and last updated are gone; the row shows the last update.
+- **Full-screen editors.** The animation editor and the theme editor now cover the whole screen, like the icon, shape and image editors. Their lists stay inside the tab, with the same search, buttons and rows as the Images tab. The theme editor returns to the tab during Try on dashboard, so the sidebar stays reachable. These need the matching Magic Card release.
+- **Forum shot.** The search field, the Download button and the count now sit above the card table, and the privacy notes above them.
+
 ## [2026.10.12-beta.6] - 2026-11-05
 
 This is a pre-release. It works with Magic Card 2026.10.12-beta.17 or newer. To install it, choose **Include pre-releases** in the Marketplace, or turn on **Show beta versions** in HACS.

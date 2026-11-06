@@ -101,7 +101,7 @@ Report problems on [GitHub](https://github.com/therealmcsparrow/magic-card-utils
 
 The **Magic Card Templates** panel then appears in the sidebar of admin users. It has seven tabs:
 
-- **Templates:** every template with its card type, linked cards and dates, and buttons to open it in the studio, edit it (YAML with a live preview, then the Magic Card editor), duplicate it or delete it.
+- **Templates:** every template with its card type, linked cards and last update, and buttons to open it in the studio, edit it (YAML with a live preview, then the Magic Card editor), duplicate it or delete it. Above the list you can search, export, add and import templates.
 - **Library:** your saved icons, shapes, animations and theme presets, with New icon, New shape, Edit, Rename, Delete, Export and Import.
 - **Animations:** the Magic Card animation studio, with the shared animation library.
 - **Themes:** the Magic Card theme editor. It lists the theme files in `/config/themes`, and creates, edits, saves and deletes them. Saving needs the include lines in `configuration.yaml`, which the tab shows when they are missing. The [Magic Card theme documentation](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/themes/README.md) covers the editor itself.

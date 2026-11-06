@@ -15,7 +15,7 @@ The picture is made in your browser, and Magic Card does not keep a copy. Your c
 ## Make a picture
 
 1.  Open the Forum shot tab in the panel. The tab reads your dashboards and lists every Magic Card it finds in a table with the columns Dashboard, View, Card and Status. Expected: one row per card.
-2.  Click a header to sort the table by that column. Click it again to reverse the order. Click a row to pick that card. Until you do, the Download button stays unavailable and the area says "Pick a card to continue."
+2.  Click a header to sort the table by that column. Click it again to reverse the order. Click a row to pick that card. Until you do, the Download button above the table stays unavailable and the area says "Pick a card to continue."
 3.  Under Colours, choose Light and dark, Light only or Dark only. Light and dark puts both versions side by side in one picture.
 4.  Optional: tick the box for the Quiet, Living and Glow looks of animated icons. The picture then has one row per look, with light on the left and dark on the right.
 5.  Read the warning above the button, then choose Download. Expected: "Making the picture…", then a preview and the message "The picture was saved to your downloads."
