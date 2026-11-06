@@ -15,7 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Same look on every tab.** The Templates tab now looks like the Images tab: a full-width search field, the action buttons above the list, a count, and rows with a tick box, a second line of details and the action icons. The columns for created date and last updated are gone; the row shows the last update.
 - **Full-screen editors.** The animation editor and the theme editor now cover the whole screen, like the icon, shape and image editors. Their lists stay inside the tab, with the same search, buttons and rows as the Images tab. The theme editor returns to the tab during Try on dashboard, so the sidebar stays reachable. These need the matching Magic Card release.
-- **Forum shot.** The search field, the Download button and the count now sit above the card table, and the privacy notes above them.
+- **Forum shot.** The search field, the Download button and the count now sit above the card table, and the privacy notes above them. The tab uses the same text and control sizes as the other tabs.
 
 ## [2026.10.12-beta.6] - 2026-11-05
 
