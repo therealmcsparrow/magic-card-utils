@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2026.11.01] - 2026-11-06
+
+This stable release holds everything from the 2026.10.12 pre-releases, which are listed below. Use it with Magic Card 2026.11.01, which meets every requirement of the panel, so you no longer need a Magic Card pre-release. If you stayed on 2026.10.11, these are the main changes:
+
+- **Images tab.** Draw and store images in the library, and use them on cards.
+- **Forum shot.** Turn one of your cards into a single picture to post in a forum.
+- **Templates tab.** Search, export and import templates, and start a new one with New template.
+- **Same look on every tab.** Each tab looks like the Images tab, with the action buttons above the list.
+- **Full-screen editors.** The animation and theme editors cover the whole screen, like the icon, shape and image editors.
+- **Home Assistant Marketplace.** The install, update and troubleshooting steps cover the Marketplace in Home Assistant 2026.11.
+
+### Changed
+
+- **Magic Card UI kit.** The generated file `www/mc-ui-kit.js` is rebuilt from Magic Card 2026.11.01, and `www/VENDORED.md` lists the new checksum.
+- **Install steps.** The steps for installing a Magic Card pre-release are removed, because a stable Magic Card now meets every requirement.
+
 ## [2026.10.12-beta.7] - 2026-11-06
 
 This is a pre-release. It works with Magic Card 2026.10.12-beta.18 or newer. To install it, choose **Include pre-releases** in the Marketplace, or turn on **Show beta versions** in HACS.
