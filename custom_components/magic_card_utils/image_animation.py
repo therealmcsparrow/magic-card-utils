@@ -22,13 +22,41 @@ _CLIP_REQUIRED = ("id", "name", "play", "duration", "easing", "iterations", "tra
 _MORPH_KEYS = frozenset({"target", "smil", "frames"})
 _FRAME_KEYS = frozenset({"at", "d", "easing"})
 _WHEN_KEYS = ("state", "state_not", "entity_on", "above", "below")
-# Keys that would reach Object.prototype in a consumer that copies a dict into a plain object.
-_PROTOTYPE_KEYS = frozenset({"__proto__", "constructor", "prototype"})
 
 _ENTITY_RE = re.compile(r"[a-z0-9_]{1,64}\.[a-z0-9_]{1,128}")
 _ATTRIBUTE_RE = re.compile(r"[A-Za-z0-9_]{1,64}")
 _EASING_WORD_RE = re.compile(r"[a-z][a-z0-9-]{0,31}")
-_EASING_BEZIER_RE = re.compile(r"cubic-bezier\(\s*-?[0-9]*\.?[0-9]+\s*(?:,\s*-?[0-9]*\.?[0-9]+\s*){3}\)")
+# One unambiguous number token ([0-9], never \d, which is Unicode in Python), so no pattern backtracks.
+_WS = r"[ \t\n\r\f]"
+_NUM = r"-?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)"
+_EASING_BEZIER_RE = re.compile(
+    r"cubic-bezier\(" + _WS + "*" + _NUM + _WS + "*(?:," + _WS + "*" + _NUM + _WS + "*){3}" + r"\)"
+)
+_EASING_MAX = 64
+_ORIGIN_MAX = 64
+_ORIGIN_ITEM = r"(?:left|right|top|bottom|center|" + _NUM + r"(?:px|%|em|rem)?)"
+_ORIGIN_RE = re.compile(_ORIGIN_ITEM + "(?:" + _WS + "+" + _ORIGIN_ITEM + r"){0,2}")
+_CSS_RE = re.compile(r"[A-Za-z0-9_ \t\n\r\f.,%#()+/-]+")
+_TRACK_KEYS = frozenset({"target", "keyframes", "origin", "path"})
+_TRANSFORM_RANGES = {
+    "x": (-10000, 10000),
+    "y": (-10000, 10000),
+    "scale": (0, 100),
+    "scale_x": (-100, 100),
+    "scale_y": (-100, 100),
+    "rotate": (-36000, 36000),
+    "skew_x": (-89, 89),
+    "skew_y": (-89, 89),
+}
+_TRANSFORM_KEYS = frozenset(_TRANSFORM_RANGES) | {"axis"}
+_CSS_KEYS = ("color", "background", "shadow", "filter", "stroke")
+_NUMBER_RANGES = {"blur": (0, 200), "radius": (0, 1000), "draw": (0, 1)}
+_EASING_LANES = frozenset(
+    "x y scale scale_x scale_y rotate skew opacity color background shadow blur radius filter draw stroke".split()
+)
+_KEYFRAME_KEYS = (
+    frozenset({"at", "opacity", "transform", "easing", "easings"}) | frozenset(_CSS_KEYS) | frozenset(_NUMBER_RANGES)
+)
 _EASING_STEPS_RE = re.compile(
     r"steps\(\s*[0-9]{1,3}\s*(?:,\s*(?:start|end|jump-start|jump-end|jump-none|jump-both)\s*)?\)"
 )
@@ -62,7 +90,9 @@ def _dotted(path: Any) -> str:
 
 
 def _is_number(value: Any) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+    if isinstance(value, bool):
+        return False
+    return isinstance(value, int) or (isinstance(value, float) and math.isfinite(value))
 
 
 def _number(value: Any, low: float, high: float, path: Any) -> float:
@@ -104,7 +134,7 @@ def _items(value: Any, path: Any, low: int, high: int) -> list:
 
 
 def _easing(value: Any, path: Any) -> str:
-    text = _safe_text(value, path).strip()
+    text = _safe_text(value, path, _EASING_MAX).strip()
     if not (
         _EASING_WORD_RE.fullmatch(text) or _EASING_BEZIER_RE.fullmatch(text) or _EASING_STEPS_RE.fullmatch(text)
     ):
@@ -144,41 +174,70 @@ def _play(value: Any, path: Any) -> None:
         _matching(value["attribute"], _ATTRIBUTE_RE, (path, "attribute"))
 
 
-def _content(value: Any, path: Any, depth: int, motion_path: bool = False) -> None:
-    """Track content: lists, dicts with string keys, strings, bools and finite numbers, nested a few levels."""
-    if isinstance(value, bool):
-        return
-    if isinstance(value, (int, float)):
-        if not math.isfinite(value):
-            raise _Miss(path)
-        return
-    if isinstance(value, str):
-        _safe_text(value, path, contract.IMAGE_MAX_BYTES if motion_path else contract.IMAGE_ANIM_MAX_STRING_CHARS)
-        return
-    if depth >= contract.ANIM_MAX_DEPTH or not isinstance(value, (list, dict)):
+def _keyframe(value: Any, path: Any) -> None:
+    frame = _mapping(value, path, _KEYFRAME_KEYS)
+    _number(frame.get("at"), 0, 100, (path, "at"))
+    if "opacity" in frame:
+        _number(frame["opacity"], 0, 1, (path, "opacity"))
+    if "transform" in frame:
+        here = (path, "transform")
+        transform = _mapping(frame["transform"], here, _TRANSFORM_KEYS)
+        for name, (low, high) in _TRANSFORM_RANGES.items():
+            if name in transform:
+                _number(transform[name], low, high, (here, name))
+        if "axis" in transform:
+            axis = _items(transform["axis"], (here, "axis"), 3, 3)
+            for item in axis:
+                _number(item, -1e6, 1e6, (here, "axis"))
+            if all(item == 0 for item in axis):
+                raise _Miss((here, "axis"))
+    for name in _CSS_KEYS:
+        if name in frame:
+            text = _safe_text(frame[name], (path, name))
+            if not _CSS_RE.fullmatch(text) or "//" in text or "/*" in text:
+                raise _Miss((path, name))
+    for name, (low, high) in _NUMBER_RANGES.items():
+        if name in frame:
+            _number(frame[name], low, high, (path, name))
+    if "easing" in frame:
+        _easing(frame["easing"], (path, "easing"))
+    if "easings" in frame:
+        here = (path, "easings")
+        lanes = _mapping(frame["easings"], here, _EASING_LANES)
+        for lane, item in lanes.items():
+            _easing(item, (here, lane))
+
+
+def _origin(value: Any, path: Any) -> None:
+    text = _safe_text(value, path, _ORIGIN_MAX)
+    if not _ORIGIN_RE.fullmatch(text):
         raise _Miss(path)
-    if isinstance(value, list):
-        for index, item in enumerate(value):
-            _content(item, (path, index), depth + 1)
-        return
-    for key, item in value.items():
-        if not isinstance(key, str) or key in _PROTOTYPE_KEYS:
-            raise _Miss(path)
-        _safe_text(key, path)
-        _content(item, (path, key), depth + 1, motion_path=depth == 1 and path[1] == "path" and key == "d")
+
+
+def _motion_path(value: Any, path: Any) -> None:
+    motion = _mapping(value, path, frozenset({"d", "follow_rotation"}))
+    data = motion.get("d")
+    if not isinstance(data, str) or len(data) > contract.IMAGE_MAX_BYTES or _path_structure_counts(data) is None:
+        raise _Miss((path, "d"))
+    if "follow_rotation" in motion and not isinstance(motion["follow_rotation"], bool):
+        raise _Miss((path, "follow_rotation"))
 
 
 def _track(value: Any, path: Any, seen: set[str]) -> None:
-    if not isinstance(value, dict):
-        raise _Miss(path)
-    target = _safe_text(value.get("target"), (path, "target"))
+    track = _mapping(value, path, _TRACK_KEYS)
+    target = _safe_text(track.get("target"), (path, "target"))
     if target != "element" and not (target.startswith("part:") and IMAGE_ID_RE.fullmatch(target[5:])):
         raise _Miss((path, "target"))
     if target in seen:
         raise _Miss((path, "target"))
     seen.add(target)
-    _items(value.get("keyframes"), (path, "keyframes"), 1, contract.IMAGE_TRACK_MAX_KEYFRAMES)
-    _content(value, path, 0)
+    keyframes = _items(track.get("keyframes"), (path, "keyframes"), 1, contract.IMAGE_TRACK_MAX_KEYFRAMES)
+    for index, keyframe in enumerate(keyframes):
+        _keyframe(keyframe, ((path, "keyframes"), index))
+    if "origin" in track:
+        _origin(track["origin"], (path, "origin"))
+    if "path" in track:
+        _motion_path(track["path"], (path, "path"))
 
 
 def _frame_data(value: Any, path: Any) -> str:
@@ -246,7 +305,7 @@ def _clip(value: Any, path: Any, smils: set[str], morphs_seen: list[int]) -> str
 def validate_animation(animation: Any) -> str | None:
     """The dotted path of the first field outside the contract, or None when the record is acceptable.
 
-    The caller has already bounded the record's size. Nesting is cut off at ANIM_MAX_DEPTH, so no input
+    The caller has already bounded the record's size. Every level is a fixed field, so no input
     reaches Python's recursion limit.
     """
     root: Any = ("", "animation")

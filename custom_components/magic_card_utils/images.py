@@ -431,6 +431,11 @@ def _thumb_error(thumb: Any) -> str | None:
     return None
 
 
+def _measurable(value: Any) -> bool:
+    text = _compact_json(value)
+    return text is not None and _utf8_size(text) is not None
+
+
 def counted_bytes(image: dict) -> int | None:
     """UTF-8 bytes of the svg plus the compact JSON of bindings and animation; None when not measurable."""
     svg = image.get("svg")
@@ -480,10 +485,14 @@ def validate_image(image: Any) -> Errors:
     # Size first, before any scan of the markup.
     size = counted_bytes(image)
     if size is None:
-        if "animation" in image and not any(error["path"] == "animation" for error in errors):
-            field = validate_animation(image["animation"])
-            if field:
-                errors.append(_err("animation", field))
+        # Not measurable: refuse without walking the record.
+        if (
+            _utf8_size(svg) is not None
+            and "animation" in image
+            and not any(error["path"] == "animation" for error in errors)
+            and not _measurable(image["animation"])
+        ):
+            errors.append(_err("animation", "Must be valid text"))
         if not any(error["path"].startswith(("bindings", "animation")) for error in errors):
             errors.append(_err("svg", "Must be valid text"))
         return errors
