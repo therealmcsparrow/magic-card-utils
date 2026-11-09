@@ -1,6 +1,6 @@
 """Saved full drawings ("library images") for Magic Card: storage, validation and WebSocket API.
 
-Implements the images part of mcu-library 1.2.0, see library_images_contract.py. An index Store holds
+Implements the images part of mcu-library 1.2.1, see library_images_contract.py. An index Store holds
 the small metadata of every image; each body (svg, bindings, animation, thumb, meta) is its own JSON file
 in a folder under .storage, so one 1 MiB drawing never has to be loaded with the others. Magic Card
 sanitises every image again before it renders it; the checks here are defence in depth and size/shape
@@ -29,7 +29,7 @@ from homeassistant.util.file import write_utf8_file_atomic
 
 from . import library_images_contract as contract
 from .const import DOMAIN
-from .image_animation import IMAGE_ID_RE, Morph, morph_miss, morph_table, validate_animation
+from .image_animation import Morph, morph_miss, morph_table, validate_animation
 from .library import (
     _ATTR_DENY_WIDE_RE,
     SERVER_KEYS,
@@ -346,7 +346,7 @@ def _bindings_errors(bindings: Any, errors: Errors) -> None:
             if key not in BINDING_KEYS:
                 errors.append(_err(f"{path}.{str(key)[:NAME_ECHO_MAX]}", "Unknown field"))
         target, entity, set_name = binding.get("target"), binding.get("entity"), binding.get("set")
-        if not isinstance(target, str) or not IMAGE_ID_RE.fullmatch(target):
+        if not isinstance(target, str) or not contract.IMAGE_ID_RE.fullmatch(target):
             errors.append(_err(f"{path}.target", "Must be an element id"))
         if not isinstance(entity, str) or not contract.ENTITY_RE.fullmatch(entity):
             errors.append(_err(f"{path}.entity", "Must be an entity id"))

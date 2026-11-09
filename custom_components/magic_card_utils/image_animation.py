@@ -13,8 +13,7 @@ from typing import Any, NamedTuple
 
 from . import library_images_contract as contract
 
-# The contract's image id pattern with Python's Unicode-aware \w and \d narrowed to ASCII, as in the card.
-IMAGE_ID_RE = re.compile(contract.IMAGE_ID_RE.pattern, re.ASCII)
+from .library_images_contract import IMAGE_ID_RE
 
 _CLIP_KEYS = frozenset(
     {"id", "name", "play", "duration", "delay", "easing", "iterations", "direction", "tracks", "morphs"}
@@ -401,6 +400,8 @@ def _path_structure_counts(data: str) -> str | None:
             parts.append(match.group("cmd"))
             count = 0
         elif match.group("num"):
+            if not parts:
+                return None
             count += 1
     if not parts:
         return None
