@@ -4,7 +4,7 @@ mcu-library 1.2.1 = library_contract.py (icons, shapes, theme presets, provider,
 MCU_LIBRARY_CONTRACT_VERSION in library_contract.py names the same version. Additive over 1.1.0: every new
 field is optional for the caller, and no command or error changes. TypeScript mirror (same version, names
 and rules): magic-card src/contracts/mcu-library-images.ts. The morph rule mirrors magic-card
-src/contracts/svg-safety.ts 1.4.0 and the animation record mirrors src/contracts/image-animation.ts 1.1.2.
+src/contracts/svg-safety.ts 1.4.0 and the animation record mirrors src/contracts/image-animation.ts 1.1.3.
 Card-side use (reference format, rendering, sanitiser lists): magic-card src/contracts/svg-image.ts.
 
 Storage (kept apart from icons and shapes because one image can be 1 MiB and the count has no cap):
@@ -124,7 +124,8 @@ Validation (defence in depth; the card sanitises every image again before it ren
   one of the keys named in the TypedDicts below; any other key is refused. v == IMAGE_ANIMATION_RECORD_VERSION.
   clips: 1..IMAGE_ANIM_MAX_CLIPS, unique ids matching IMAGE_CLIP_ID_RE, name 1..IMAGE_CLIP_NAME_MAX, not blank.
   Whitespace in the record (trimming, the easing and origin patterns, the morph frame and keyTimes
-  items) is exactly ASCII space, tab, line feed, carriage return and form feed, nothing else.
+  items) is exactly ASCII space, tab, line feed, carriage return and form feed, nothing else. An origin
+  has whitespace only between its tokens, never before the first or after the last.
   play.on one of CLIP_PLAY_ON; "state" needs entity (ENTITY_RE), optional attribute (str 1..64) and a
   when dict. duration in IMAGE_CLIP_DURATION_RANGE, delay 0..IMAGE_CLIP_DELAY_MAX, iterations
   "infinite" or a number in IMAGE_CLIP_ITERATIONS_RANGE, direction one of CLIP_DIRECTIONS (only "normal"
