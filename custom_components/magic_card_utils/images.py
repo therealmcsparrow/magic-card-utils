@@ -124,8 +124,11 @@ def _scan(
 ) -> tuple[str, str | None] | None:
     """scan_svg, answering ``(message, miss)``; ``miss`` is set only for a refused ``<animate>``.
 
-    ``ids`` collects the entity-decoded id of every element other than a morph ``<animate>``.
+    ``ids`` collects the ids the card keeps on elements other than a morph ``<animate>``: entity-decoded,
+    trimmed, matching IMAGE_ID_RE and the first of their name in document order. A kept ``<animate>`` takes its
+    id too, so a later element holding it keeps no id.
     """
+    taken: set[str] = set()
     length = len(svg)
     pos = 0
     root_open = True  # the first opening tag is the root <svg>
@@ -214,9 +217,9 @@ def _scan(
                 attributes.append((attribute, value))
             else:
                 if attribute == "id" and element_id is None:
-                    element_id = value
-                    if ids is not None:
-                        ids.add(html.unescape(value) if "&" in value else value)
+                    element_id = _kept_id(value, taken)
+                    if element_id is not None and ids is not None:
+                        ids.add(element_id)
                 if "&" in value:
                     message = _decoded_value_error(attribute, html.unescape(value))
                     if message:
@@ -225,11 +228,31 @@ def _scan(
             if pos < length and svg[pos] not in _AFTER_VALUE:
                 return f"Attributes on <{name}> must be separated by whitespace", None
         if morph:
-            miss = _morph_miss(attributes, self_closing, stack, balanced, morphs, seen)
+            miss = _morph_miss(attributes, self_closing, stack, balanced, morphs, seen, taken)
             if miss:
                 return contract.MORPH_ELEMENT, miss
         elif not self_closing:
             stack.append([name, element_id, False])
+
+
+# What String.prototype.trim removes on the card, where an attribute value is trimmed before it is checked.
+_JS_TRIM = (
+    "\t\n\v\f\r \xa0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a"
+    "\u2028\u2029\u202f\u205f\u3000\ufeff"
+)
+
+
+def _kept_id(value: str, taken: set[str]) -> str | None:
+    """The id the card keeps for an element's raw ``id`` value, or None when it drops it.
+
+    The value is entity-decoded and trimmed; it is kept when it matches IMAGE_ID_RE and no earlier element
+    or kept ``<animate>`` holds it, and then it is taken.
+    """
+    decoded = (html.unescape(value) if "&" in value else value).strip(_JS_TRIM)
+    if not contract.IMAGE_ID_RE.fullmatch(decoded) or decoded in taken:
+        return None
+    taken.add(decoded)
+    return decoded
 
 
 def _morph_miss(
@@ -239,8 +262,12 @@ def _morph_miss(
     balanced: bool,
     morphs: dict[str, Morph],
     seen: set[str],
+    taken: set[str],
 ) -> str | None:
-    """The morph rule for one ``<animate>`` whose start tag has just been read; None keeps it."""
+    """The morph rule for one ``<animate>`` whose start tag has just been read; None keeps it.
+
+    ``taken`` holds the ids kept so far in this drawing; an ``<animate>`` whose id is among them is refused.
+    """
     parent = stack[-1] if stack and balanced else None
     if parent is None or parent[0] != contract.MORPH_PARENT:
         return "parent"
@@ -252,9 +279,10 @@ def _morph_miss(
     if miss:
         return miss
     smil = dict(attributes)["id"]
-    if smil in seen:
+    if smil in seen or smil in taken:
         return "attribute"
     seen.add(smil)
+    taken.add(smil)
     parent[2] = True
     return None
 

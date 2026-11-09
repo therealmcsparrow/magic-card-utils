@@ -93,8 +93,11 @@ Validation (defence in depth; the card sanitises every image again before it ren
   of MORPH_CALC_MODES; fill one of MORPH_FILLS; id IMAGE_ID_RE. A morph value holds no "&". Never href or
   xlink:href (any case or namespace), from, to or by, and never an element of SMIL_NEVER. Cross-checks
   with the record's animation: the animate's id is the smil of exactly one animation.clips[].morphs[],
-  whose target is the id of its parent path; values equals that morph's frames d joined with ";"; all
-  its frames share one command structure (see "Command structure" below); keyTimes, when present, has one entry per frame, each frame's at / 100,
+  whose target is the id of its parent path, the id the card keeps: element ids are read entity-decoded and
+  trimmed, an id that does not match IMAGE_ID_RE is no id, and only the first element (or kept animate) in
+  document order keeps an id, so a path whose id an earlier element holds has none (miss unnamed) and an
+  animate whose id an earlier element holds is refused (miss attribute); values equals that morph's
+  frames d joined with ";"; all its frames share one command structure (see "Command structure" below); keyTimes, when present, has one entry per frame, each frame's at / 100,
   from 0 to 1; calcMode "spline" needs keySplines with one entry of four numbers in 0..1 per segment
   (frames - 1). Any miss refuses the save: invalid_format with errors [{path: "svg", message:
   MORPH_ELEMENT, miss: <MorphMiss>}]. A record without animation keeps no SMIL at all.
@@ -119,12 +122,15 @@ Validation (defence in depth; the card sanitises every image again before it ren
   "M0 0 L1 1 2 2"), a number before the first letter, "1e" and a lone "+".
 - animation: optional ImageAnimation. Every key of the record, a clip, a play, a morph and a frame is
   one of the keys named in the TypedDicts below; any other key is refused. v == IMAGE_ANIMATION_RECORD_VERSION.
-  clips: 1..IMAGE_ANIM_MAX_CLIPS, unique ids matching IMAGE_CLIP_ID_RE, name 1..IMAGE_CLIP_NAME_MAX after
-  strip. play.on one of CLIP_PLAY_ON; "state" needs entity (ENTITY_RE), optional attribute (str 1..64)
-  and a when dict. duration in IMAGE_CLIP_DURATION_RANGE, delay 0..IMAGE_CLIP_DELAY_MAX, iterations
+  clips: 1..IMAGE_ANIM_MAX_CLIPS, unique ids matching IMAGE_CLIP_ID_RE, name 1..IMAGE_CLIP_NAME_MAX, not blank.
+  Whitespace in the record (trimming, the easing and origin patterns, the morph frame and keyTimes
+  items) is exactly ASCII space, tab, line feed, carriage return and form feed, nothing else.
+  play.on one of CLIP_PLAY_ON; "state" needs entity (ENTITY_RE), optional attribute (str 1..64) and a
+  when dict. duration in IMAGE_CLIP_DURATION_RANGE, delay 0..IMAGE_CLIP_DELAY_MAX, iterations
   "infinite" or a number in IMAGE_CLIP_ITERATIONS_RANGE, direction one of CLIP_DIRECTIONS (only "normal"
   in a clip with morphs). tracks: at most IMAGE_CLIP_MAX_TRACKS per clip, target "element" or "part:" +
-  IMAGE_ID_RE whose id is the entity-decoded id of an element in svg (a morph <animate> does not count),
+  IMAGE_ID_RE whose id is an id the card keeps on an element in svg (see the morph rule; a morph
+  <animate> does not count),
   one track per target per clip, at most IMAGE_TRACK_MAX_KEYFRAMES keyframes each; the keys and values of
   a track, its keyframes, origin and motion path are checked against the same allow-lists as the card's
   src/image-anim/check.ts (image_animation.py). morphs: at most

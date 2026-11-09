@@ -27,6 +27,9 @@ _ENTITY_RE = re.compile(r"[a-z0-9_]{1,64}\.[a-z0-9_]{1,128}")
 _ATTRIBUTE_RE = re.compile(r"[A-Za-z0-9_]{1,64}")
 _EASING_WORD_RE = re.compile(r"[a-z][a-z0-9-]{0,31}")
 # One unambiguous number token ([0-9], never \d, which is Unicode in Python), so no pattern backtracks.
+# Whitespace in the record is exactly these five ASCII characters; str.strip(), str.split() and \s would also
+# take U+001C-U+001F, U+0085 and the Unicode spaces.
+_SPACES = " \t\n\r\f"
 _WS = r"[ \t\n\r\f]"
 _NUM = r"-?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)"
 _EASING_BEZIER_RE = re.compile(
@@ -35,7 +38,7 @@ _EASING_BEZIER_RE = re.compile(
 _EASING_MAX = 64
 _ORIGIN_MAX = 64
 _ORIGIN_ITEM = r"(?:left|right|top|bottom|center|" + _NUM + r"(?:px|%|em|rem)?)"
-_ORIGIN_RE = re.compile(_ORIGIN_ITEM + "(?:" + _WS + "+" + _ORIGIN_ITEM + r"){0,2}")
+_ORIGIN_RE = re.compile(_ORIGIN_ITEM + "(?:" + _WS + "+" + _ORIGIN_ITEM + r"){0,2}" + _WS + "*")
 _CSS_RE = re.compile(r"[A-Za-z0-9_ \t\n\r\f.,%#()+/-]+")
 _TRACK_KEYS = frozenset({"target", "keyframes", "origin", "path"})
 _TRANSFORM_RANGES = {
@@ -58,7 +61,8 @@ _KEYFRAME_KEYS = (
     frozenset({"at", "opacity", "transform", "easing", "easings"}) | frozenset(_CSS_KEYS) | frozenset(_NUMBER_RANGES)
 )
 _EASING_STEPS_RE = re.compile(
-    r"steps\(\s*[0-9]{1,3}\s*(?:,\s*(?:start|end|jump-start|jump-end|jump-none|jump-both)\s*)?\)"
+    r"steps\(" + _WS + "*[0-9]{1,3}" + _WS + "*(?:," + _WS + "*(?:start|end|jump-start|jump-end|jump-none|jump-both)"
+    + _WS + r"*)?\)"
 )
 _SCRIPT_URL_RE = re.compile(r"(?:java|vb)script:")
 _OTHER_SPACE_RE = re.compile(r"[\t\n\r\f]")
@@ -134,7 +138,7 @@ def _items(value: Any, path: Any, low: int, high: int) -> list:
 
 
 def _easing(value: Any, path: Any) -> str:
-    text = _safe_text(value, path, _EASING_MAX).strip()
+    text = _safe_text(value, path, _EASING_MAX).strip(_SPACES)
     if not (
         _EASING_WORD_RE.fullmatch(text) or _EASING_BEZIER_RE.fullmatch(text) or _EASING_STEPS_RE.fullmatch(text)
     ):
@@ -275,7 +279,7 @@ def _clip(value: Any, path: Any, smils: set[str], morphs_seen: list[int]) -> str
         if key not in clip:
             raise _Miss((path, key))
     clip_id = _matching(clip["id"], contract.IMAGE_CLIP_ID_RE, (path, "id"))
-    if not _safe_text(clip["name"], (path, "name"), contract.IMAGE_CLIP_NAME_MAX).strip():
+    if not _safe_text(clip["name"], (path, "name"), contract.IMAGE_CLIP_NAME_MAX).strip(_SPACES):
         raise _Miss((path, "name"))
     _play(clip["play"], (path, "play"))
     _number(clip["duration"], *contract.IMAGE_CLIP_DURATION_RANGE, (path, "duration"))
@@ -352,7 +356,7 @@ def morph_table(animation: Any) -> dict[str, Morph]:
             frames = morph["frames"]
             table[morph["smil"]] = Morph(
                 morph["target"],
-                tuple(_OTHER_SPACE_RE.sub(" ", frame["d"]).strip() for frame in frames),
+                tuple(_OTHER_SPACE_RE.sub(" ", frame["d"]).strip(_SPACES) for frame in frames),
                 tuple(float(frame["at"]) for frame in frames),
             )
     return table
@@ -364,21 +368,21 @@ def morph_table(animation: Any) -> dict[str, Morph]:
 def _number_list(text: str, separator: str) -> list[float] | None:
     if not contract.MORPH_NUMBER_LIST_RE.fullmatch(text):
         return None
-    items = [item.strip() for item in text.split(separator)]
+    items = [item.strip(_SPACES) for item in text.split(separator)]
     if not all(_NUMBER_RE.fullmatch(item) for item in items):
         return None
     return [float(item) for item in items]
 
 
 def _frame_texts(values: str) -> list[str] | None:
-    frames = [_OTHER_SPACE_RE.sub(" ", frame).strip() for frame in values.split(contract.MORPH_VALUES_SEPARATOR)]
+    frames = [_OTHER_SPACE_RE.sub(" ", frame).strip(_SPACES) for frame in values.split(contract.MORPH_VALUES_SEPARATOR)]
     return frames if all(contract.MORPH_PATH_DATA_RE.fullmatch(frame) for frame in frames) else None
 
 
 def _splines_miss(text: str, segments: int) -> str | None:
     if not contract.MORPH_NUMBER_LIST_RE.fullmatch(text):
         return "value"
-    sets = [piece.split() for piece in text.split(contract.MORPH_VALUES_SEPARATOR)]
+    sets = [[n for n in piece.split(" ") if n] for piece in text.split(contract.MORPH_VALUES_SEPARATOR)]
     if not all(numbers and all(_NUMBER_RE.fullmatch(number) for number in numbers) for numbers in sets):
         return "value"
     if len(sets) != segments:
