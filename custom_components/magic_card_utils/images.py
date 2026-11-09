@@ -29,6 +29,7 @@ from homeassistant.util.file import write_utf8_file_atomic
 
 from . import library_images_contract as contract
 from .const import DOMAIN
+from .image_animation import IMAGE_ID_RE, Morph, morph_miss, morph_table, validate_animation
 from .library import (
     _ATTR_DENY_WIDE_RE,
     SERVER_KEYS,
@@ -107,44 +108,63 @@ def _compact_json(value: Any) -> str | None:
         return None
 
 
-def scan_svg(svg: str) -> str | None:
+def scan_svg(svg: str, morphs: dict[str, Morph] | None = None, seen: set[str] | None = None) -> str | None:
     """One linear pass over the markup; returns a message for the first thing refused, else None.
 
     Text between tags is never read as markup. Inside a tag a ">" in a quoted value does not end
     the tag. No regular expression runs over a whole tag, and no XML parser is involved.
+    ``morphs`` are the morphs of the record the markup belongs to; without them no ``<animate>`` is kept.
     """
+    found = _scan(svg, morphs or {}, seen if seen is not None else set())
+    return found[0] if found else None
+
+
+def _scan(svg: str, morphs: dict[str, Morph], seen: set[str]) -> tuple[str, str | None] | None:
+    """scan_svg, answering ``(message, miss)``; ``miss`` is set only for a refused ``<animate>``."""
     length = len(svg)
     pos = 0
     root_open = True  # the first opening tag is the root <svg>
+    # Open elements as [name, id, has an animate]; "balanced" turns false at the first closing tag that
+    # does not close the innermost open element, after which no <animate> has a trustworthy parent.
+    stack: list[list[Any]] = []
+    balanced = True
     while True:
         pos = svg.find("<", pos)
         if pos < 0:
             return None
         pos += 1
         if pos >= length:
-            return "The markup ends inside a tag"
+            return "The markup ends inside a tag", None
         if svg[pos] in "!?":
-            return "Declarations, comments and processing instructions are not allowed"
+            return "Declarations, comments and processing instructions are not allowed", None
         closing = svg[pos] == "/"
         if closing:
             pos += 1
         match = _TAG_NAME_RUN_RE.match(svg, pos)
         name = match.group()
         pos = match.end()
-        if not contract.TAG_NAME_RE.fullmatch(name) or name.lower() not in contract.IMAGE_ELEMENTS:
-            return f"The element <{_shown(name)[1:-1]}> is not allowed"
+        morph = name == contract.MORPH_ELEMENT and not closing
+        if not morph and (not contract.TAG_NAME_RE.fullmatch(name) or name.lower() not in contract.IMAGE_ELEMENTS):
+            return f"The element <{_shown(name)[1:-1]}> is not allowed", None
         if closing:
             pos = _SPACE_RUN_RE.match(svg, pos).end()
             if svg[pos : pos + 1] != ">":
-                return f"The closing tag </{name}> may only hold its name"
+                return f"The closing tag </{name}> may only hold its name", None
             pos += 1
+            if stack and stack[-1][0] == name:
+                stack.pop()
+            else:
+                balanced = False
             continue
         is_root, root_open = root_open, False
         root_namespaces = 0
+        attributes: list[tuple[str, str]] = []
+        element_id: str | None = None
+        self_closing = False
         while True:
             pos = _SPACE_RUN_RE.match(svg, pos).end()
             if pos >= length:
-                return "The markup ends inside a tag"
+                return "The markup ends inside a tag", None
             char = svg[pos]
             if char == ">":
                 pos += 1
@@ -152,40 +172,84 @@ def scan_svg(svg: str) -> str | None:
             if char == "/":
                 if svg.startswith("/>", pos):
                     pos += 2
+                    self_closing = True
                     break
-                return f"A stray '/' inside <{name}>"
+                return f"A stray '/' inside <{name}>", None
             match = _ATTR_NAME_RUN_RE.match(svg, pos)
             attribute = match.group()
             pos = match.end()
             namespace = is_root and attribute == "xmlns"
             if namespace:
                 root_namespaces += 1
-            if not contract.ATTR_NAME_SCAN_RE.fullmatch(attribute) or (
+            if morph:
+                if not attribute:
+                    return contract.MORPH_ELEMENT, "attribute"
+            elif not contract.ATTR_NAME_SCAN_RE.fullmatch(attribute) or (
                 attribute.lower() not in contract.IMAGE_ATTRIBUTES and not namespace
             ):
-                return f"The attribute {_shown(attribute)} is not allowed on <{name}>"
+                return f"The attribute {_shown(attribute)} is not allowed on <{name}>", None
             pos = _SPACE_RUN_RE.match(svg, pos).end()
             if svg[pos : pos + 1] != "=":
-                return f"The attribute {attribute} on <{name}> needs a quoted value"
+                return f"The attribute {attribute} on <{name}> needs a quoted value", None
             pos = _SPACE_RUN_RE.match(svg, pos + 1).end()
             quote = svg[pos : pos + 1]
             if quote not in ('"', "'"):
-                return f"The value of {attribute} on <{name}> must be quoted"
+                return f"The value of {attribute} on <{name}> must be quoted", None
             end = svg.find(quote, pos + 1)
             if end < 0:
-                return f"The value of {attribute} on <{name}> is not closed"
+                return f"The value of {attribute} on <{name}> is not closed", None
             value = svg[pos + 1 : end]
             if namespace and (value != contract.ROOT_XMLNS or root_namespaces > 1):
-                return f"The attribute 'xmlns' on <{name}> may only be written once, as {contract.ROOT_XMLNS}"
+                return f"The attribute 'xmlns' on <{name}> may only be written once, as {contract.ROOT_XMLNS}", None
             if "<" in value:
-                return f"The value of {attribute} on <{name}> may not hold '<'"
-            if "&" in value:
-                message = _decoded_value_error(attribute, html.unescape(value))
-                if message:
-                    return message
+                if morph:
+                    return contract.MORPH_ELEMENT, "value"
+                return f"The value of {attribute} on <{name}> may not hold '<'", None
+            if morph:
+                attributes.append((attribute, value))
+            else:
+                if attribute == "id" and element_id is None:
+                    element_id = value
+                if "&" in value:
+                    message = _decoded_value_error(attribute, html.unescape(value))
+                    if message:
+                        return message, None
             pos = end + 1
             if pos < length and svg[pos] not in _AFTER_VALUE:
-                return f"Attributes on <{name}> must be separated by whitespace"
+                return f"Attributes on <{name}> must be separated by whitespace", None
+        if morph:
+            miss = _morph_miss(attributes, self_closing, stack, balanced, morphs, seen)
+            if miss:
+                return contract.MORPH_ELEMENT, miss
+        elif not self_closing:
+            stack.append([name, element_id, False])
+
+
+def _morph_miss(
+    attributes: list[tuple[str, str]],
+    self_closing: bool,
+    stack: list[list[Any]],
+    balanced: bool,
+    morphs: dict[str, Morph],
+    seen: set[str],
+) -> str | None:
+    """The morph rule for one ``<animate>`` whose start tag has just been read; None keeps it."""
+    parent = stack[-1] if stack and balanced else None
+    if parent is None or parent[0] != contract.MORPH_PARENT:
+        return "parent"
+    if not self_closing:
+        return "children"
+    if parent[2]:
+        return "second"
+    miss = morph_miss(attributes, parent[1], morphs)
+    if miss:
+        return miss
+    smil = dict(attributes)["id"]
+    if smil in seen:
+        return "attribute"
+    seen.add(smil)
+    parent[2] = True
+    return None
 
 
 def _decoded_value_error(attribute: str, decoded: str) -> str | None:
@@ -204,25 +268,39 @@ def _svg_error(svg: str) -> str | None:
     return _svg_problem(svg)[0]
 
 
-def _svg_problem(svg: str) -> tuple[str | None, str | None]:
-    """(message, denied word); the word is set only when a TEXT_DENY word anywhere in the text was the reason."""
+def _svg_problem(
+    svg: str, morphs: dict[str, Morph] | None = None, seen: set[str] | None = None
+) -> tuple[str | None, str | None, str | None]:
+    """(message, denied word, morph miss).
+
+    The word is set only when a TEXT_DENY word anywhere in the text was the reason; the miss only when an
+    ``<animate>`` was refused.
+    """
     if _CONTROL_RE.search(svg):
-        return "Control characters are not allowed", None
+        return "Control characters are not allowed", None, None
     if not svg.strip().lower().startswith("<svg"):
-        return "Must start with <svg", None
+        return "Must start with <svg", None, None
     if svg.count("<") > contract.IMAGE_MAX_NODES:
-        return f"Too many elements (at most {contract.IMAGE_MAX_NODES})", None
+        return f"Too many elements (at most {contract.IMAGE_MAX_NODES})", None, None
+    morphs = morphs or {}
+    seen = seen if seen is not None else set()
+    # A refused <animate> is named as one even when its value also holds a denied word.
+    scanned = "<animate" in svg
+    found = _scan(svg, morphs, seen) if scanned else None
+    if found and found[1]:
+        return found[0], None, found[1]
     lowered = _URL_WHITESPACE_RE.sub("", svg).lower()
     for text in contract.TEXT_DENY:
         if text in lowered:
-            return f"{text!r} is not allowed", text
-    return _structure_error(svg), None
+            return f"{text!r} is not allowed", text, None
+    found = found if scanned else _scan(svg, morphs, seen)
+    if found:
+        return found[0], None, found[1]
+    return _text_error(svg), None, None
 
 
-def _structure_error(svg: str) -> str | None:
-    message = scan_svg(svg)
-    if message:
-        return message
+def _text_error(svg: str) -> str | None:
+    """The whole-text checks that run after the tag scan."""
     if ATTR_DENY_RE.search(svg) or _ATTR_DENY_WIDE_RE.search(svg):
         return "Event, style and link attributes are not allowed"
     if len(_URL_RE.findall(svg)) != len(_LOCAL_URL_RE.findall(svg)):
@@ -268,7 +346,7 @@ def _bindings_errors(bindings: Any, errors: Errors) -> None:
             if key not in BINDING_KEYS:
                 errors.append(_err(f"{path}.{str(key)[:NAME_ECHO_MAX]}", "Unknown field"))
         target, entity, set_name = binding.get("target"), binding.get("entity"), binding.get("set")
-        if not isinstance(target, str) or not contract.IMAGE_ID_RE.fullmatch(target):
+        if not isinstance(target, str) or not IMAGE_ID_RE.fullmatch(target):
             errors.append(_err(f"{path}.target", "Must be an element id"))
         if not isinstance(entity, str) or not contract.ENTITY_RE.fullmatch(entity):
             errors.append(_err(f"{path}.entity", "Must be an entity id"))
@@ -402,6 +480,10 @@ def validate_image(image: Any) -> Errors:
     # Size first, before any scan of the markup.
     size = counted_bytes(image)
     if size is None:
+        if "animation" in image and not any(error["path"] == "animation" for error in errors):
+            field = validate_animation(image["animation"])
+            if field:
+                errors.append(_err("animation", field))
         if not any(error["path"].startswith(("bindings", "animation")) for error in errors):
             errors.append(_err("svg", "Must be valid text"))
         return errors
@@ -415,11 +497,24 @@ def validate_image(image: Any) -> Errors:
             }
         )
         return errors
-    message, word = _svg_problem(svg)
+    morphs: dict[str, Morph] = {}
+    animation = image.get("animation")
+    if isinstance(animation, dict):
+        field = validate_animation(animation)
+        if field:
+            errors.append(_err("animation", field))
+            return errors
+        morphs = morph_table(animation)
+    seen: set[str] = set()
+    message, word, miss = _svg_problem(svg, morphs, seen)
     if word:
         errors.append({"path": "svg", "message": contract.ERR_FORBIDDEN_TEXT, "word": word})
+    elif miss:
+        errors.append({"path": "svg", "message": contract.MORPH_ELEMENT, "miss": miss})
     elif message:
         errors.append(_err("svg", message))
+    elif seen != set(morphs):
+        errors.append(_err("animation", "morph without an animate"))
     return errors
 
 
