@@ -1,10 +1,10 @@
-"""Contract: mcu-library 1.2.0, images part. Saved full drawings ("library images") for Magic Card.
+"""Contract: mcu-library 1.2.1, images part. Saved full drawings ("library images") for Magic Card.
 
-mcu-library 1.2.0 = library_contract.py (icons, shapes, theme presets, provider, panel) plus this module;
+mcu-library 1.2.1 = library_contract.py (icons, shapes, theme presets, provider, panel) plus this module;
 MCU_LIBRARY_CONTRACT_VERSION in library_contract.py names the same version. Additive over 1.1.0: every new
 field is optional for the caller, and no command or error changes. TypeScript mirror (same version, names
 and rules): magic-card src/contracts/mcu-library-images.ts. The morph rule mirrors magic-card
-src/contracts/svg-safety.ts 1.3.0 and the animation record mirrors src/contracts/image-animation.ts 1.0.0.
+src/contracts/svg-safety.ts 1.3.1 and the animation record mirrors src/contracts/image-animation.ts 1.1.1.
 Card-side use (reference format, rendering, sanitiser lists): magic-card src/contracts/svg-image.ts.
 
 Storage (kept apart from icons and shapes because one image can be 1 MiB and the count has no cap):
@@ -94,8 +94,7 @@ Validation (defence in depth; the card sanitises every image again before it ren
   xlink:href (any case or namespace), from, to or by, and never an element of SMIL_NEVER. Cross-checks
   with the record's animation: the animate's id is the smil of exactly one animation.clips[].morphs[],
   whose target is the id of its parent path; values equals that morph's frames d joined with ";"; all
-  its frames share one command structure (the same command letters in the same order, with the same
-  count of numbers after each); keyTimes, when present, has one entry per frame, each frame's at / 100,
+  its frames share one command structure (see "Command structure" below); keyTimes, when present, has one entry per frame, each frame's at / 100,
   from 0 to 1; calcMode "spline" needs keySplines with one entry of four numbers in 0..1 per segment
   (frames - 1). Any miss refuses the save: invalid_format with errors [{path: "svg", message:
   MORPH_ELEMENT, miss: <MorphMiss>}]. A record without animation keeps no SMIL at all.
@@ -103,6 +102,21 @@ Validation (defence in depth; the card sanitises every image again before it ren
   holding url( or a quote-closed attribute, from/to/by, a second animate on one path, an animate with a
   child or a closing tag, an animate under <g> or at the root, an id no morph names, set and
   animateTransform.
+- Command structure (the same rule word for word as magic-card src/contracts/svg-safety.ts at
+  MORPH_VALUES_SEPARATOR):
+  Command structure of a morph frame: after tab, line feed, form feed and carriage return became a space, the frame
+  is read left to right as tokens, each starting where the last one ended: a command letter (one of
+  MmLlHhVvCcSsQqTtAaZz), a number (the pattern [+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][+-]?[0-9]+)?, greedy), or a
+  run of spaces and commas. The structure is the command letters in order, each with the count of numbers after it
+  up to the next letter or the end. The frame is not path data (miss value) when some text is none of these tokens,
+  when a number comes before the first letter, or when it holds no letter. All frames of one morph have the same
+  structure: the same letters in the same order and the same count of numbers after each (miss frames otherwise).
+  An implicit repeat and its explicit form differ: "L1 1 2 2" is L with 4 numbers, "L1 1 L2 2" is L with 2 and L
+  with 2. The editor writes every frame in one form: a command letter before every segment (never an implicit
+  repeat), the numbers of a segment separated by one space, each arc flag as a number of its own (0 or 1), and Z
+  with no numbers; every frame it writes passes this rule on both sides.
+  Hostile tests: frames with equal letters and different number counts ("M0 0 L1 1" against
+  "M0 0 L1 1 2 2"), a number before the first letter, "1e" and a lone "+".
 - animation: optional ImageAnimation. Every key of the record, a clip, a play, a morph and a frame is
   one of the keys named in the TypedDicts below; any other key is refused. v == IMAGE_ANIMATION_RECORD_VERSION.
   clips: 1..IMAGE_ANIM_MAX_CLIPS, unique ids matching IMAGE_CLIP_ID_RE, name 1..IMAGE_CLIP_NAME_MAX after
@@ -166,7 +180,7 @@ from __future__ import annotations
 import re
 from typing import Literal, NotRequired, TypedDict
 
-MCU_LIBRARY_IMAGES_CONTRACT_VERSION = "1.2.0"
+MCU_LIBRARY_IMAGES_CONTRACT_VERSION = "1.2.1"
 
 STORAGE_KEY_IMAGES = "magic_card_utils.images"
 IMAGE_DIR = ".storage/magic_card_utils_images"
@@ -226,7 +240,8 @@ TAG_NAME_RE = re.compile(r"[A-Za-z][A-Za-z0-9]{0,31}")
 ATTR_NAME_SCAN_RE = re.compile(r"[A-Za-z][A-Za-z0-9-]{0,31}")
 TEXT_DENY = ("javascript:", "vbscript:", "<!entity", "<!doctype", "<?", "<![cdata[", "<!--", "@import", "expression(")
 VAR_RE = re.compile(r"var\(\s*--[a-z0-9][a-z0-9-]{0,63}\s*(,\s*#[0-9a-fA-F]{3,8}\s*)?\)")
-IMAGE_ID_RE = re.compile(r"^[A-Za-z][\w.-]{0,63}\Z")
+# ASCII only, as the card's IMAGE_ID_RE: an explicit class, so the pattern stays ASCII however it is recompiled.
+IMAGE_ID_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_.-]{0,63}\Z", re.ASCII)
 ENTITY_RE = re.compile(r"^[a-z0-9_]+\.[a-z0-9_]+\Z")
 BINDING_SETS = frozenset({"fill", "stroke", "opacity", "visible"})
 BINDING_COLOUR_RE = re.compile(r"^(#[0-9a-fA-F]{3,8}|theme:[a-z0-9][a-z0-9-]{0,63}|main|accent|entity)\Z")
