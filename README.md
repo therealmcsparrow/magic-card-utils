@@ -102,10 +102,12 @@ After an update, restart Home Assistant so your browser loads the new panel.
 Library images are drawings you make in Magic Card's image editor and save to the library. Dashboards show them in an image module or as a background layer.
 
 - Magic Card Utils stores them in Home Assistant's own storage, in `config/.storage/`. They are included in Home Assistant backups.
-- The library holds up to 200 images. Each image can be up to 256 KiB.
+- Each image can be up to 1 MiB. That counts the drawing, its bindings and its animation together. The library has no limit on the number of images or on its total size, so keep an eye on how much space the images take in your backups.
+- An image can carry an animation made in Magic Card's image animator. It is saved in the image itself, so every card that shows the image plays it.
+- Uploaded or pasted SVG stays untrusted. Any animation inside it is removed on import, apart from the path morphs that the image editor writes itself.
 - Every user who can log in to Home Assistant can see and use the images. Only administrators can create, change, rename, delete or import them.
 - The Images tab lists the images. Each row has Duplicate, Rename and Delete, and Export all images saves every image to a file on your device.
-- The Images tab needs Magic Card **2026.10.12-beta.8** or newer.
+- The Images tab needs Magic Card **2026.10.12-beta.8** or newer. Images over 256 KiB and animated images need the Magic Card release that matches this version. An older card still works, but it shows the large images as missing and the animated ones without motion.
 
 A drawing can show the layout of your home, so check what goes into it. For what is stored, who can read it and what an export file holds, see the [Magic Card privacy page for images](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/images/privacy.md). The [Images tab page](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/images.md) covers the tab in detail.
 

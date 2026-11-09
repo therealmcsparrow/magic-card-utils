@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2026.11.02-beta.1] - 2026-11-09
+
+This is a pre-release. It works with the matching Magic Card release, 2026.11.03-beta.1. To install it, choose **Include pre-releases** in the Marketplace, or turn on **Show beta versions** in HACS.
+
+### Added
+
+- **Animated library images.** A library image can carry an animation made in the card's new image animator. The animation is stored in the image record, so every card that shows the image plays it.
+
+### Changed
+
+- **Bigger images.** Each image can now be up to 1 MiB, up from 256 KiB. The size counts the drawing, its bindings and its animation together.
+- **No image count limit.** The library no longer stops at 200 images, and it has no total size limit either.
+- **Image list.** The list now tells the card the largest image size this version accepts and which images are animated. A card that does not get this information treats Utils as an older version and keeps to 256 KiB without animation.
+- **Safety checks on read.** An image whose stored body no longer passes validation is left out when a card asks for it, and a warning goes to the Home Assistant log. At start-up, an image file that has no entry in the list but passes validation is put back.
+
+### Security
+
+- Uploaded, pasted and transferred SVG stays untrusted. Any animation in it is still refused, except the path-morph animation that the card's image editor writes. That animation is accepted only on a path, only with the attributes the editor uses, and only when the image's animation record names it.
+
+### Upgrading and going back
+
+- Use this version with Magic Card 2026.11.03-beta.1 or newer.
+- A card older than that keeps working. It shows images over 256 KiB as missing and animated images without motion.
+- If you go back to an older Magic Card Utils after saving images over 256 KiB, those images are hidden while the older version runs, because it only accepts images up to 256 KiB. Their files stay in the images folder, and they return when you update Utils again.
+- Animated images up to 256 KiB still show in an older Magic Card Utils, without motion. The animation comes back when you update Utils again, as long as you have not saved the image in the meantime.
+
 ## [2026.11.01] - 2026-11-06
 
 This stable release holds everything from the 2026.10.12 pre-releases, which are listed below. Use it with Magic Card 2026.11.01, which meets every requirement of the panel, so you no longer need a Magic Card pre-release. If you stayed on 2026.10.11, these are the main changes:
