@@ -28,7 +28,7 @@ _ATTRIBUTE_RE = re.compile(r"[A-Za-z0-9_]{1,64}")
 _EASING_WORD_RE = re.compile(r"[a-z][a-z0-9-]{0,31}")
 # One unambiguous number token ([0-9], never \d, which is Unicode in Python), so no pattern backtracks.
 _WS = r"[ \t\n\r\f]"
-_NUM = r"-?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)"
+_NUM = r"-?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)"
 _EASING_BEZIER_RE = re.compile(
     r"cubic-bezier\(" + _WS + "*" + _NUM + _WS + "*(?:," + _WS + "*" + _NUM + _WS + "*){3}" + r"\)"
 )
