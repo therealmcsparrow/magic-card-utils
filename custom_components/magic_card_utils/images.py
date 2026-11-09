@@ -1,9 +1,10 @@
 """Saved full drawings ("library images") for Magic Card: storage, validation and WebSocket API.
 
-Implements the images part of mcu-library 1.1.0, see library_images_contract.py. An index Store holds
-the small metadata of every image; each body (svg, bindings, thumb) is its own JSON file in a folder
-under .storage, so one 256 KiB drawing never has to be loaded with the other 199. Magic Card sanitises
-every image again before it renders it; the checks here are defence in depth and size/shape limits.
+Implements the images part of mcu-library 1.2.0, see library_images_contract.py. An index Store holds
+the small metadata of every image; each body (svg, bindings, animation, thumb, meta) is its own JSON file
+in a folder under .storage, so one 1 MiB drawing never has to be loaded with the others. Magic Card
+sanitises every image again before it renders it; the checks here are defence in depth and size/shape
+limits.
 """
 
 from __future__ import annotations
@@ -42,7 +43,6 @@ from .library import (
 from .library_contract import (
     ATTR_DENY_RE,
     ERR_CONFLICT,
-    ERR_LIBRARY_FULL,
     ERR_SAVE_FAILED,
     LIBRARY_ID_RE,
     SIGNAL_LIBRARY_UPDATED,
@@ -56,7 +56,7 @@ DATA_IMAGES = f"{DOMAIN}_images"
 ERR_TOO_MANY = "too_many"
 
 IMAGE_INPUT_KEYS = frozenset(
-    {"id", "name", "keywords", "author", "description", "view_box", "svg", "bindings", "thumb"}
+    {"id", "name", "keywords", "author", "description", "view_box", "svg", "bindings", "animation", "thumb"}
 )
 BINDING_KEYS = frozenset({"target", "entity", "attribute", "set", "rules", "default"})
 RULE_KEYS = frozenset({"state", "above", "below", "value"})
@@ -354,18 +354,19 @@ def _thumb_error(thumb: Any) -> str | None:
 
 
 def counted_bytes(image: dict) -> int | None:
-    """UTF-8 bytes of the svg plus the compact JSON of the bindings; None when not measurable."""
+    """UTF-8 bytes of the svg plus the compact JSON of bindings and animation; None when not measurable."""
     svg = image.get("svg")
     if not isinstance(svg, str):
         return None
     size = _utf8_size(svg)
     if size is None:
         return None
-    if "bindings" in image:
-        text = _compact_json(image["bindings"])
-        if text is None or (text_size := _utf8_size(text)) is None:
-            return None
-        size += text_size
+    for key in ("bindings", "animation"):
+        if key in image:
+            text = _compact_json(image[key])
+            if text is None or (text_size := _utf8_size(text)) is None:
+                return None
+            size += text_size
     return size
 
 
@@ -393,13 +394,15 @@ def validate_image(image: Any) -> Errors:
         errors.append(_err("svg", "Must be SVG markup"))
     if "bindings" in image:
         _bindings_errors(image["bindings"], errors)
+    if "animation" in image and not isinstance(image["animation"], dict):
+        errors.append(_err("animation", "Must be an object"))
     if not isinstance(svg, str):
         return errors
 
     # Size first, before any scan of the markup.
     size = counted_bytes(image)
     if size is None:
-        if not any(error["path"].startswith("bindings") for error in errors):
+        if not any(error["path"].startswith(("bindings", "animation")) for error in errors):
             errors.append(_err("svg", "Must be valid text"))
         return errors
     if size > contract.IMAGE_MAX_BYTES:
@@ -431,6 +434,7 @@ def _summary(meta: dict) -> dict:
     summary["view_box"] = meta["view_box"]
     summary["bytes"] = meta["bytes"]
     summary["bindings"] = meta["bindings"]
+    summary["animated"] = meta.get("animated") is True
     if "thumb" in meta:
         summary["thumb"] = meta["thumb"]
     summary["updated_at"] = meta["updated_at"]
@@ -452,6 +456,8 @@ def _meta_ok(key: str, meta: Any) -> bool:
     if errors or _view_box_error(meta.get("view_box")):
         return False
     if "thumb" in meta and _thumb_error(meta["thumb"]):
+        return False
+    if "animated" in meta and not isinstance(meta["animated"], bool):
         return False
     return (
         isinstance(meta.get("bytes"), int)
@@ -519,6 +525,41 @@ def _scan_folder(folder: str) -> set[str]:
     return bodies
 
 
+def _body_problem(meta: dict, body: dict) -> str | None:
+    """Why a stored body cannot be served for its index entry; None when it is fine."""
+    image = Images._compose(meta, body)
+    errors = validate_image(image)
+    if errors:
+        first = errors[0]
+        return f"{first['path']}: {first['message']}"[: NAME_ECHO_MAX * 2]
+    if meta.get("bytes") != counted_bytes(image) or meta.get("bindings") != len(image.get("bindings", [])):
+        return "the index entry does not match the body"
+    return None
+
+
+def _adopt_orphans(folder: str, names: list[str]) -> dict[str, dict]:
+    """Executor job: the index entries of body files that carry a valid ``meta`` and a valid record."""
+    adopted: dict[str, dict] = {}
+    for name in sorted(names):
+        key = name[: -len(".json")]
+        if not LIBRARY_ID_RE.fullmatch(key):
+            _LOGGER.warning("Image file %s has no usable name and was left alone", name[:NAME_ECHO_MAX])
+            continue
+        body = _read_body(os.path.join(folder, name))
+        if body is None:
+            continue
+        meta = body.get("meta")
+        if not _meta_ok(key, meta):
+            _LOGGER.warning("Image file %s was left alone: it has no usable meta", name)
+            continue
+        problem = _body_problem(meta, body)
+        if problem:
+            _LOGGER.warning("Image file %s was left alone: it fails validation (%s)", name, problem)
+            continue
+        adopted[key] = meta
+    return adopted
+
+
 class Images:
     """Index in a Store, bodies in files, a small least-recently-used cache of parsed bodies."""
 
@@ -544,8 +585,6 @@ class Images:
             for key, meta in stored.items():
                 if not _meta_ok(key, meta):
                     _LOGGER.warning("Dropping invalid stored image %r", str(key)[:NAME_ECHO_MAX])
-                elif len(self.index) >= contract.MAX_IMAGES:
-                    _LOGGER.warning("Dropping stored image %r: library is full", key)
                 else:
                     self.index[key] = meta
         files = await self.hass.async_add_executor_job(_scan_folder, self.folder)
@@ -555,9 +594,14 @@ class Images:
                 del self.index[key]
         orphans = files - {f"{key}.json" for key in self.index}
         if orphans:
-            _LOGGER.warning(
-                "%d file(s) in the images folder have no index entry and were left alone", len(orphans)
-            )
+            adopted = await self.hass.async_add_executor_job(_adopt_orphans, self.folder, list(orphans))
+            if adopted:
+                self.index.update(adopted)
+                await self.store.async_save({"images": self.index})
+                _LOGGER.info("Put %d image(s) back into the index from their body files", len(adopted))
+            left = len(orphans) - len(adopted)
+            if left:
+                _LOGGER.warning("%d file(s) in the images folder have no index entry and were left alone", left)
 
     # ---- cache
 
@@ -607,6 +651,11 @@ class Images:
             path = self._path(image_id)
             body = _read_body(path)
             if body is not None:
+                meta = self.index.get(image_id)
+                problem = _body_problem(meta, body) if meta else "it was deleted"
+                if problem:
+                    _LOGGER.warning("Image %r is not served: %s", image_id, problem)
+                    continue
                 try:
                     size = os.path.getsize(path)
                 except OSError:
@@ -624,6 +673,8 @@ class Images:
         image["svg"] = body["svg"]
         if body.get("bindings"):
             image["bindings"] = body["bindings"]
+        if isinstance(body.get("animation"), dict):
+            image["animation"] = body["animation"]
         thumb = body.get("thumb", meta.get("thumb"))
         if isinstance(thumb, str):
             image["thumb"] = thumb
@@ -636,8 +687,6 @@ class Images:
     def check_save(self, image_id: str, base_updated_at: str | None) -> str | None:
         """Return an error code when the save must be refused, else None."""
         existing = self.index.get(image_id)
-        if existing is None and len(self.index) >= contract.MAX_IMAGES:
-            return ERR_LIBRARY_FULL
         if existing is None and base_updated_at is not None:
             return ERR_CONFLICT
         if existing is not None and existing["updated_at"] != base_updated_at:
@@ -655,6 +704,8 @@ class Images:
             now = _now()
             bindings = list(image.get("bindings", []))
             body: dict[str, Any] = {"svg": image["svg"], "bindings": bindings}
+            if "animation" in image:
+                body["animation"] = image["animation"]
             meta: dict[str, Any] = {"id": image_id, "name": image["name"].strip()}
             for key in ("keywords", "author", "description"):
                 if key in image:
@@ -662,10 +713,12 @@ class Images:
             meta["view_box"] = image["view_box"]
             meta["bytes"] = counted_bytes(image)
             meta["bindings"] = len(bindings)
+            meta["animated"] = "animation" in image
             if "thumb" in image:
                 meta["thumb"] = body["thumb"] = image["thumb"]
             meta["created_at"] = previous["created_at"] if previous else now
             meta["updated_at"] = now
+            body["meta"] = meta
             text = json.dumps(body, ensure_ascii=False, allow_nan=False)
 
             await self.hass.async_add_executor_job(_write_body, self.folder, self._path(image_id), text)
@@ -738,7 +791,13 @@ def ws_images_list(hass: HomeAssistant, connection: websocket_api.ActiveConnecti
     if images is None:
         _not_loaded(connection, msg["id"])
         return
-    connection.send_result(msg["id"], {"images": images.summaries()})
+    connection.send_result(
+        msg["id"],
+        {
+            "images": images.summaries(),
+            "caps": {"image_max_bytes": contract.IMAGE_MAX_BYTES, "animation": contract.IMAGE_CAPS_ANIMATION},
+        },
+    )
 
 
 @websocket_api.websocket_command(
@@ -795,11 +854,7 @@ async def ws_images_save(hass: HomeAssistant, connection: websocket_api.ActiveCo
         _LOGGER.exception("Saving image %r failed", image["id"])
         connection.send_error(msg["id"], ERR_SAVE_FAILED, "The image could not be saved")
         return
-    if code == ERR_LIBRARY_FULL:
-        connection.send_error(
-            msg["id"], code, f"The library is full (at most {contract.MAX_IMAGES} images)"
-        )
-    elif code == ERR_CONFLICT:
+    if code == ERR_CONFLICT:
         connection.send_error(msg["id"], code, "The image was changed elsewhere; reload and try again")
     else:
         connection.send_result(msg["id"], {"image": summary})
