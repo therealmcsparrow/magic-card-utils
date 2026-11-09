@@ -326,6 +326,22 @@ def validate_animation(animation: Any) -> str | None:
     return None
 
 
+def missing_part(animation: Any, svg_ids: set[str]) -> str | None:
+    """The dotted path of the first track whose ``part:<id>`` target is not an element id of the drawing.
+
+    ``animation`` is a record validate_animation accepted; ``svg_ids`` are the entity-decoded ids of the
+    drawing's elements, the morph ``<animate>`` elements left out.
+    """
+    if not isinstance(animation, dict):
+        return None
+    for clip_index, clip in enumerate(animation.get("clips", ())):
+        for track_index, track in enumerate(clip.get("tracks", ())):
+            target = track["target"]
+            if target.startswith("part:") and target[5:] not in svg_ids:
+                return f"clips.{clip_index}.tracks.{track_index}.target"
+    return None
+
+
 def morph_table(animation: Any) -> dict[str, Morph]:
     """The morphs of a record that validate_animation accepted, by the id of their `<animate>`."""
     table: dict[str, Morph] = {}
@@ -363,7 +379,7 @@ def _splines_miss(text: str, segments: int) -> str | None:
     if not contract.MORPH_NUMBER_LIST_RE.fullmatch(text):
         return "value"
     sets = [piece.split() for piece in text.split(contract.MORPH_VALUES_SEPARATOR)]
-    if not all(_NUMBER_RE.fullmatch(number) for numbers in sets for number in numbers):
+    if not all(numbers and all(_NUMBER_RE.fullmatch(number) for number in numbers) for numbers in sets):
         return "value"
     if len(sets) != segments:
         return "counts"
@@ -388,10 +404,10 @@ def morph_miss(attributes: list[tuple[str, str]], parent_id: str | None, table: 
     Returns one of contract.MORPH_MISSES, or None when it is the editor's morph for a morph in ``table``.
     The element name, parent, children and one-per-path rules are the caller's.
     """
+    if any(name == "xmlns" and value != contract.ROOT_XMLNS for name, value in attributes):
+        return "namespace"
     found: dict[str, str] = {}
     for name, value in attributes:
-        if name == "xmlns" or name.startswith("xmlns:"):
-            return "namespace"
         if name not in contract.MORPH_ATTRIBUTES or name in found:
             return "attribute"
         found[name] = value

@@ -29,7 +29,7 @@ from homeassistant.util.file import write_utf8_file_atomic
 
 from . import library_images_contract as contract
 from .const import DOMAIN
-from .image_animation import Morph, morph_miss, morph_table, validate_animation
+from .image_animation import Morph, missing_part, morph_miss, morph_table, validate_animation
 from .library import (
     _ATTR_DENY_WIDE_RE,
     SERVER_KEYS,
@@ -119,8 +119,13 @@ def scan_svg(svg: str, morphs: dict[str, Morph] | None = None, seen: set[str] | 
     return found[0] if found else None
 
 
-def _scan(svg: str, morphs: dict[str, Morph], seen: set[str]) -> tuple[str, str | None] | None:
-    """scan_svg, answering ``(message, miss)``; ``miss`` is set only for a refused ``<animate>``."""
+def _scan(
+    svg: str, morphs: dict[str, Morph], seen: set[str], ids: set[str] | None = None
+) -> tuple[str, str | None] | None:
+    """scan_svg, answering ``(message, miss)``; ``miss`` is set only for a refused ``<animate>``.
+
+    ``ids`` collects the entity-decoded id of every element other than a morph ``<animate>``.
+    """
     length = len(svg)
     pos = 0
     root_open = True  # the first opening tag is the root <svg>
@@ -210,6 +215,8 @@ def _scan(svg: str, morphs: dict[str, Morph], seen: set[str]) -> tuple[str, str 
             else:
                 if attribute == "id" and element_id is None:
                     element_id = value
+                    if ids is not None:
+                        ids.add(html.unescape(value) if "&" in value else value)
                 if "&" in value:
                     message = _decoded_value_error(attribute, html.unescape(value))
                     if message:
@@ -269,7 +276,7 @@ def _svg_error(svg: str) -> str | None:
 
 
 def _svg_problem(
-    svg: str, morphs: dict[str, Morph] | None = None, seen: set[str] | None = None
+    svg: str, morphs: dict[str, Morph] | None = None, seen: set[str] | None = None, ids: set[str] | None = None
 ) -> tuple[str | None, str | None, str | None]:
     """(message, denied word, morph miss).
 
@@ -286,14 +293,14 @@ def _svg_problem(
     seen = seen if seen is not None else set()
     # A refused <animate> is named as one even when its value also holds a denied word.
     scanned = "<animate" in svg
-    found = _scan(svg, morphs, seen) if scanned else None
+    found = _scan(svg, morphs, seen, ids) if scanned else None
     if found and found[1]:
         return found[0], None, found[1]
     lowered = _URL_WHITESPACE_RE.sub("", svg).lower()
     for text in contract.TEXT_DENY:
         if text in lowered:
             return f"{text!r} is not allowed", text, None
-    found = found if scanned else _scan(svg, morphs, seen)
+    found = found if scanned else _scan(svg, morphs, seen, ids)
     if found:
         return found[0], None, found[1]
     return _text_error(svg), None, None
@@ -515,7 +522,8 @@ def validate_image(image: Any) -> Errors:
             return errors
         morphs = morph_table(animation)
     seen: set[str] = set()
-    message, word, miss = _svg_problem(svg, morphs, seen)
+    svg_ids: set[str] = set()
+    message, word, miss = _svg_problem(svg, morphs, seen, svg_ids)
     if word:
         errors.append({"path": "svg", "message": contract.ERR_FORBIDDEN_TEXT, "word": word})
     elif miss:
@@ -524,6 +532,8 @@ def validate_image(image: Any) -> Errors:
         errors.append(_err("svg", message))
     elif seen != set(morphs):
         errors.append(_err("animation", "morph without an animate"))
+    elif field := missing_part(animation, svg_ids):
+        errors.append(_err("animation", field))
     return errors
 
 

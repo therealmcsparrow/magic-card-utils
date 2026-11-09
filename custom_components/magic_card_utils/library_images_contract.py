@@ -4,7 +4,7 @@ mcu-library 1.2.1 = library_contract.py (icons, shapes, theme presets, provider,
 MCU_LIBRARY_CONTRACT_VERSION in library_contract.py names the same version. Additive over 1.1.0: every new
 field is optional for the caller, and no command or error changes. TypeScript mirror (same version, names
 and rules): magic-card src/contracts/mcu-library-images.ts. The morph rule mirrors magic-card
-src/contracts/svg-safety.ts 1.3.1 and the animation record mirrors src/contracts/image-animation.ts 1.1.1.
+src/contracts/svg-safety.ts 1.4.0 and the animation record mirrors src/contracts/image-animation.ts 1.1.2.
 Card-side use (reference format, rendering, sanitiser lists): magic-card src/contracts/svg-image.ts.
 
 Storage (kept apart from icons and shapes because one image can be 1 MiB and the count has no cap):
@@ -124,13 +124,15 @@ Validation (defence in depth; the card sanitises every image again before it ren
   and a when dict. duration in IMAGE_CLIP_DURATION_RANGE, delay 0..IMAGE_CLIP_DELAY_MAX, iterations
   "infinite" or a number in IMAGE_CLIP_ITERATIONS_RANGE, direction one of CLIP_DIRECTIONS (only "normal"
   in a clip with morphs). tracks: at most IMAGE_CLIP_MAX_TRACKS per clip, target "element" or "part:" +
-  IMAGE_ID_RE, one track per target per clip, at most IMAGE_TRACK_MAX_KEYFRAMES keyframes each; track
-  contents are lists, dicts with str keys, str, bool and finite numbers, nested at most
-  ANIM_MAX_DEPTH levels below the track (the card's compileTracks checks their meaning). morphs: at most
+  IMAGE_ID_RE whose id is the entity-decoded id of an element in svg (a morph <animate> does not count),
+  one track per target per clip, at most IMAGE_TRACK_MAX_KEYFRAMES keyframes each; the keys and values of
+  a track, its keyframes, origin and motion path are checked against the same allow-lists as the card's
+  src/image-anim/check.ts (image_animation.py). morphs: at most
   IMAGE_ANIM_MAX_MORPHS in the whole record, target and smil IMAGE_ID_RE, smil unique in the record,
   frames IMAGE_MORPH_MIN_FRAMES..IMAGE_MORPH_MAX_FRAMES with at strictly rising from 0 to 100, d passing
   MORPH_PATH_DATA_RE after other whitespace became a space, easing (optional) MORPH_EASING_RE. Every
-  string of the record is at most IMAGE_ANIM_MAX_STRING_CHARS characters, except a frame's d and a
+  string of the record is at most IMAGE_ANIM_MAX_STRING_CHARS Unicode code points (every string cap here
+  counts code points, as the card does), except a frame's d and a
   track's motion path, which are bounded by IMAGE_MAX_BYTES; and holds none of IMAGE_ANIM_DENY
   (case-insensitive). Every number is finite (no NaN, no infinity, no bool). A miss is invalid_format
   with errors [{path: "animation", message: <the failing field as a dotted path>}].
@@ -267,9 +269,10 @@ MORPH_NUMBER_LIST_RE = re.compile(r"[0-9. ;]+")
 MORPH_VALUES_SEPARATOR = ";"
 # SMIL elements refused whatever the record holds.
 SMIL_NEVER = ("set", "animateMotion", "animateTransform", "discard")
-# The `miss` of a refused morph: namespace (a prefix or an xmlns on it), parent (not a direct child of a
-# path), children (child nodes or a closing tag), second (another animate on the same path), attribute (a
-# name outside MORPH_ATTRIBUTES, a duplicate, or a required one missing), value (a value outside its rule),
+# The `miss` of a refused morph: namespace (an xmlns on it whose value is not ROOT_XMLNS), parent (not a
+# direct child of a path), children (child nodes or a closing tag), second (another animate on the same
+# path), attribute (a name outside MORPH_ATTRIBUTES, an xmlns declaration among them, a duplicate, or a
+# required one missing), value (a value outside its rule, a keySplines set left empty included),
 # unnamed (no morph in the record names its id), counts (keyTimes not one per frame from 0 to 1, or with
 # spline not one keySpline of four 0..1 numbers per segment), frames (values differs from its morph's
 # frames d, or the frames differ in command structure).
