@@ -125,16 +125,19 @@ def _scan(
     """scan_svg, answering ``(message, miss)``; ``miss`` is set only for a refused ``<animate>``.
 
     ``ids`` collects the ids the card keeps on elements other than a morph ``<animate>``: entity-decoded,
-    trimmed, matching IMAGE_ID_RE and the first of their name in document order. A kept ``<animate>`` takes its
+    trimmed as the card trims, matching IMAGE_ID_RE, on an element the card keeps (exact-case name, outside
+    any dropped element) and the first of their name in document order. A kept ``<animate>`` takes its
     id too, so a later element holding it keeps no id.
     """
     taken: set[str] = set()
     length = len(svg)
     pos = 0
     root_open = True  # the first opening tag is the root <svg>
-    # Open elements as [name, id, has an animate]; "balanced" turns false at the first closing tag that
-    # does not close the innermost open element, after which no <animate> has a trustworthy parent.
+    # Open elements as [name, id, has an animate, card drops it]; "dropped" counts the open elements the card
+    # drops with their subtree (a name not exactly in IMAGE_KEPT_ELEMENTS); "balanced" turns false at the first
+    # closing tag that does not close the innermost open element, after which no <animate> has a trustworthy parent.
     stack: list[list[Any]] = []
+    dropped = 0
     balanced = True
     while True:
         pos = svg.find("<", pos)
@@ -160,11 +163,12 @@ def _scan(
                 return f"The closing tag </{name}> may only hold its name", None
             pos += 1
             if stack and stack[-1][0] == name:
-                stack.pop()
+                dropped -= stack.pop()[3]
             else:
                 balanced = False
             continue
         is_root, root_open = root_open, False
+        kept = not morph and name in contract.IMAGE_KEPT_ELEMENTS and not dropped
         root_namespaces = 0
         attributes: list[tuple[str, str]] = []
         element_id: str | None = None
@@ -216,7 +220,7 @@ def _scan(
             if morph:
                 attributes.append((attribute, value))
             else:
-                if attribute == "id" and element_id is None:
+                if attribute == "id" and element_id is None and kept:
                     element_id = _kept_id(value, taken)
                     if element_id is not None and ids is not None:
                         ids.add(element_id)
@@ -228,11 +232,12 @@ def _scan(
             if pos < length and svg[pos] not in _AFTER_VALUE:
                 return f"Attributes on <{name}> must be separated by whitespace", None
         if morph:
-            miss = _morph_miss(attributes, self_closing, stack, balanced, morphs, seen, taken)
+            miss = "parent" if dropped else _morph_miss(attributes, self_closing, stack, balanced, morphs, seen, taken)
             if miss:
                 return contract.MORPH_ELEMENT, miss
         elif not self_closing:
-            stack.append([name, element_id, False])
+            stack.append([name, element_id, False, not kept and not dropped])
+            dropped += stack[-1][3]
 
 
 # What String.prototype.trim removes on the card, where an attribute value is trimmed before it is checked.
@@ -245,10 +250,15 @@ _JS_TRIM = (
 def _kept_id(value: str, taken: set[str]) -> str | None:
     """The id the card keeps for an element's raw ``id`` value, or None when it drops it.
 
-    The value is entity-decoded and trimmed; it is kept when it matches IMAGE_ID_RE and no earlier element
+    The value is entity-decoded; one over IMAGE_MAX_VALUE_CHARS is dropped, and it is trimmed only when its
+    first or last character is U+0020 or below. It is kept when it matches IMAGE_ID_RE and no earlier element
     or kept ``<animate>`` holds it, and then it is taken.
     """
-    decoded = (html.unescape(value) if "&" in value else value).strip(_JS_TRIM)
+    decoded = html.unescape(value) if "&" in value else value
+    if len(decoded) > contract.IMAGE_MAX_VALUE_CHARS:
+        return None
+    if decoded and (ord(decoded[0]) <= 32 or ord(decoded[-1]) <= 32):
+        decoded = decoded.strip(_JS_TRIM)
     if not contract.IMAGE_ID_RE.fullmatch(decoded) or decoded in taken:
         return None
     taken.add(decoded)

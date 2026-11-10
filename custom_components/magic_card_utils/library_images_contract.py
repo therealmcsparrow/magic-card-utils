@@ -93,8 +93,11 @@ Validation (defence in depth; the card sanitises every image again before it ren
   of MORPH_CALC_MODES; fill one of MORPH_FILLS; id IMAGE_ID_RE. A morph value holds no "&". Never href or
   xlink:href (any case or namespace), from, to or by, and never an element of SMIL_NEVER. Cross-checks
   with the record's animation: the animate's id is the smil of exactly one animation.clips[].morphs[],
-  whose target is the id of its parent path, the id the card keeps: element ids are read entity-decoded and
-  trimmed, an id that does not match IMAGE_ID_RE is no id, and only the first element (or kept animate) in
+  whose target is the id of its parent path, the id the card keeps: element ids are read entity-decoded; a
+  value over IMAGE_MAX_VALUE_CHARS characters is no id; it is trimmed only when its first or last character
+  is U+0020 or below; an id that does not match IMAGE_ID_RE is no id; an element whose name is not exactly
+  (case-sensitive) in IMAGE_KEPT_ELEMENTS is dropped by the card with everything inside it, so no id in it
+  counts and an animate in it misses (miss parent); and only the first element (or kept animate) in
   document order keeps an id, so a path whose id an earlier element holds has none (miss unnamed) and an
   animate whose id an earlier element holds is refused (miss attribute); values equals that morph's
   frames d joined with ";"; all its frames share one command structure (see "Command structure" below); keyTimes, when present, has one entry per frame, each frame's at / 100,
@@ -228,6 +231,15 @@ IMAGE_ELEMENTS = frozenset(
         "lineargradient", "radialgradient", "stop", "clippath", "mask", "title", "text", "tspan",
     }
 )
+# The names the card keeps, case-sensitive; another case of one of them is dropped with its subtree.
+IMAGE_KEPT_ELEMENTS = frozenset(
+    {
+        "svg", "g", "path", "circle", "ellipse", "rect", "line", "polyline", "polygon", "defs",
+        "linearGradient", "radialGradient", "stop", "clipPath", "mask", "title", "text", "tspan",
+    }
+)
+# Longest decoded attribute value the card keeps; a longer one is dropped.
+IMAGE_MAX_VALUE_CHARS = 2000
 IMAGE_ATTRIBUTES = frozenset(
     a.lower()
     for a in (
