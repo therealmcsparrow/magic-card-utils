@@ -224,10 +224,12 @@ def _scan(
             if morph:
                 attributes.append((attribute, value))
             else:
-                if attribute == "id" and not id_read:
+                # The card's HTML fallback lowercases attribute names, so the first id attribute in any case
+                # takes its value; only an exact-case one on a kept element is kept, as the card's XML parse does.
+                if attribute.lower() == "id" and not id_read:
                     id_read = True
                     element_id = _kept_id(value, taken)
-                    if not kept:
+                    if not kept or attribute != "id":
                         element_id = None
                     elif element_id is not None and ids is not None:
                         ids.add(element_id)

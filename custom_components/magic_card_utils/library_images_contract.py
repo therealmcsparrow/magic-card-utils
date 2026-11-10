@@ -95,8 +95,9 @@ Validation (defence in depth; the card sanitises every image again before it ren
   with the record's animation: the animate's id is the smil of exactly one animation.clips[].morphs[],
   whose target is the id of its parent path, the id the card keeps: element ids are read entity-decoded; a
   value over IMAGE_MAX_VALUE_CHARS characters is no id; it is trimmed only when its first or last character
-  is U+0020 or below; an id that does not match IMAGE_ID_RE is no id; only the first id attribute of an element
-  is read; an element whose name is not exactly (case-sensitive) in IMAGE_KEPT_ELEMENTS, and everything
+  is U+0020 or below; an id that does not match IMAGE_ID_RE is no id; only the first attribute of an element
+  whose name lower-cased is "id" is read, its value is taken, and it keeps an id only when written exactly
+  "id", because the card's HTML parser lower-cases attribute names; an element whose name is not exactly (case-sensitive) in IMAGE_KEPT_ELEMENTS, and everything
   inside it, keeps no id and an animate in it misses (miss parent), yet its ids are taken, because the card
   drops such an element when it parses the markup as XML but keeps it, lowercased, when markup that is not
   well-formed sends it to its HTML parser; and only the first element (or kept animate) in document order
