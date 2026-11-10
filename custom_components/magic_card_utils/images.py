@@ -127,14 +127,17 @@ def _scan(
     ``ids`` collects the ids the card keeps on elements other than a morph ``<animate>``: entity-decoded,
     trimmed as the card trims, matching IMAGE_ID_RE, on an element the card keeps (exact-case name, outside
     any dropped element) and the first of their name in document order. A kept ``<animate>`` takes its
-    id too, so a later element holding it keeps no id.
+    id too, so a later element holding it keeps no id. Only the first id attribute of an element is read, and
+    the id of a miscased element or of any element inside one is taken without being kept, because the card
+    keeps it when it falls back to its HTML parser.
     """
     taken: set[str] = set()
     length = len(svg)
     pos = 0
     root_open = True  # the first opening tag is the root <svg>
-    # Open elements as [name, id, has an animate, card drops it]; "dropped" counts the open elements the card
-    # drops with their subtree (a name not exactly in IMAGE_KEPT_ELEMENTS); "balanced" turns false at the first
+    # Open elements as [name, id, has an animate, card drops it]; "dropped" counts the open elements whose name
+    # is not exactly in IMAGE_KEPT_ELEMENTS. The card drops them with their subtree when it parses the markup as
+    # XML but keeps them as HTML, so ids in them are taken yet never kept; "balanced" turns false at the first
     # closing tag that does not close the innermost open element, after which no <animate> has a trustworthy parent.
     stack: list[list[Any]] = []
     dropped = 0
@@ -172,6 +175,7 @@ def _scan(
         root_namespaces = 0
         attributes: list[tuple[str, str]] = []
         element_id: str | None = None
+        id_read = False
         self_closing = False
         while True:
             pos = _SPACE_RUN_RE.match(svg, pos).end()
@@ -220,9 +224,12 @@ def _scan(
             if morph:
                 attributes.append((attribute, value))
             else:
-                if attribute == "id" and element_id is None and kept:
+                if attribute == "id" and not id_read:
+                    id_read = True
                     element_id = _kept_id(value, taken)
-                    if element_id is not None and ids is not None:
+                    if not kept:
+                        element_id = None
+                    elif element_id is not None and ids is not None:
                         ids.add(element_id)
                 if "&" in value:
                     message = _decoded_value_error(attribute, html.unescape(value))
