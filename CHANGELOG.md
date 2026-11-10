@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-## [2026.11.2-beta.1] - 2026-11-09
+## [2026.11.02-beta.1] - 2026-11-10
 
 This is a pre-release. It works with the matching Magic Card release, 2026.11.03-beta.1. To install it, choose **Include pre-releases** in the Marketplace, or turn on **Show beta versions** in HACS.
 
