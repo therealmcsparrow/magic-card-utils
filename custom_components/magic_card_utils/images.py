@@ -1,9 +1,10 @@
 """Saved full drawings ("library images") for Magic Card: storage, validation and WebSocket API.
 
-Implements the images part of mcu-library 1.1.0, see library_images_contract.py. An index Store holds
-the small metadata of every image; each body (svg, bindings, thumb) is its own JSON file in a folder
-under .storage, so one 256 KiB drawing never has to be loaded with the other 199. Magic Card sanitises
-every image again before it renders it; the checks here are defence in depth and size/shape limits.
+Implements the images part of mcu-library 1.2.1, see library_images_contract.py. An index Store holds
+the small metadata of every image; each body (svg, bindings, animation, thumb, meta) is its own JSON file
+in a folder under .storage, so one 1 MiB drawing never has to be loaded with the others. Magic Card
+sanitises every image again before it renders it; the checks here are defence in depth and size/shape
+limits.
 """
 
 from __future__ import annotations
@@ -28,6 +29,7 @@ from homeassistant.util.file import write_utf8_file_atomic
 
 from . import library_images_contract as contract
 from .const import DOMAIN
+from .image_animation import Morph, missing_part, morph_miss, morph_table, validate_animation
 from .library import (
     _ATTR_DENY_WIDE_RE,
     SERVER_KEYS,
@@ -42,7 +44,6 @@ from .library import (
 from .library_contract import (
     ATTR_DENY_RE,
     ERR_CONFLICT,
-    ERR_LIBRARY_FULL,
     ERR_SAVE_FAILED,
     LIBRARY_ID_RE,
     SIGNAL_LIBRARY_UPDATED,
@@ -56,7 +57,7 @@ DATA_IMAGES = f"{DOMAIN}_images"
 ERR_TOO_MANY = "too_many"
 
 IMAGE_INPUT_KEYS = frozenset(
-    {"id", "name", "keywords", "author", "description", "view_box", "svg", "bindings", "thumb"}
+    {"id", "name", "keywords", "author", "description", "view_box", "svg", "bindings", "animation", "thumb"}
 )
 BINDING_KEYS = frozenset({"target", "entity", "attribute", "set", "rules", "default"})
 RULE_KEYS = frozenset({"state", "above", "below", "value"})
@@ -107,44 +108,79 @@ def _compact_json(value: Any) -> str | None:
         return None
 
 
-def scan_svg(svg: str) -> str | None:
+def scan_svg(svg: str, morphs: dict[str, Morph] | None = None, seen: set[str] | None = None) -> str | None:
     """One linear pass over the markup; returns a message for the first thing refused, else None.
 
     Text between tags is never read as markup. Inside a tag a ">" in a quoted value does not end
     the tag. No regular expression runs over a whole tag, and no XML parser is involved.
+    ``morphs`` are the morphs of the record the markup belongs to; without them no ``<animate>`` is kept.
     """
+    found = _scan(svg, morphs or {}, seen if seen is not None else set())
+    return found[0] if found else None
+
+
+def _scan(
+    svg: str, morphs: dict[str, Morph], seen: set[str], ids: set[str] | None = None
+) -> tuple[str, str | None] | None:
+    """scan_svg, answering ``(message, miss)``; ``miss`` is set only for a refused ``<animate>``.
+
+    ``ids`` collects the ids the card keeps on elements other than a morph ``<animate>``: entity-decoded,
+    trimmed as the card trims, matching IMAGE_ID_RE, on an element the card keeps (exact-case name, outside
+    any dropped element) and the first of their name in document order. A kept ``<animate>`` takes its
+    id too, so a later element holding it keeps no id. Only the first id attribute of an element is read, and
+    the id of a miscased element or of any element inside one is taken without being kept, because the card
+    keeps it when it falls back to its HTML parser.
+    """
+    taken: set[str] = set()
     length = len(svg)
     pos = 0
     root_open = True  # the first opening tag is the root <svg>
+    # Open elements as [name, id, has an animate, card drops it]; "dropped" counts the open elements whose name
+    # is not exactly in IMAGE_KEPT_ELEMENTS. The card drops them with their subtree when it parses the markup as
+    # XML but keeps them as HTML, so ids in them are taken yet never kept; "balanced" turns false at the first
+    # closing tag that does not close the innermost open element, after which no <animate> has a trustworthy parent.
+    stack: list[list[Any]] = []
+    dropped = 0
+    balanced = True
     while True:
         pos = svg.find("<", pos)
         if pos < 0:
             return None
         pos += 1
         if pos >= length:
-            return "The markup ends inside a tag"
+            return "The markup ends inside a tag", None
         if svg[pos] in "!?":
-            return "Declarations, comments and processing instructions are not allowed"
+            return "Declarations, comments and processing instructions are not allowed", None
         closing = svg[pos] == "/"
         if closing:
             pos += 1
         match = _TAG_NAME_RUN_RE.match(svg, pos)
         name = match.group()
         pos = match.end()
-        if not contract.TAG_NAME_RE.fullmatch(name) or name.lower() not in contract.IMAGE_ELEMENTS:
-            return f"The element <{_shown(name)[1:-1]}> is not allowed"
+        morph = name == contract.MORPH_ELEMENT and not closing
+        if not morph and (not contract.TAG_NAME_RE.fullmatch(name) or name.lower() not in contract.IMAGE_ELEMENTS):
+            return f"The element <{_shown(name)[1:-1]}> is not allowed", None
         if closing:
             pos = _SPACE_RUN_RE.match(svg, pos).end()
             if svg[pos : pos + 1] != ">":
-                return f"The closing tag </{name}> may only hold its name"
+                return f"The closing tag </{name}> may only hold its name", None
             pos += 1
+            if stack and stack[-1][0] == name:
+                dropped -= stack.pop()[3]
+            else:
+                balanced = False
             continue
         is_root, root_open = root_open, False
+        kept = not morph and name in contract.IMAGE_KEPT_ELEMENTS and not dropped
         root_namespaces = 0
+        attributes: list[tuple[str, str]] = []
+        element_id: str | None = None
+        id_read = False
+        self_closing = False
         while True:
             pos = _SPACE_RUN_RE.match(svg, pos).end()
             if pos >= length:
-                return "The markup ends inside a tag"
+                return "The markup ends inside a tag", None
             char = svg[pos]
             if char == ">":
                 pos += 1
@@ -152,40 +188,122 @@ def scan_svg(svg: str) -> str | None:
             if char == "/":
                 if svg.startswith("/>", pos):
                     pos += 2
+                    self_closing = True
                     break
-                return f"A stray '/' inside <{name}>"
+                return f"A stray '/' inside <{name}>", None
             match = _ATTR_NAME_RUN_RE.match(svg, pos)
             attribute = match.group()
             pos = match.end()
             namespace = is_root and attribute == "xmlns"
             if namespace:
                 root_namespaces += 1
-            if not contract.ATTR_NAME_SCAN_RE.fullmatch(attribute) or (
+            if morph:
+                if not attribute:
+                    return contract.MORPH_ELEMENT, "attribute"
+            elif not contract.ATTR_NAME_SCAN_RE.fullmatch(attribute) or (
                 attribute.lower() not in contract.IMAGE_ATTRIBUTES and not namespace
             ):
-                return f"The attribute {_shown(attribute)} is not allowed on <{name}>"
+                return f"The attribute {_shown(attribute)} is not allowed on <{name}>", None
             pos = _SPACE_RUN_RE.match(svg, pos).end()
             if svg[pos : pos + 1] != "=":
-                return f"The attribute {attribute} on <{name}> needs a quoted value"
+                return f"The attribute {attribute} on <{name}> needs a quoted value", None
             pos = _SPACE_RUN_RE.match(svg, pos + 1).end()
             quote = svg[pos : pos + 1]
             if quote not in ('"', "'"):
-                return f"The value of {attribute} on <{name}> must be quoted"
+                return f"The value of {attribute} on <{name}> must be quoted", None
             end = svg.find(quote, pos + 1)
             if end < 0:
-                return f"The value of {attribute} on <{name}> is not closed"
+                return f"The value of {attribute} on <{name}> is not closed", None
             value = svg[pos + 1 : end]
             if namespace and (value != contract.ROOT_XMLNS or root_namespaces > 1):
-                return f"The attribute 'xmlns' on <{name}> may only be written once, as {contract.ROOT_XMLNS}"
+                return f"The attribute 'xmlns' on <{name}> may only be written once, as {contract.ROOT_XMLNS}", None
             if "<" in value:
-                return f"The value of {attribute} on <{name}> may not hold '<'"
-            if "&" in value:
-                message = _decoded_value_error(attribute, html.unescape(value))
-                if message:
-                    return message
+                if morph:
+                    return contract.MORPH_ELEMENT, "value"
+                return f"The value of {attribute} on <{name}> may not hold '<'", None
+            if morph:
+                attributes.append((attribute, value))
+            else:
+                # The card's HTML fallback lowercases attribute names, so the first id attribute in any case
+                # takes its value; only an exact-case one on a kept element is kept, as the card's XML parse does.
+                if attribute.lower() == "id" and not id_read:
+                    id_read = True
+                    element_id = _kept_id(value, taken)
+                    if not kept or attribute != "id":
+                        element_id = None
+                    elif element_id is not None and ids is not None:
+                        ids.add(element_id)
+                if "&" in value:
+                    message = _decoded_value_error(attribute, html.unescape(value))
+                    if message:
+                        return message, None
             pos = end + 1
             if pos < length and svg[pos] not in _AFTER_VALUE:
-                return f"Attributes on <{name}> must be separated by whitespace"
+                return f"Attributes on <{name}> must be separated by whitespace", None
+        if morph:
+            miss = "parent" if dropped else _morph_miss(attributes, self_closing, stack, balanced, morphs, seen, taken)
+            if miss:
+                return contract.MORPH_ELEMENT, miss
+        elif not self_closing:
+            stack.append([name, element_id, False, not kept and not dropped])
+            dropped += stack[-1][3]
+
+
+# What String.prototype.trim removes on the card, where an attribute value is trimmed before it is checked.
+_JS_TRIM = (
+    "\t\n\v\f\r \xa0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a"
+    "\u2028\u2029\u202f\u205f\u3000\ufeff"
+)
+
+
+def _kept_id(value: str, taken: set[str]) -> str | None:
+    """The id the card keeps for an element's raw ``id`` value, or None when it drops it.
+
+    The value is entity-decoded; one over IMAGE_MAX_VALUE_CHARS is dropped, and it is trimmed only when its
+    first or last character is U+0020 or below. It is kept when it matches IMAGE_ID_RE and no earlier element
+    or kept ``<animate>`` holds it, and then it is taken.
+    """
+    decoded = html.unescape(value) if "&" in value else value
+    if len(decoded) > contract.IMAGE_MAX_VALUE_CHARS:
+        return None
+    if decoded and (ord(decoded[0]) <= 32 or ord(decoded[-1]) <= 32):
+        decoded = decoded.strip(_JS_TRIM)
+    if not contract.IMAGE_ID_RE.fullmatch(decoded) or decoded in taken:
+        return None
+    taken.add(decoded)
+    return decoded
+
+
+def _morph_miss(
+    attributes: list[tuple[str, str]],
+    self_closing: bool,
+    stack: list[list[Any]],
+    balanced: bool,
+    morphs: dict[str, Morph],
+    seen: set[str],
+    taken: set[str],
+) -> str | None:
+    """The morph rule for one ``<animate>`` whose start tag has just been read; None keeps it.
+
+    ``taken`` holds the ids kept so far in this drawing; an ``<animate>`` whose id is among them is refused.
+    """
+    parent = stack[-1] if stack and balanced else None
+    if parent is None or parent[0] != contract.MORPH_PARENT:
+        return "parent"
+    if not self_closing:
+        return "children"
+    if parent[2]:
+        return "second"
+    miss = morph_miss(attributes, parent[1], morphs)
+    if miss:
+        return miss
+    smil = dict(attributes)["id"]
+    if smil in seen or smil in taken:
+        return "attribute"
+    seen.add(smil)
+    taken.add(smil)
+    parent[2] = True
+    return None
 
 
 def _decoded_value_error(attribute: str, decoded: str) -> str | None:
@@ -204,25 +322,39 @@ def _svg_error(svg: str) -> str | None:
     return _svg_problem(svg)[0]
 
 
-def _svg_problem(svg: str) -> tuple[str | None, str | None]:
-    """(message, denied word); the word is set only when a TEXT_DENY word anywhere in the text was the reason."""
+def _svg_problem(
+    svg: str, morphs: dict[str, Morph] | None = None, seen: set[str] | None = None, ids: set[str] | None = None
+) -> tuple[str | None, str | None, str | None]:
+    """(message, denied word, morph miss).
+
+    The word is set only when a TEXT_DENY word anywhere in the text was the reason; the miss only when an
+    ``<animate>`` was refused.
+    """
     if _CONTROL_RE.search(svg):
-        return "Control characters are not allowed", None
+        return "Control characters are not allowed", None, None
     if not svg.strip().lower().startswith("<svg"):
-        return "Must start with <svg", None
+        return "Must start with <svg", None, None
     if svg.count("<") > contract.IMAGE_MAX_NODES:
-        return f"Too many elements (at most {contract.IMAGE_MAX_NODES})", None
+        return f"Too many elements (at most {contract.IMAGE_MAX_NODES})", None, None
+    morphs = morphs or {}
+    seen = seen if seen is not None else set()
+    # A refused <animate> is named as one even when its value also holds a denied word.
+    scanned = "<animate" in svg
+    found = _scan(svg, morphs, seen, ids) if scanned else None
+    if found and found[1]:
+        return found[0], None, found[1]
     lowered = _URL_WHITESPACE_RE.sub("", svg).lower()
     for text in contract.TEXT_DENY:
         if text in lowered:
-            return f"{text!r} is not allowed", text
-    return _structure_error(svg), None
+            return f"{text!r} is not allowed", text, None
+    found = found if scanned else _scan(svg, morphs, seen, ids)
+    if found:
+        return found[0], None, found[1]
+    return _text_error(svg), None, None
 
 
-def _structure_error(svg: str) -> str | None:
-    message = scan_svg(svg)
-    if message:
-        return message
+def _text_error(svg: str) -> str | None:
+    """The whole-text checks that run after the tag scan."""
     if ATTR_DENY_RE.search(svg) or _ATTR_DENY_WIDE_RE.search(svg):
         return "Event, style and link attributes are not allowed"
     if len(_URL_RE.findall(svg)) != len(_LOCAL_URL_RE.findall(svg)):
@@ -353,19 +485,25 @@ def _thumb_error(thumb: Any) -> str | None:
     return None
 
 
+def _measurable(value: Any) -> bool:
+    text = _compact_json(value)
+    return text is not None and _utf8_size(text) is not None
+
+
 def counted_bytes(image: dict) -> int | None:
-    """UTF-8 bytes of the svg plus the compact JSON of the bindings; None when not measurable."""
+    """UTF-8 bytes of the svg plus the compact JSON of bindings and animation; None when not measurable."""
     svg = image.get("svg")
     if not isinstance(svg, str):
         return None
     size = _utf8_size(svg)
     if size is None:
         return None
-    if "bindings" in image:
-        text = _compact_json(image["bindings"])
-        if text is None or (text_size := _utf8_size(text)) is None:
-            return None
-        size += text_size
+    for key in ("bindings", "animation"):
+        if key in image:
+            text = _compact_json(image[key])
+            if text is None or (text_size := _utf8_size(text)) is None:
+                return None
+            size += text_size
     return size
 
 
@@ -393,13 +531,23 @@ def validate_image(image: Any) -> Errors:
         errors.append(_err("svg", "Must be SVG markup"))
     if "bindings" in image:
         _bindings_errors(image["bindings"], errors)
+    if "animation" in image and not isinstance(image["animation"], dict):
+        errors.append(_err("animation", "Must be an object"))
     if not isinstance(svg, str):
         return errors
 
     # Size first, before any scan of the markup.
     size = counted_bytes(image)
     if size is None:
-        if not any(error["path"].startswith("bindings") for error in errors):
+        # Not measurable: refuse without walking the record.
+        if (
+            _utf8_size(svg) is not None
+            and "animation" in image
+            and not any(error["path"] == "animation" for error in errors)
+            and not _measurable(image["animation"])
+        ):
+            errors.append(_err("animation", "Must be valid text"))
+        if not any(error["path"].startswith(("bindings", "animation")) for error in errors):
             errors.append(_err("svg", "Must be valid text"))
         return errors
     if size > contract.IMAGE_MAX_BYTES:
@@ -412,11 +560,27 @@ def validate_image(image: Any) -> Errors:
             }
         )
         return errors
-    message, word = _svg_problem(svg)
+    morphs: dict[str, Morph] = {}
+    animation = image.get("animation")
+    if isinstance(animation, dict):
+        field = validate_animation(animation)
+        if field:
+            errors.append(_err("animation", field))
+            return errors
+        morphs = morph_table(animation)
+    seen: set[str] = set()
+    svg_ids: set[str] = set()
+    message, word, miss = _svg_problem(svg, morphs, seen, svg_ids)
     if word:
         errors.append({"path": "svg", "message": contract.ERR_FORBIDDEN_TEXT, "word": word})
+    elif miss:
+        errors.append({"path": "svg", "message": contract.MORPH_ELEMENT, "miss": miss})
     elif message:
         errors.append(_err("svg", message))
+    elif seen != set(morphs):
+        errors.append(_err("animation", "morph without an animate"))
+    elif field := missing_part(animation, svg_ids):
+        errors.append(_err("animation", field))
     return errors
 
 
@@ -431,6 +595,7 @@ def _summary(meta: dict) -> dict:
     summary["view_box"] = meta["view_box"]
     summary["bytes"] = meta["bytes"]
     summary["bindings"] = meta["bindings"]
+    summary["animated"] = meta.get("animated") is True
     if "thumb" in meta:
         summary["thumb"] = meta["thumb"]
     summary["updated_at"] = meta["updated_at"]
@@ -452,6 +617,8 @@ def _meta_ok(key: str, meta: Any) -> bool:
     if errors or _view_box_error(meta.get("view_box")):
         return False
     if "thumb" in meta and _thumb_error(meta["thumb"]):
+        return False
+    if "animated" in meta and not isinstance(meta["animated"], bool):
         return False
     return (
         isinstance(meta.get("bytes"), int)
@@ -519,6 +686,41 @@ def _scan_folder(folder: str) -> set[str]:
     return bodies
 
 
+def _body_problem(meta: dict, body: dict) -> str | None:
+    """Why a stored body cannot be served for its index entry; None when it is fine."""
+    image = Images._compose(meta, body)
+    errors = validate_image(image)
+    if errors:
+        first = errors[0]
+        return f"{first['path']}: {first['message']}"[: NAME_ECHO_MAX * 2]
+    if meta.get("bytes") != counted_bytes(image) or meta.get("bindings") != len(image.get("bindings", [])):
+        return "the index entry does not match the body"
+    return None
+
+
+def _adopt_orphans(folder: str, names: list[str]) -> dict[str, dict]:
+    """Executor job: the index entries of body files that carry a valid ``meta`` and a valid record."""
+    adopted: dict[str, dict] = {}
+    for name in sorted(names):
+        key = name[: -len(".json")]
+        if not LIBRARY_ID_RE.fullmatch(key):
+            _LOGGER.warning("Image file %s has no usable name and was left alone", name[:NAME_ECHO_MAX])
+            continue
+        body = _read_body(os.path.join(folder, name))
+        if body is None:
+            continue
+        meta = body.get("meta")
+        if not _meta_ok(key, meta):
+            _LOGGER.warning("Image file %s was left alone: it has no usable meta", name)
+            continue
+        problem = _body_problem(meta, body)
+        if problem:
+            _LOGGER.warning("Image file %s was left alone: it fails validation (%s)", name, problem)
+            continue
+        adopted[key] = meta
+    return adopted
+
+
 class Images:
     """Index in a Store, bodies in files, a small least-recently-used cache of parsed bodies."""
 
@@ -544,8 +746,6 @@ class Images:
             for key, meta in stored.items():
                 if not _meta_ok(key, meta):
                     _LOGGER.warning("Dropping invalid stored image %r", str(key)[:NAME_ECHO_MAX])
-                elif len(self.index) >= contract.MAX_IMAGES:
-                    _LOGGER.warning("Dropping stored image %r: library is full", key)
                 else:
                     self.index[key] = meta
         files = await self.hass.async_add_executor_job(_scan_folder, self.folder)
@@ -555,9 +755,14 @@ class Images:
                 del self.index[key]
         orphans = files - {f"{key}.json" for key in self.index}
         if orphans:
-            _LOGGER.warning(
-                "%d file(s) in the images folder have no index entry and were left alone", len(orphans)
-            )
+            adopted = await self.hass.async_add_executor_job(_adopt_orphans, self.folder, list(orphans))
+            if adopted:
+                self.index.update(adopted)
+                await self.store.async_save({"images": self.index})
+                _LOGGER.info("Put %d image(s) back into the index from their body files", len(adopted))
+            left = len(orphans) - len(adopted)
+            if left:
+                _LOGGER.warning("%d file(s) in the images folder have no index entry and were left alone", left)
 
     # ---- cache
 
@@ -607,6 +812,11 @@ class Images:
             path = self._path(image_id)
             body = _read_body(path)
             if body is not None:
+                meta = self.index.get(image_id)
+                problem = _body_problem(meta, body) if meta else "it was deleted"
+                if problem:
+                    _LOGGER.warning("Image %r is not served: %s", image_id, problem)
+                    continue
                 try:
                     size = os.path.getsize(path)
                 except OSError:
@@ -624,6 +834,8 @@ class Images:
         image["svg"] = body["svg"]
         if body.get("bindings"):
             image["bindings"] = body["bindings"]
+        if isinstance(body.get("animation"), dict):
+            image["animation"] = body["animation"]
         thumb = body.get("thumb", meta.get("thumb"))
         if isinstance(thumb, str):
             image["thumb"] = thumb
@@ -636,8 +848,6 @@ class Images:
     def check_save(self, image_id: str, base_updated_at: str | None) -> str | None:
         """Return an error code when the save must be refused, else None."""
         existing = self.index.get(image_id)
-        if existing is None and len(self.index) >= contract.MAX_IMAGES:
-            return ERR_LIBRARY_FULL
         if existing is None and base_updated_at is not None:
             return ERR_CONFLICT
         if existing is not None and existing["updated_at"] != base_updated_at:
@@ -655,6 +865,8 @@ class Images:
             now = _now()
             bindings = list(image.get("bindings", []))
             body: dict[str, Any] = {"svg": image["svg"], "bindings": bindings}
+            if "animation" in image:
+                body["animation"] = image["animation"]
             meta: dict[str, Any] = {"id": image_id, "name": image["name"].strip()}
             for key in ("keywords", "author", "description"):
                 if key in image:
@@ -662,10 +874,12 @@ class Images:
             meta["view_box"] = image["view_box"]
             meta["bytes"] = counted_bytes(image)
             meta["bindings"] = len(bindings)
+            meta["animated"] = "animation" in image
             if "thumb" in image:
                 meta["thumb"] = body["thumb"] = image["thumb"]
             meta["created_at"] = previous["created_at"] if previous else now
             meta["updated_at"] = now
+            body["meta"] = meta
             text = json.dumps(body, ensure_ascii=False, allow_nan=False)
 
             await self.hass.async_add_executor_job(_write_body, self.folder, self._path(image_id), text)
@@ -738,7 +952,13 @@ def ws_images_list(hass: HomeAssistant, connection: websocket_api.ActiveConnecti
     if images is None:
         _not_loaded(connection, msg["id"])
         return
-    connection.send_result(msg["id"], {"images": images.summaries()})
+    connection.send_result(
+        msg["id"],
+        {
+            "images": images.summaries(),
+            "caps": {"image_max_bytes": contract.IMAGE_MAX_BYTES, "animation": contract.IMAGE_CAPS_ANIMATION},
+        },
+    )
 
 
 @websocket_api.websocket_command(
@@ -795,11 +1015,7 @@ async def ws_images_save(hass: HomeAssistant, connection: websocket_api.ActiveCo
         _LOGGER.exception("Saving image %r failed", image["id"])
         connection.send_error(msg["id"], ERR_SAVE_FAILED, "The image could not be saved")
         return
-    if code == ERR_LIBRARY_FULL:
-        connection.send_error(
-            msg["id"], code, f"The library is full (at most {contract.MAX_IMAGES} images)"
-        )
-    elif code == ERR_CONFLICT:
+    if code == ERR_CONFLICT:
         connection.send_error(msg["id"], code, "The image was changed elsewhere; reload and try again")
     else:
         connection.send_result(msg["id"], {"image": summary})
