@@ -718,6 +718,24 @@ export const draftingStyles = [
       max-width: 100%;
       min-width: 0;
     }
+    .item-pic {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      padding: 12px;
+      color: var(--mc-text);
+      background: var(--mc-ground);
+      border: 1px dashed var(--mc-divider);
+    }
+    .item-pic img {
+      max-width: 100%;
+      max-height: 160px;
+      object-fit: contain;
+    }
+    .item-pic small {
+      font-family: var(--mc-mono);
+      color: var(--mc-text-2);
+    }
     .row.current {
       box-shadow: inset 3px 0 0 var(--mc-accent);
       background: var(--mc-accent-tint);

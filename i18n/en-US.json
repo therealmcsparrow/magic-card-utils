@@ -159,9 +159,21 @@
     "text": "Forum shot",
     "hash": "de9aca8d"
   },
+  "mcu-panel.panel.icon": {
+    "text": "Icon",
+    "hash": "a35abcd6"
+  },
   "mcu-panel.panel.icons": {
     "text": "Icons",
     "hash": "eae96e02"
+  },
+  "mcu-panel.panel.id": {
+    "text": "ID",
+    "hash": "3843971d"
+  },
+  "mcu-panel.panel.image": {
+    "text": "Image",
+    "hash": "1aa4cb0b"
   },
   "mcu-panel.panel.images": {
     "text": "Images",
@@ -247,6 +259,10 @@
     "text": "Name is required.",
     "hash": "f83a4bc1"
   },
+  "mcu-panel.panel.name-preview": {
+    "text": "{name} preview",
+    "hash": "6a434cf4"
+  },
   "mcu-panel.panel.new-template": {
     "text": "New template",
     "hash": "30d87ec4"
@@ -266,6 +282,10 @@
   "mcu-panel.panel.no-config-to-preview": {
     "text": "No config to preview.",
     "hash": "2280220b"
+  },
+  "mcu-panel.panel.no-preview-available": {
+    "text": "No preview available",
+    "hash": "e5c083cf"
   },
   "mcu-panel.panel.no-templates-match-search": {
     "text": "No templates match your search.",
@@ -295,6 +315,10 @@
     "text": "Open {name} in studio",
     "hash": "16681a49"
   },
+  "mcu-panel.panel.path": {
+    "text": "Path",
+    "hash": "62fa5a5b"
+  },
   "mcu-panel.panel.pick-an-item": {
     "text": "Pick an item",
     "hash": "5c4c9834"
@@ -302,6 +326,10 @@
   "mcu-panel.panel.points": {
     "text": "{n, plural, one {# point} other {# points}}",
     "hash": "0dbf0152"
+  },
+  "mcu-panel.panel.preset": {
+    "text": "Preset",
+    "hash": "7252e7ce"
   },
   "mcu-panel.panel.preview": {
     "text": "Preview",
@@ -342,6 +370,10 @@
   "mcu-panel.panel.select-name": {
     "text": "Select {name}",
     "hash": "cbe2f067"
+  },
+  "mcu-panel.panel.shape": {
+    "text": "Shape",
+    "hash": "e0e49270"
   },
   "mcu-panel.panel.shapes": {
     "text": "Shapes",
@@ -438,5 +470,9 @@
   "mcu-panel.panel.updated-date": {
     "text": "Updated {date}",
     "hash": "328a4d4c"
+  },
+  "mcu-panel.panel.view-box-w-h": {
+    "text": "View box {w} × {h}",
+    "hash": "6bfc63a8"
   }
 }

@@ -239,9 +239,24 @@
     "note": "Label of the Forum shot tab in the panel tab bar.",
     "max": 15
   },
+  "mcu-panel.panel.icon": {
+    "text": "Icon",
+    "note": "Type line in the inspector for a saved icon.",
+    "max": 15
+  },
   "mcu-panel.panel.icons": {
     "text": "Icons",
     "note": "Label of the Icons tab in the panel tab bar.",
+    "max": 15
+  },
+  "mcu-panel.panel.id": {
+    "text": "ID",
+    "note": "Label of the identifier field in the inspector of a Library, Icons, Shapes or Images item.",
+    "max": 10
+  },
+  "mcu-panel.panel.image": {
+    "text": "Image",
+    "note": "Type line in the inspector for a saved image.",
     "max": 15
   },
   "mcu-panel.panel.images": {
@@ -373,6 +388,14 @@
     "note": "Error under the name field when you save or duplicate a template with an empty name.",
     "max": 30
   },
+  "mcu-panel.panel.name-preview": {
+    "text": "{name} preview",
+    "note": "Screen reader name of the item picture in the inspector. {name} is the item name.",
+    "max": 40,
+    "vars": {
+      "name": "The value that replaces name in the text."
+    }
+  },
   "mcu-panel.panel.new-template": {
     "text": "New template",
     "note": "Primary button above the template list, and the dialog title until the new template has a name.",
@@ -397,6 +420,11 @@
     "text": "No config to preview.",
     "note": "Message in the template preview when the template has no card settings to show.",
     "max": 35
+  },
+  "mcu-panel.panel.no-preview-available": {
+    "text": "No preview available",
+    "note": "Shown in the inspector Preview group when an item has no picture.",
+    "max": 30
   },
   "mcu-panel.panel.no-templates-match-search": {
     "text": "No templates match your search.",
@@ -436,6 +464,11 @@
       "name": "The value that replaces name in the text."
     }
   },
+  "mcu-panel.panel.path": {
+    "text": "Path",
+    "note": "Label of the file path field in the inspector of an image.",
+    "max": 10
+  },
   "mcu-panel.panel.pick-an-item": {
     "text": "Pick an item",
     "note": "Line under the title of the details panel while no item is picked.",
@@ -448,6 +481,11 @@
     "vars": {
       "n": "The count the text is about."
     }
+  },
+  "mcu-panel.panel.preset": {
+    "text": "Preset",
+    "note": "Type line in the inspector for a saved look in the Library tab.",
+    "max": 15
   },
   "mcu-panel.panel.preview": {
     "text": "Preview",
@@ -501,6 +539,11 @@
     "vars": {
       "name": "The template name."
     }
+  },
+  "mcu-panel.panel.shape": {
+    "text": "Shape",
+    "note": "Type line in the inspector for a saved shape.",
+    "max": 15
   },
   "mcu-panel.panel.shapes": {
     "text": "Shapes",
@@ -640,6 +683,15 @@
     "max": 40,
     "vars": {
       "date": "The formatted date."
+    }
+  },
+  "mcu-panel.panel.view-box-w-h": {
+    "text": "View box {w} × {h}",
+    "note": "Caption under the item preview in the inspector. {w} and {h} are the width and height of the SVG view box.",
+    "max": 30,
+    "vars": {
+      "h": "The view box height.",
+      "w": "The view box width."
     }
   }
 }

@@ -159,9 +159,21 @@
     "text": "Forumplaatje",
     "hash": "de9aca8d"
   },
+  "mcu-panel.panel.icon": {
+    "text": "Pictogram",
+    "hash": "a35abcd6"
+  },
   "mcu-panel.panel.icons": {
     "text": "Pictogrammen",
     "hash": "eae96e02"
+  },
+  "mcu-panel.panel.id": {
+    "text": "ID",
+    "hash": "3843971d"
+  },
+  "mcu-panel.panel.image": {
+    "text": "Afbeelding",
+    "hash": "1aa4cb0b"
   },
   "mcu-panel.panel.images": {
     "text": "Afbeeldingen",
@@ -247,6 +259,10 @@
     "text": "Een naam is verplicht.",
     "hash": "f83a4bc1"
   },
+  "mcu-panel.panel.name-preview": {
+    "text": "Voorbeeld van {name}",
+    "hash": "6a434cf4"
+  },
   "mcu-panel.panel.new-template": {
     "text": "Nieuw sjabloon",
     "hash": "30d87ec4"
@@ -266,6 +282,10 @@
   "mcu-panel.panel.no-config-to-preview": {
     "text": "Geen configuratie om te bekijken.",
     "hash": "2280220b"
+  },
+  "mcu-panel.panel.no-preview-available": {
+    "text": "Geen voorbeeld beschikbaar",
+    "hash": "e5c083cf"
   },
   "mcu-panel.panel.no-templates-match-search": {
     "text": "Geen sjablonen gevonden voor je zoekopdracht.",
@@ -295,6 +315,10 @@
     "text": "{name} openen in de studio",
     "hash": "16681a49"
   },
+  "mcu-panel.panel.path": {
+    "text": "Pad",
+    "hash": "62fa5a5b"
+  },
   "mcu-panel.panel.pick-an-item": {
     "text": "Kies een item",
     "hash": "5c4c9834"
@@ -302,6 +326,10 @@
   "mcu-panel.panel.points": {
     "text": "{n, plural, one {# punt} other {# punten}}",
     "hash": "0dbf0152"
+  },
+  "mcu-panel.panel.preset": {
+    "text": "Preset",
+    "hash": "7252e7ce"
   },
   "mcu-panel.panel.preview": {
     "text": "Voorbeeld",
@@ -342,6 +370,10 @@
   "mcu-panel.panel.select-name": {
     "text": "{name} selecteren",
     "hash": "cbe2f067"
+  },
+  "mcu-panel.panel.shape": {
+    "text": "Vorm",
+    "hash": "e0e49270"
   },
   "mcu-panel.panel.shapes": {
     "text": "Vormen",
@@ -438,5 +470,9 @@
   "mcu-panel.panel.updated-date": {
     "text": "Bijgewerkt {date}",
     "hash": "328a4d4c"
+  },
+  "mcu-panel.panel.view-box-w-h": {
+    "text": "Weergavegebied {w} × {h}",
+    "hash": "6bfc63a8"
   }
 }

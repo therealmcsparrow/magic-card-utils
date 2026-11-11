@@ -483,6 +483,46 @@ function _deepFindByFocusKey(root, key) {
   return null;
 }
 
+const ITEM_THUMB_RE = /^(?:data:image\/(?:png|jpe?g|webp|gif|svg\+xml)[;,]|blob:|\/(?!\/))/i;
+const ITEM_KINDS = ["preset", "icon", "shape", "image"];
+const NUM_RE = /^-?\d*\.?\d+(?:e-?\d+)?$/i;
+const PATH_D_RE = /^[MmLlHhVvCcSsQqTtAaZz0-9eE.,\s+-]*$/;
+
+/**
+ * The drawable parts of a saved SVG for the inspector picture: its view box and its path, circle and rect
+ * elements with plain numeric values. Everything else (scripts, handlers, styles, links) is dropped, so the
+ * markup itself never reaches the panel DOM.
+ */
+function _svgParts(text) {
+  if (typeof text !== "string" || text.length > 262144) return null;
+  const vb = /viewBox\s*=\s*"([^"]*)"/i.exec(text);
+  const box = vb ? vb[1].trim().split(/[\s,]+/) : [];
+  if (box.length !== 4 || !box.every((n) => NUM_RE.test(n)) || !(+box[2] > 0) || !(+box[3] > 0)) return null;
+  const attr = (tag, name) => {
+    const m = new RegExp(`\\s${name}\\s*=\\s*"([^"]*)"`, "i").exec(tag);
+    return m ? m[1].trim() : "";
+  };
+  const parts = [];
+  for (const m of text.matchAll(/<(path|circle|rect)[^>]*>/gi)) {
+    const tag = m[0];
+    const kind = m[1].toLowerCase();
+    if (kind === "path") {
+      const d = attr(tag, "d");
+      if (d && d.length < 65536 && PATH_D_RE.test(d)) parts.push({ kind, d });
+    } else {
+      const names = kind === "circle" ? ["cx", "cy", "r"] : ["x", "y", "width", "height"];
+      const v = names.map((n) => attr(tag, n) || (n === "x" || n === "y" || n === "cx" || n === "cy" ? "0" : ""));
+      if (v.every((n) => NUM_RE.test(n))) parts.push({ kind, v });
+    }
+  }
+  return { viewBox: box.join(" "), w: +box[2], h: +box[3], parts };
+}
+
+/** A thumbnail address the inspector may load: a data or blob image, or a path on this host. */
+function _safeThumb(v) {
+  return typeof v === "string" && v.length < 2000000 && ITEM_THUMB_RE.test(v) ? v : "";
+}
+
 class MagicCardUtilsPanel extends LitElement {
   static get properties() {
     return {
@@ -1733,6 +1773,7 @@ class MagicCardUtilsPanel extends LitElement {
     el.hass = this.hass;
     el.presets = _createPresetBackend(_makeCall(() => this.hass));
     el.addEventListener("mc-library-open", (e) => this._onLibraryOpen(e));
+    el.addEventListener("mc-library-select", (e) => this._onItemSelect(e));
     this._libraryEl = el;
     this._libraryStatus = "ready";
     await this.updateComplete;
@@ -1756,6 +1797,7 @@ class MagicCardUtilsPanel extends LitElement {
     el.hass = this.hass;
     el.presets = _createPresetBackend(_makeCall(() => this.hass));
     el.addEventListener("mc-library-open", (e) => this._onLibraryOpen(e));
+    el.addEventListener("mc-library-select", (e) => this._onItemSelect(e));
     this._shapesEl = el;
     this._shapesStatus = "ready";
     await this.updateComplete;
@@ -1780,6 +1822,7 @@ class MagicCardUtilsPanel extends LitElement {
     el.hass = this.hass;
     el.presets = _createPresetBackend(_makeCall(() => this.hass));
     el.addEventListener("mc-library-open", (e) => this._onLibraryOpen(e));
+    el.addEventListener("mc-library-select", (e) => this._onItemSelect(e));
     this._iconsEl = el;
     this._iconsStatus = "ready";
     await this.updateComplete;
@@ -1802,6 +1845,7 @@ class MagicCardUtilsPanel extends LitElement {
     el.kinds = ["image"];
     el.hass = this.hass;
     el.addEventListener("mc-library-open", (e) => this._onLibraryOpen(e));
+    el.addEventListener("mc-library-select", (e) => this._onItemSelect(e));
     this._imagesEl = el;
     this._imagesStatus = "ready";
     await this.updateComplete;
@@ -1875,6 +1919,7 @@ class MagicCardUtilsPanel extends LitElement {
         for (const it of Array.isArray(res && res.shapes) ? res.shapes : []) {
           if (it && typeof it.id === "string") byId.set(it.id, it.shape);
         }
+        this._shapeById = byId;
         publish();
       } catch (e) {
         /* rows stay without a thumbnail */
@@ -2141,7 +2186,80 @@ class MagicCardUtilsPanel extends LitElement {
   /** The details of the selected item for the docked inspector, or null while the tab has none. */
   _inspectorModel() {
     if (this._tab === "templates") return this._templatesInspectorModel();
-    return null;
+    return this._itemInspectorModel();
+  }
+
+  /** `mc-library-select` from a hosted view: detail { id, name, kind, svg?, thumb?, path? }. Marks the item and shows it in the inspector. */
+  _onItemSelect(e) {
+    const d = e && e.detail;
+    if (!d || typeof d.id !== "string" || !d.id || typeof d.name !== "string" || !ITEM_KINDS.includes(d.kind)) return;
+    const str = (v) => (typeof v === "string" ? v : "");
+    if (!this._itemSel) this._openGroups = new Set([...this._openGroups, "preview"]);
+    this._itemSel = { tab: this._tab, id: d.id, name: d.name, kind: d.kind, svg: str(d.svg), thumb: str(d.thumb), path: str(d.path) };
+    const views = { library: this._libraryEl, shapes: this._shapesEl, icons: this._iconsEl, images: this._imagesEl };
+    for (const tab of Object.keys(views)) if (views[tab]) views[tab].selectedId = tab === this._tab ? d.id : "";
+    const path = typeof e.composedPath === "function" ? e.composedPath() : [];
+    this._openInspector(path.find((n) => n && n.tagName === "BUTTON") || e.target || null);
+    this.requestUpdate();
+  }
+
+  /** The inspector content for the picked Library, Icons, Shapes or Images item: its picture and its fields. */
+  _itemInspectorModel() {
+    const it = this._itemSel;
+    if (!it || it.tab !== this._tab) return null;
+    const typeText =
+      it.kind === "icon"
+        ? tr("mcu-panel.panel.icon")
+        : it.kind === "shape"
+        ? tr("mcu-panel.panel.shape")
+        : it.kind === "image"
+        ? tr("mcu-panel.panel.image")
+        : tr("mcu-panel.panel.preset");
+    const fields = [
+      { kind: "field", label: tr("mcu-panel.panel.name"), value: it.name },
+      { kind: "field", label: tr("mcu-panel.panel.id"), value: it.id },
+    ];
+    if (it.kind === "image" && it.path) fields.push({ kind: "field", label: tr("mcu-panel.panel.path"), value: it.path });
+    const pic = this._itemPicture(it);
+    return {
+      name: it.name,
+      type: typeText,
+      groups: [
+        { id: "preview", title: tr("mcu-panel.panel.preview"), summary: pic.caption || typeText, body: pic.body },
+        { id: "details", title: tr("mcu-panel.panel.details"), summary: it.id, fields },
+      ],
+    };
+  }
+
+  /** The picture of an item at 96 px (icons, shapes) or its thumbnail (library, images), else a text. */
+  _itemPicture(it) {
+    let parts = null;
+    if (it.kind === "icon") parts = _svgParts(it.svg);
+    else if (it.kind === "shape") {
+      parts = _svgParts(it.svg);
+      const outline = !parts && this._shapeById && this._shapeById.has(it.id) ? _shapeOutline(this._shapeById.get(it.id)) : null;
+      if (outline && outline.d) parts = { viewBox: `0 0 ${THUMB_W} ${THUMB_H}`, w: THUMB_W, h: THUMB_H, parts: [{ kind: "path", d: outline.d }] };
+    }
+    if (parts) {
+      const caption = tr("mcu-panel.panel.view-box-w-h", { w: parts.w, h: parts.h });
+      const label = tr("mcu-panel.panel.name-preview", { name: it.name });
+      return {
+        caption,
+        body: html`<div class="item-pic">
+          <svg role="img" aria-label="${label}" viewBox="${parts.viewBox}" width="96" height="96" fill="currentColor">${parts.parts.map((p) =>
+            p.kind === "path"
+              ? html`<path d="${p.d}"></path>`
+              : p.kind === "circle"
+              ? html`<circle cx="${p.v[0]}" cy="${p.v[1]}" r="${p.v[2]}"></circle>`
+              : html`<rect x="${p.v[0]}" y="${p.v[1]}" width="${p.v[2]}" height="${p.v[3]}"></rect>`
+          )}</svg>
+          <small>${caption}</small>
+        </div>`,
+      };
+    }
+    const src = it.kind === "icon" || it.kind === "shape" ? "" : _safeThumb(it.thumb) || _safeThumb(it.path);
+    if (src) return { caption: "", body: html`<div class="item-pic"><img src="${src}" alt="${it.name}" /></div>` };
+    return { caption: "", body: html`<p class="fld-help">${tr("mcu-panel.panel.no-preview-available")}</p>` };
   }
 
   /** Selects an item for the inspector; below 1024 px that opens the sheet, except for the first selection on load. */
@@ -2150,7 +2268,7 @@ class MagicCardUtilsPanel extends LitElement {
     this._sheetOpener = opener || null;
     this._sheetOpen = true;
     this.updateComplete.then(() => {
-      const back = this.shadowRoot.querySelector(".ins-back");
+      const back = this.shadowRoot && this.shadowRoot.querySelector(".ins-back");
       if (back && typeof back.focus === "function") back.focus();
     });
   }
@@ -2281,7 +2399,7 @@ class MagicCardUtilsPanel extends LitElement {
         },
       }),
       pill:
-        this._tab === "templates" && !covered
+        ["templates", "library", "icons", "shapes", "images"].includes(this._tab) && !covered
           ? renderDensityPill(strings, this._density, (dir) => (this._density = stepDensity(this._density, dir).pct))
           : null,
     });
