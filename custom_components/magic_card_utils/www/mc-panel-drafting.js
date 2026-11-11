@@ -429,6 +429,144 @@ export const draftingStyles = [
     .row .name small {
       color: var(--bp-mute);
     }
+    .rows-head,
+    .rows [role="row"].row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr) minmax(76px, auto);
+      align-items: center;
+      gap: 10px;
+    }
+    .rows-head {
+      padding: 0 8px;
+      border-bottom: 1px solid var(--bp-line);
+      color: var(--bp-mute);
+      font-family: var(--bp-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .sort-col {
+      min-width: 0;
+    }
+    .sort {
+      max-width: 100%;
+      min-height: 32px;
+      padding: 0 4px;
+      border: 0;
+      border-radius: 4px;
+      background: none;
+      color: inherit;
+      font: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      text-align: start;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+    }
+    .sort:hover,
+    .sort-col[aria-sort="ascending"] .sort,
+    .sort-col[aria-sort="descending"] .sort {
+      color: var(--bp-ink);
+    }
+    .sort:focus-visible {
+      outline: 2px solid var(--bp-acc);
+      outline-offset: 1px;
+    }
+    .rows [role="row"].row {
+      padding: calc(6px * var(--z, 1)) 8px;
+      border-radius: 4px;
+      font-size: 0.8125rem;
+    }
+    .rows [role="cell"] {
+      min-width: 0;
+      overflow: hidden;
+      color: var(--bp-mute);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .rows [role="cell"] .name {
+      display: block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 500;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border: 1px solid var(--bp-line);
+      border-radius: 10px;
+      color: var(--bp-mute);
+      font-family: var(--bp-mono);
+      font-size: 0.6875rem;
+      line-height: 1.4;
+    }
+    .badge.ok {
+      border-color: var(--bp-acc);
+      color: var(--bp-acc);
+    }
+    .badge.locked {
+      border-color: var(--bp-warn);
+      color: var(--bp-warn);
+    }
+    .warn {
+      margin: 0;
+      padding: 8px 10px;
+      border: 1px solid var(--bp-warn);
+      border-inline-start-width: 3px;
+      border-radius: 4px;
+      color: var(--bp-warn);
+      font-size: 0.8125rem;
+      line-height: 1.4;
+    }
+    .help {
+      margin: 0;
+      color: var(--bp-mute);
+      font-size: 0.75rem;
+    }
+    .forum-preview {
+      display: grid;
+      place-items: center;
+      min-height: 96px;
+      padding: 8px;
+      border: 1px dashed var(--bp-line);
+      border-radius: 4px;
+      background: var(--bp-surf2);
+      overflow: hidden;
+    }
+    .forum-preview img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+    fieldset.fld {
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+    fieldset.fld legend {
+      padding: 0;
+      margin-bottom: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .choice {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 32px;
+      color: var(--bp-ink);
+      font-size: 0.8125rem;
+      cursor: pointer;
+    }
+    .choice input {
+      margin: 0;
+      accent-color: var(--bp-acc);
+    }
     .grip {
       cursor: col-resize;
       background: linear-gradient(var(--bp-line), var(--bp-line)) center / 1px 100% no-repeat;
