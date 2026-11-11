@@ -377,6 +377,58 @@ export const draftingStyles = [
       grid-template-columns: repeat(auto-fill, minmax(calc(150px * var(--z, 1)), 1fr));
       gap: 12px;
     }
+    .tile {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid var(--bp-hair2);
+      border-radius: 12px;
+      background: var(--bp-sheet);
+      color: var(--bp-ink);
+      font: inherit;
+      text-align: start;
+      cursor: pointer;
+    }
+    .tile:hover {
+      border-color: var(--bp-line);
+    }
+    .tile[aria-current="true"] {
+      border-color: var(--bp-acc);
+      box-shadow: 0 0 0 1px var(--bp-acc);
+    }
+    .tile b {
+      font-family: var(--bp-mono);
+      font-size: 0.78rem;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .tile small {
+      color: var(--bp-mute);
+      font-size: 0.75rem;
+    }
+    .content .empty {
+      padding: 24px 8px;
+      border: 0;
+      color: var(--bp-mute);
+    }
+    .main .row {
+      border-bottom: 1px solid var(--bp-hair2);
+    }
+    .main .row:hover {
+      background: var(--bp-surf2);
+    }
+    .row .name {
+      color: var(--bp-ink);
+    }
+    .row .name[aria-current="true"] {
+      font-weight: 600;
+    }
+    .row .name small {
+      color: var(--bp-mute);
+    }
     .grip {
       cursor: col-resize;
       background: linear-gradient(var(--bp-line), var(--bp-line)) center / 1px 100% no-repeat;
@@ -585,7 +637,7 @@ export const draftingStyles = [
     }
     .studio-host {
       display: block;
-      height: calc(100vh - 48px - 43px);
+      height: calc(100vh - 48px - 43px - 49px);
       min-height: 480px;
     }
     .studio-host[hidden],
@@ -632,7 +684,7 @@ export const draftingStyles = [
     }
     .theme-host {
       display: block;
-      height: calc(100vh - 48px - 43px);
+      height: calc(100vh - 48px - 43px - 49px);
       min-height: 480px;
     }
     .bar {
@@ -640,6 +692,11 @@ export const draftingStyles = [
       flex-wrap: wrap;
       gap: 8px;
       align-items: center;
+    }
+    .bar:not(.content .bar) {
+      padding: 8px 16px;
+      background: var(--bp-sheet);
+      border-bottom: 1px solid var(--bp-line);
     }
     .overlay {
       position: fixed;
