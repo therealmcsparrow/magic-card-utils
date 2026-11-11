@@ -2,6 +2,9 @@
 // dark mode, font faces), the inspector and density pill templates, and the panel styles. Plain JS, no build step.
 import { html, css } from "./lit-core.min.js";
 import { mcUiKit } from "./mc-ui-kit.js";
+import { FONT_FACES, loadPanelFonts } from "./mc-panel-fonts.js";
+
+export { FONT_FACES, loadPanelFonts };
 
 const nothing = "";
 
@@ -18,12 +21,6 @@ export const DENSITY = { min: 75, max: 150, step: 25, initial: 100 };
 export const INSPECTOR = { min: 280, max: 560, initial: 360 };
 const DOCK_MIN = 1024;
 const RULER_MIN = 640;
-
-export const FONT_FACES = [
-  { family: "MCU Space Grotesk", file: "./fonts/space-grotesk-latin-wght-normal.woff2" },
-  { family: "MCU JetBrains Mono", file: "./fonts/jetbrains-mono-latin-wght-normal.woff2" },
-];
-const FONT_DIR = new URL("./fonts/", import.meta.url);
 
 /** Which parts of the layout apply at a viewport width in px. */
 export function layoutFor(width) {
@@ -84,22 +81,6 @@ export function gripKey(key, width, shift) {
   if (key === "Home") return INSPECTOR.min;
   if (key === "End") return INSPECTOR.max;
   return width;
-}
-
-/** Loads the bundled faces from www/fonts. Resolves false when any fails; the system fonts then stay. */
-export async function loadPanelFonts() {
-  try {
-    if (typeof FontFace !== "function" || !document.fonts) return false;
-    const faces = FONT_FACES.map((f) => {
-      const url = new URL(f.file.replace("./fonts/", ""), FONT_DIR).href;
-      return new FontFace(f.family, `url("${url}") format("woff2")`, { weight: "300 700", display: "swap" });
-    });
-    await Promise.all(faces.map((face) => face.load()));
-    faces.forEach((face) => document.fonts.add(face));
-    return true;
-  } catch (_err) {
-    return false;
-  }
 }
 
 /**

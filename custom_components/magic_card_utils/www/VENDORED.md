@@ -110,8 +110,8 @@ fails to load, the system fonts stay.
 
 | Font | File | Package (npm) | SHA-256 |
 | --- | --- | --- | --- |
-| Space Grotesk | `fonts/space-grotesk-latin-wght-normal.woff2` | `@fontsource-variable/space-grotesk` | `0640890476fc1198ab4de571fb658de443c4d85b66466ec09534a8737ab1ce9d` |
-| JetBrains Mono | `fonts/jetbrains-mono-latin-wght-normal.woff2` | `@fontsource-variable/jetbrains-mono` | `18be452724bfdc236c074ca94a249a7f41a86752c7d04ab258ce9ed5651f6a7e` |
+| Space Grotesk | `fonts/space-grotesk-latin-wght-normal.woff2` | `@fontsource-variable/space-grotesk` 5.3.0 | `0640890476fc1198ab4de571fb658de443c4d85b66466ec09534a8737ab1ce9d` |
+| JetBrains Mono | `fonts/jetbrains-mono-latin-wght-normal.woff2` | `@fontsource-variable/jetbrains-mono` 5.3.0 | `18be452724bfdc236c074ca94a249a7f41a86752c7d04ab258ce9ed5651f6a7e` |
 
 Both fonts are licensed under the SIL Open Font License 1.1 (SPDX: OFL-1.1). The full licence text and the
 copyright lines are in `fonts/OFL.txt`, next to the font files:
@@ -119,7 +119,7 @@ copyright lines are in `fonts/OFL.txt`, next to the font files:
 - Space Grotesk: Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk)
 - JetBrains Mono: Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
 
-Neither font declares a Reserved Font Name. The files are the Latin, variable-weight WOFF2 subsets from the
+Each file is `files/<name>-latin-wght-normal.woff2` from the published 5.3.0 package, unchanged. Neither font declares a Reserved Font Name. The files are the Latin, variable-weight WOFF2 subsets from the
 Fontsource packages, so they are Modified Versions under the SIL Open Font License 1.1 (definitions and
 section 3): converted to WOFF2 and reduced to a subset of the characters. They keep their original family
 names, keep the copyright notice and licence, are distributed under the same licence and are never sold on

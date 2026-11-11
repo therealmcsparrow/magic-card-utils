@@ -29,6 +29,7 @@ jobs:
       GH_REPO: ${{ github.repository }}
       LIT_VERSION: "3.3.3"
       MDI_VERSION: "7.4.47"
+      FONTSOURCE_VERSION: "5.3.0"
     steps:
       - name: Check tag format
         run: |
@@ -97,6 +98,29 @@ jobs:
               mdi_comp["hashes"] = [{"alg": "SHA-256", "content": hashlib.sha256(open(kit, "rb").read()).hexdigest()}]
           else:
               print(f"::warning::{kit} not found; SBOM lists @mdi/js {mdi} anyway")
+          fontsource = os.environ["FONTSOURCE_VERSION"]
+          font_comps = []
+          for package, file, website in [
+              ("space-grotesk", "space-grotesk-latin-wght-normal.woff2", "https://github.com/floriankarsten/space-grotesk"),
+              ("jetbrains-mono", "jetbrains-mono-latin-wght-normal.woff2", "https://github.com/JetBrains/JetBrainsMono"),
+          ]:
+              font_file = f"{www}/fonts/{file}"
+              ref = f"pkg:npm/%40fontsource-variable/{package}@{fontsource}"
+              font_comp = {
+                  "type": "data",
+                  "bom-ref": ref,
+                  "name": f"@fontsource-variable/{package}",
+                  "version": fontsource,
+                  "purl": ref,
+                  "licenses": [{"license": {"id": "OFL-1.1"}}],
+                  "externalReferences": [{"type": "website", "url": website}],
+                  "properties": [{"name": "vendored-in", "value": font_file}, {"name": "licence-text", "value": f"{www}/fonts/OFL.txt"}],
+              }
+              if os.path.exists(font_file):
+                  font_comp["hashes"] = [{"alg": "SHA-256", "content": hashlib.sha256(open(font_file, "rb").read()).hexdigest()}]
+              else:
+                  print(f"::warning::{font_file} not found; SBOM lists {package} anyway")
+              font_comps.append(font_comp)
           app = {
               "type": "application",
               "bom-ref": f"pkg:github/{os.environ['GH_REPO']}@{tag}",
@@ -115,12 +139,13 @@ jobs:
                   "component": app,
                   "tools": {"components": [{"type": "application", "name": "release.yml inline generator"}]},
               },
-              "components": [lit_comp, mdi_comp],
+              "components": [lit_comp, mdi_comp] + font_comps,
               "dependencies": [
-                  {"ref": app["bom-ref"], "dependsOn": [lit_comp["bom-ref"], mdi_comp["bom-ref"]]},
+                  {"ref": app["bom-ref"], "dependsOn": [lit_comp["bom-ref"], mdi_comp["bom-ref"]] + [c["bom-ref"] for c in font_comps]},
                   {"ref": lit_comp["bom-ref"], "dependsOn": []},
                   {"ref": mdi_comp["bom-ref"], "dependsOn": []},
-              ],
+              ]
+              + [{"ref": c["bom-ref"], "dependsOn": []} for c in font_comps],
           }
           json.dump(bom, open("magic_card_utils.sbom.cdx.json", "w"), indent=2)
           PY
