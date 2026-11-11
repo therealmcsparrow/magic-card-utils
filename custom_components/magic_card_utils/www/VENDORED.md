@@ -33,7 +33,7 @@ above is the checksum of the committed file.
 # Generated: Magic Card UI kit (CSS only)
 
 `mc-ui-kit.js` is the panel's copy of the Magic Card UI kit (contract
-`ui-kit` 1.0.0, revision 3). It is generated, never edited by hand. It holds
+`ui-kit` 1.4.0, revision 7). It is generated, never edited by hand. It holds
 the kit's CSS as one Lit `css` template (editor tokens, kit tokens, card editor
 primitives, notices, chips, empty state, toast) and the few Material Design
 Icons paths the panel draws. It has no templates and no custom elements, so the
@@ -42,9 +42,9 @@ panel needs no other Magic Card file to load.
 | Field | Value |
 | --- | --- |
 | File | `mc-ui-kit.js` |
-| Magic Card version | `2026.11.01` (`MC_UI_KIT_VERSION`) |
-| Magic Card commit | `2603eba` (tag `v2026.11.01`), exported from a clean `git archive` of that commit |
-| SHA-256 | `8263e179dfb07d2ec61bf69d4bf99c60bf4ce2c054703f5710514f4a868ce308` |
+| Magic Card version | `2026.11.03-beta.2` (`MC_UI_KIT_VERSION`) |
+| Magic Card commit | `51af8ac` (tag `v2026.11.03-beta.2`), exported from a clean `git archive` of that commit |
+| SHA-256 | `3f75f845572dba22bb02227e30c60c8bfeabf64a3e41532a66245dae7d7c48e3` |
 | Icons | `@mdi/js` 7.4.47, Apache-2.0 (https://github.com/Templarian/MaterialDesign-JS), licence text in `LICENSE-mdi.txt` |
 | Imports | `lit-core.min.js` (`css`, `html`) |
 
@@ -80,7 +80,7 @@ The panel imports `t`, `tx` and `locale` from `mc-i18n-panel.js`, already bound 
 | Field | Value |
 | --- | --- |
 | Files | `mc-i18n.js`, `mc-i18n-panel.js` |
-| Magic Card commit | the Magic Card main commit written in `.magic-card-ref` (2026.11.01), for both files |
+| Magic Card commit | the Magic Card main commit written in `.magic-card-ref` (2026.11.03-beta.2), for both files |
 | SHA-256 `mc-i18n.js` | `aefa56ac90aed1d114571fe8db490c90365dcc072e0db57ecabd7e058f0f92a5` |
 | SHA-256 `mc-i18n-panel.js` | `f0917299df4c7df20a01bc0da38f39bf46a7e4952490b6da2d2bf1b9298b8e79` |
 | Sources in this repo | `magic_card_utils_panel.js` (the `tr()` calls), `i18n/en-GB.json` (English, notes and length limits), `i18n/nl.json` (written by hand, with the hash of the English it was made from), `i18n/en-US.json` (generated) |

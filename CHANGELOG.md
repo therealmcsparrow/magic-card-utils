@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2026.11.2-beta.2] - 2026-11-11
+
+This is a pre-release. It works with the matching Magic Card release, 2026.11.03-beta.2. To install it, choose **Include pre-releases** in the Marketplace, or turn on **Show beta versions** in HACS.
+
 ### Changed
 - The Magic Card Templates panel has a new look. A header and a one-row tab bar sit above a ruled list or grid with search and a density pill. A right-hand inspector shows the selection in collapsible groups that display their current value when closed. Nothing was removed: all eight tabs keep their fields and actions.
 - Templates: the inspector has a Preview section with the live Magic Card, or the existing error text when it cannot be drawn. Forum shot, Icons and Shapes show their picture preview there too.
