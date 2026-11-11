@@ -492,6 +492,7 @@ class MagicCardUtilsPanel extends LitElement {
       panel: { type: Object },
       _templates: { type: Array, state: true },
       _templateFilter: { type: String, state: true },
+      _templateSelected: { type: String, state: true },
       _templatePicked: { state: true },
       _density: { state: true },
       _modifiedOnly: { state: true },
@@ -547,6 +548,8 @@ class MagicCardUtilsPanel extends LitElement {
     this._templates = [];
     this._templateFilter = "";
     this._templatePicked = new Set();
+    this._templateSelected = null;
+    this._builtPreviewHost = null;
     this._templateNotice = null;
     this._density = DENSITY.initial;
     this._modifiedOnly = false;
@@ -692,7 +695,7 @@ class MagicCardUtilsPanel extends LitElement {
     this._editConfig = { ...e.detail.config };
   }
 
-  async _buildPreview() {
+  async _buildPreview(row = this._viewRow) {
     const host = this.shadowRoot.querySelector(".preview-host");
     if (!host) return;
     // A newer build may start while this one awaits the card; only the latest may render.
@@ -701,14 +704,14 @@ class MagicCardUtilsPanel extends LitElement {
     this._previewEl = null;
 
     // In edit mode, the preview is the Magic Card editor itself
-    if (this._viewMode === "edit") return;
+    if (row === this._viewRow && this._viewMode === "edit") return;
 
-    const config = this._viewRow?.raw?.config || this._viewRow?.raw || null;
+    const config = row?.raw?.config || row?.raw || null;
     if (!config || typeof config !== "object") {
       this._previewError = tr("mcu-panel.panel.no-config-to-preview");
       return;
     }
-    const card_type = this._viewRow?.card_type || "";
+    const card_type = row?.card_type || "";
     const renderConfig =
       config.type
         ? config
@@ -752,6 +755,11 @@ class MagicCardUtilsPanel extends LitElement {
   }
 
   updated(changedProps) {
+    if (this._tab === "templates" && !this._viewRow && this._templateSelected) {
+      // The inspector preview host is a new element after the sheet opens, the dialog closes or the layout switches.
+      const host = this.shadowRoot.querySelector(".preview-host");
+      if (host && host !== this._builtPreviewHost) this._buildTemplatePreview();
+    }
     if (changedProps.has("hass") && this._previewEl && this.hass) {
       this._previewEl.hass = this.hass;
     }
@@ -2132,6 +2140,7 @@ class MagicCardUtilsPanel extends LitElement {
 
   /** The details of the selected item for the docked inspector, or null while the tab has none. */
   _inspectorModel() {
+    if (this._tab === "templates") return this._templatesInspectorModel();
     return null;
   }
 
@@ -2142,7 +2151,7 @@ class MagicCardUtilsPanel extends LitElement {
     this._sheetOpen = true;
     this.updateComplete.then(() => {
       const back = this.shadowRoot.querySelector(".ins-back");
-      if (back) back.focus();
+      if (back && typeof back.focus === "function") back.focus();
     });
   }
 
@@ -2368,6 +2377,51 @@ class MagicCardUtilsPanel extends LitElement {
         : { tone: "error", text: tr("mcu-panel.panel.imported-n-of-total-templates", { n: saved, total: usable.length }) };
   }
 
+  /** Selects a template for the inspector and renders its live preview there. */
+  _selectTemplate(name, opener) {
+    if (this._templateSelected == null) this._openGroups = new Set([...this._openGroups, "preview"]);
+    this._templateSelected = name;
+    this._openInspector(opener);
+    this.updateComplete.then(() => this._buildTemplatePreview());
+  }
+
+  /** The inspector content for the selected template: its details and the live card. */
+  _templatesInspectorModel() {
+    const row = this._templateSelected == null ? null : this._templates.find((r) => r.name === this._templateSelected);
+    if (!row) return null;
+    const config = (row.raw && (row.raw.config || row.raw)) || {};
+    const type = row.card_type || (config && config.type) || "";
+    const fields = [
+      { kind: "field", label: tr("mcu-panel.panel.description"), value: row.description || "" },
+      { kind: "field", label: tr("mcu-panel.panel.card-type"), value: type },
+      { kind: "field", label: tr("mcu-panel.panel.n-linked-cards", { n: row.linked_cards }), value: String(row.linked_cards) },
+      { kind: "field", label: tr("mcu-panel.panel.updated-date", { date: this._formatDate(row.last_updated) }), value: this._formatDate(row.last_updated) },
+    ];
+    return {
+      name: row.name,
+      type,
+      groups: [
+        { id: "details", title: tr("mcu-panel.panel.details"), summary: row.description || row.name, fields },
+        {
+          id: "preview",
+          title: tr("mcu-panel.panel.preview"),
+          summary: type,
+          body: html`${this._previewError
+              ? html`<div class="notice error preview-note" role="alert">${glyph("error", 20)}<div class="body"><p>${this._previewError}</p></div></div>`
+              : ""}${this._viewRow ? "" : html`<div class="preview-host"></div>`}`,
+        },
+      ],
+    };
+  }
+
+  async _buildTemplatePreview() {
+    const row = this._templates.find((r) => r.name === this._templateSelected);
+    if (!row || this._viewRow) return;
+    this._builtPreviewHost = this.shadowRoot.querySelector(".preview-host");
+    this._previewError = "";
+    await this._buildPreview(row);
+  }
+
   _renderTemplateRow(row) {
     const checkId = `mcu-template-${this._templates.indexOf(row)}`;
     const checked = this._templatePicked.has(row.name);
@@ -2378,10 +2432,11 @@ class MagicCardUtilsPanel extends LitElement {
       tr("mcu-panel.panel.updated-date", { date: this._formatDate(row.last_updated) }),
     ].filter(Boolean).join(" · ");
     return html`
-      <div class="row ${checked ? "selected" : ""}" role="listitem">
+      <div class="row ${checked ? "selected" : ""} ${this._templateSelected === row.name ? "current" : ""}" role="listitem">
         <input type="checkbox" class="check" id=${checkId} aria-label=${tr("mcu-panel.panel.select-name", { name: row.name })}
           .checked=${checked} @change=${(e) => this._pickTemplate(row.name, e.target.checked)} />
-        <label class="name" for=${checkId}><bdi>${row.name}</bdi><small>${sub}</small></label>
+        <button type="button" class="name" aria-current="${this._templateSelected === row.name ? "true" : "false"}"
+          @click=${(e) => this._selectTemplate(row.name, e.currentTarget)}><bdi>${row.name}</bdi><small>${sub}</small></button>
         <span class="acts">
           <button type="button" class="icon-btn xs action-btn studio" title=${tr("mcu-panel.panel.open-in-studio")}
             aria-label=${tr("mcu-panel.panel.open-name-in-studio", { name: row.name })} @click=${() => this._openStudio(row)}>${glyph("fullscreen")}</button>

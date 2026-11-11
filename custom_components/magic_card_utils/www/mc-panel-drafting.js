@@ -715,6 +715,12 @@ export const draftingStyles = [
     }
     .preview-host {
       display: block;
+      max-width: 100%;
+      min-width: 0;
+    }
+    .row.current {
+      box-shadow: inset 3px 0 0 var(--mc-accent);
+      background: var(--mc-accent-tint);
     }
     .preview-note {
       margin-bottom: 12px;
