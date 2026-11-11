@@ -3,7 +3,25 @@ import {
   html,
   css,
 } from "./lit-core.min.js";
-import { mcUiKit, glyph } from "./mc-ui-kit.js";
+import { glyph } from "./mc-ui-kit.js";
+import {
+  DENSITY,
+  INSPECTOR,
+  draftingStyles,
+  fadeFor,
+  gripKey,
+  layoutFor,
+  loadPanelFonts,
+  modeFor,
+  renderBody,
+  renderDensityPill,
+  renderGrip,
+  renderInspector,
+  sheetKey,
+  shouldOpenSheet,
+  stepDensity,
+  tabKeyTarget,
+} from "./mc-panel-drafting.js";
 import { setI18nLocale } from "./mc-i18n.js";
 import { t as tr, tx as trx, locale } from "./mc-i18n-panel.js";
 
@@ -475,6 +493,13 @@ class MagicCardUtilsPanel extends LitElement {
       _templates: { type: Array, state: true },
       _templateFilter: { type: String, state: true },
       _templatePicked: { state: true },
+      _density: { state: true },
+      _modifiedOnly: { state: true },
+      _inspectorWidth: { state: true },
+      _viewWidth: { state: true },
+      _sheetOpen: { state: true },
+      _openGroups: { state: true },
+      _tabFade: { state: true },
       _templateNotice: { state: true },
       _error: { type: String, state: true },
       // template detail overlay
@@ -523,6 +548,14 @@ class MagicCardUtilsPanel extends LitElement {
     this._templateFilter = "";
     this._templatePicked = new Set();
     this._templateNotice = null;
+    this._density = DENSITY.initial;
+    this._modifiedOnly = false;
+    this._inspectorWidth = INSPECTOR.initial;
+    this._viewWidth = typeof window.innerWidth === "number" ? window.innerWidth : 1280;
+    this._sheetOpen = false;
+    this._openGroups = new Set();
+    this._tabFade = "none";
+    this._sheetOpener = null;
     this.addEventListener("mc-editor-fullscreen", () => this.requestUpdate());
     this._error = "";
     this._viewRow = null;
@@ -1053,13 +1086,12 @@ class MagicCardUtilsPanel extends LitElement {
   }
 
   _onTabKeydown(e) {
-    const i = TABS.findIndex(([t]) => t === this._tab);
-    let j;
-    if (e.key === "ArrowRight") j = (i + 1) % TABS.length;
-    else if (e.key === "ArrowLeft") j = (i - 1 + TABS.length) % TABS.length;
-    else if (e.key === "Home") j = 0;
-    else if (e.key === "End") j = TABS.length - 1;
-    else return;
+    const j = tabKeyTarget(
+      e.key,
+      TABS.findIndex(([t]) => t === this._tab),
+      TABS.length
+    );
+    if (j < 0) return;
     e.preventDefault();
     const next = TABS[j][0];
     this._setTab(next);
@@ -2005,6 +2037,8 @@ class MagicCardUtilsPanel extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     this._stopShapeRows();
+    if (this._resizeObserver) this._resizeObserver.disconnect();
+    this._resizeObserver = null;
     const animPending = this._animUnsubPromise;
     this._animUnsubPromise = undefined;
     this._animReady = undefined;
@@ -2051,11 +2085,102 @@ class MagicCardUtilsPanel extends LitElement {
     }
   }
 
+  connectedCallback() {
+    super.connectedCallback();
+    loadPanelFonts();
+    if (typeof ResizeObserver === "function") {
+      this._resizeObserver = new ResizeObserver(() => this._measure());
+      this._resizeObserver.observe(this);
+    }
+  }
+
+  _isRtl() {
+    return getComputedStyle(this).direction === "rtl";
+  }
+
+  /** Reads the panel width (for the dock and sheet layout) and which edges of the tab bar hide tabs. */
+  _measure() {
+    const width = this.clientWidth || window.innerWidth;
+    if (width !== this._viewWidth) this._viewWidth = width;
+    if (layoutFor(width).docked) this._sheetOpen = false;
+    const tabs = this.shadowRoot && this.shadowRoot.querySelector(".tabs");
+    if (tabs) this._tabFade = fadeFor(tabs.scrollLeft, tabs.clientWidth, tabs.scrollWidth, this._isRtl());
+  }
+
+  _onTabsScroll(e) {
+    const el = e.currentTarget;
+    this._tabFade = fadeFor(el.scrollLeft, el.clientWidth, el.scrollWidth, this._isRtl());
+  }
+
+  /** The strings the drafting module renders, resolved here so the message tables are built from this file. */
+  _draftingStrings() {
+    return {
+      details: tr("mcu-panel.panel.details"),
+      nothing: tr("mcu-panel.panel.nothing-selected"),
+      pick: tr("mcu-panel.panel.pick-an-item"),
+      groups: (n) => tr("mcu-panel.panel.count-groups", { n }),
+      modifiedOnly: tr("mcu-panel.panel.modified-only"),
+      noChanged: tr("mcu-panel.panel.no-changed-fields-yet"),
+      back: tr("mcu-panel.panel.back"),
+      reset: tr("mcu-panel.panel.reset"),
+      rowSize: tr("mcu-panel.panel.row-size"),
+      smaller: tr("mcu-panel.panel.smaller-rows"),
+      larger: tr("mcu-panel.panel.larger-rows"),
+      resize: tr("mcu-panel.panel.resize-details"),
+    };
+  }
+
+  /** The details of the selected item for the docked inspector, or null while the tab has none. */
+  _inspectorModel() {
+    return null;
+  }
+
+  /** Selects an item for the inspector; below 1024 px that opens the sheet, except for the first selection on load. */
+  _openInspector(opener, initial = false) {
+    if (!shouldOpenSheet({ sheet: layoutFor(this._viewWidth).sheet, initial })) return;
+    this._sheetOpener = opener || null;
+    this._sheetOpen = true;
+    this.updateComplete.then(() => {
+      const back = this.shadowRoot.querySelector(".ins-back");
+      if (back) back.focus();
+    });
+  }
+
+  _closeSheet() {
+    this._sheetOpen = false;
+    const opener = this._sheetOpener;
+    this._sheetOpener = null;
+    this.updateComplete.then(() => opener && opener.isConnected && opener.focus());
+  }
+
+  _toggleGroup(id) {
+    const next = new Set(this._openGroups);
+    if (!next.delete(id)) next.add(id);
+    this._openGroups = next;
+  }
+
+  _gripPointerDown(e) {
+    e.preventDefault();
+    const rect = this.shadowRoot.querySelector(".body").getBoundingClientRect();
+    const rtl = this._isRtl();
+    const move = (ev) => {
+      const w = rtl ? ev.clientX - rect.left : rect.right - ev.clientX;
+      this._inspectorWidth = Math.min(INSPECTOR.max, Math.max(INSPECTOR.min, Math.round(w)));
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
+
   willUpdate(changed) {
     // One locale for the panel and every Magic Card element it hosts (they read the same hass).
     if (changed.has("hass") && this.hass) {
       setI18nLocale(this.hass);
       this.setAttribute("lang", locale());
+      this.setAttribute("data-bp-mode", modeFor(this.hass));
     }
   }
 
@@ -2076,7 +2201,7 @@ class MagicCardUtilsPanel extends LitElement {
 
       ${this._editorOpen
         ? html`<div class="editor-host"></div>`
-        : html`<div class="tabs" ?inert=${covered} role="tablist" aria-label=${tr("mcu-panel.panel.magic-card-utils")} @keydown=${this._onTabKeydown}>
+        : html`<div class="tabs" ?inert=${covered} role="tablist" aria-label=${tr("mcu-panel.panel.magic-card-utils")} data-fade=${this._tabFade} @keydown=${this._onTabKeydown} @scroll=${this._onTabsScroll}>
               ${TABS.map(
                 ([tab, label]) => html`<button
                   class="tab"
@@ -2091,22 +2216,66 @@ class MagicCardUtilsPanel extends LitElement {
               )}
             </div>
 
-            ${this._tab === "animations"
-              ? this._renderAnimationsTab()
-              : this._tab === "forum-shot"
-              ? this._renderForumShotTab()
-              : this._tab === "themes"
-              ? this._renderThemesTab()
-              : this._tab === "library"
-              ? this._renderLibraryTab()
-              : this._tab === "shapes"
-              ? this._renderShapesTab()
-              : this._tab === "icons"
-              ? this._renderIconsTab()
-              : this._tab === "images"
-              ? this._renderImagesTab()
-              : this._renderTemplatesTab()}`}
+            ${this._renderDraftingBody(covered)}`}
     `;
+  }
+
+  _renderTabBody() {
+    return this._tab === "animations"
+      ? this._renderAnimationsTab()
+      : this._tab === "forum-shot"
+      ? this._renderForumShotTab()
+      : this._tab === "themes"
+      ? this._renderThemesTab()
+      : this._tab === "library"
+      ? this._renderLibraryTab()
+      : this._tab === "shapes"
+      ? this._renderShapesTab()
+      : this._tab === "icons"
+      ? this._renderIconsTab()
+      : this._tab === "images"
+      ? this._renderImagesTab()
+      : this._renderTemplatesTab();
+  }
+
+  _renderDraftingBody(covered) {
+    const layout = layoutFor(this._viewWidth);
+    const strings = this._draftingStrings();
+    const model = this._inspectorModel();
+    const ctx = {
+      width: this._inspectorWidth,
+      z: stepDensity(this._density, 0).z,
+      sheet: layout.sheet,
+      sheetOpen: layout.sheet && this._sheetOpen && !!model,
+      openGroups: this._openGroups,
+      modifiedOnly: this._modifiedOnly,
+      onToggleGroup: (id) => this._toggleGroup(id),
+      onModifiedOnly: (on) => (this._modifiedOnly = on),
+      onClose: () => this._closeSheet(),
+      onKeyDown: (e) => {
+        if (sheetKey(e.key, { open: this._sheetOpen, sheet: layout.sheet }) === "close") {
+          e.stopPropagation();
+          this._closeSheet();
+        }
+      },
+    };
+    const showInspector = !!model && (layout.docked || ctx.sheetOpen);
+    return renderBody(ctx, {
+      main: this._renderTabBody(),
+      inspector: showInspector ? renderInspector(strings, ctx, model) : null,
+      grip: renderGrip(strings, this._inspectorWidth, {
+        pointerDown: (e) => this._gripPointerDown(e),
+        keyDown: (e) => {
+          if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+          e.preventDefault();
+          this._inspectorWidth = gripKey(e.key, this._inspectorWidth, e.shiftKey);
+        },
+      }),
+      pill:
+        this._tab === "templates" && !covered
+          ? renderDensityPill(strings, this._density, (dir) => (this._density = stepDensity(this._density, dir).pct))
+          : null,
+    });
   }
 
   _filteredTemplates() {
@@ -2494,302 +2663,7 @@ class MagicCardUtilsPanel extends LitElement {
   }
 
   static get styles() {
-    // The kit first (buttons, fields, notices, icon buttons, chips, empty), then layout only. The page header
-    // and the page tab bar are Home Assistant's own chrome (design/10 D6) and keep their HA variables.
-    return [
-      mcUiKit,
-      css`
-      :host {
-        display: block;
-      }
-      .header {
-        display: flex;
-        align-items: center;
-        height: 64px;
-        padding: 0 16px;
-        background-color: var(
-          --app-header-background-color,
-          var(--primary-color)
-        );
-        color: var(--app-header-text-color, var(--text-primary-color, #fff));
-        box-shadow: var(
-          --ha-card-box-shadow,
-          0 2px 4px -1px rgba(0, 0, 0, 0.2),
-          0 4px 5px 0 rgba(0, 0, 0, 0.14),
-          0 1px 10px 0 rgba(0, 0, 0, 0.12)
-        );
-        position: sticky;
-        top: 0;
-        z-index: 4;
-      }
-      .header ha-menu-button {
-        --mdc-icon-button-size: 40px;
-        color: inherit;
-      }
-      .title {
-        margin-left: 16px;
-        font-size: 20px;
-        font-weight: 400;
-        line-height: 1;
-        flex: 1;
-      }
-      .content {
-        display: grid;
-        gap: 12px;
-        align-content: start;
-        padding: 16px;
-      }
-      .tabs {
-        display: flex;
-        gap: 4px;
-        padding: 0 16px;
-        background: var(--card-background-color, var(--ha-card-background));
-        border-bottom: 1px solid var(--divider-color);
-        position: sticky;
-        top: 64px;
-        z-index: 3;
-        overflow-x: auto;
-      }
-      .tab {
-        flex: none;
-        height: 48px;
-        padding: 0 16px;
-        background: none;
-        border: 0;
-        border-bottom: 2px solid transparent;
-        color: var(--secondary-text-color);
-        font: inherit;
-        font-weight: 500;
-        cursor: pointer;
-        transition: color 120ms ease, border-color 120ms ease;
-      }
-      .tab:hover {
-        color: var(--primary-text-color);
-      }
-      .tab[aria-selected="true"] {
-        color: var(--mc-accent-ink, var(--primary-color));
-        border-bottom-color: var(--primary-color);
-      }
-      .tab:focus-visible {
-        outline: 2px solid var(--primary-color);
-        outline-offset: -4px;
-        border-radius: 4px;
-      }
-      .studio-status {
-        display: flex;
-        justify-content: center;
-        padding: 48px 16px;
-      }
-      .studio-host {
-        display: block;
-        height: calc(100vh - 64px - 49px);
-        min-height: 480px;
-      }
-      .studio-host[hidden],
-      .theme-host[hidden],
-      .forum-host[hidden] {
-        display: none;
-      }
-      .library-host,
-      .icons-host,
-      .images-host,
-      .shapes-host {
-        display: block;
-        padding: 16px;
-      }
-      .library-host[hidden],
-      .icons-host[hidden],
-      .images-host[hidden],
-      .shapes-host[hidden] {
-        display: none;
-      }
-      .images-hint {
-        margin: 0;
-        padding: 0 16px 16px;
-        color: var(--secondary-text-color);
-        font-size: 0.875rem;
-        line-height: 1.5;
-      }
-      .editor-host {
-        display: block;
-        height: calc(100vh - 64px);
-        min-height: 480px;
-      }
-      .editor-notice {
-        margin: 16px;
-      }
-      .shape-note {
-        margin: 16px 16px 0;
-      }
-      .forum-host {
-        display: block;
-        min-height: 480px;
-      }
-      .theme-host {
-        display: block;
-        height: calc(100vh - 64px - 49px);
-        min-height: 480px;
-      }
-      .bar {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        align-items: center;
-      }
-      .overlay {
-        position: fixed;
-        inset: 0;
-        background: var(--mc-scrim);
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 16px;
-      }
-      .dialog {
-        background: var(--mc-surface);
-        color: var(--mc-text);
-        border-radius: var(--mc-radius-xl);
-        box-shadow: var(--mc-shadow-dialog);
-        max-width: 1280px;
-        width: 100%;
-        max-height: 90vh;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
-      .dialog-body {
-        flex: 1;
-        display: flex;
-        min-height: 0;
-      }
-      .pane {
-        display: flex;
-        flex-direction: column;
-        min-width: 0;
-        min-height: 0;
-        flex: 1 1 50%;
-      }
-      .pane + .pane {
-        border-left: 1px solid var(--mc-divider);
-      }
-      .pane-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 8px 16px;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--mc-text-2);
-        border-bottom: 1px solid var(--mc-divider);
-        background: var(--mc-surface-2);
-      }
-      .preview-wrap {
-        flex: 1;
-        overflow: auto;
-        padding: 16px;
-        background: var(--mc-ground);
-      }
-      .preview-host {
-        display: block;
-      }
-      .preview-note {
-        margin-bottom: 12px;
-      }
-      .editor-host {
-        flex: 1;
-        overflow: auto;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-      }
-      .editor-host > * {
-        flex: 1;
-        align-self: stretch;
-      }
-      .metadata-pane {
-        flex: 0 0 240px;
-        border-right: 1px solid var(--mc-divider);
-      }
-      .meta-body {
-        padding: 12px;
-        display: grid;
-        gap: 12px;
-        align-content: start;
-      }
-      @media (max-width: 720px) {
-        .dialog-body {
-          flex-direction: column;
-        }
-        .pane + .pane {
-          border-left: 0;
-          border-top: 1px solid var(--mc-divider);
-        }
-      }
-      .action-dialog {
-        max-width: 480px;
-      }
-      .action-body {
-        padding: 16px 20px;
-        display: grid;
-        gap: 16px;
-        overflow: auto;
-      }
-      .dialog-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 12px 12px 20px;
-        border-bottom: 1px solid var(--mc-divider);
-      }
-      .dialog-title {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        min-width: 0;
-      }
-      .dialog-title-name {
-        font-size: 1rem;
-        font-weight: 500;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      .dialog-header-actions {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
-      .action-footer,
-      .dialog-footer {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 16px;
-        border-top: 1px solid var(--mc-divider);
-      }
-      .footer-note {
-        margin-right: auto;
-        min-width: 0;
-      }
-      .yaml-body {
-        margin: 0;
-        padding: 16px;
-        background: var(--code-editor-background-color, #1e1e1e);
-        color: var(--primary-text-color);
-        font-family: var(--mc-mono);
-        font-size: 0.75rem;
-        line-height: 1.5;
-        overflow: auto;
-        flex: 1;
-        min-height: 0;
-        white-space: pre;
-      }
-    `,
-    ];
+    return draftingStyles;
   }
 }
 

@@ -12,6 +12,11 @@
     "note": "Label of the Animations tab in the panel tab bar.",
     "max": 20
   },
+  "mcu-panel.panel.back": {
+    "text": "Back",
+    "note": "Button that closes the details sheet on a narrow screen and returns to the list.",
+    "max": 10
+  },
   "mcu-panel.panel.cancel": {
     "text": "Cancel",
     "note": "Button that closes the edit, duplicate or delete window without saving anything.",
@@ -67,6 +72,14 @@
     "note": "Detail line on a shape in the Shapes tab when the shape has no points of its own and is a corner shape.",
     "max": 20
   },
+  "mcu-panel.panel.count-groups": {
+    "text": "{n, plural, one {# group} other {# groups}}",
+    "note": "Count of the collapsible groups in the details panel.",
+    "max": 25,
+    "vars": {
+      "n": "The number of groups."
+    }
+  },
   "mcu-panel.panel.count-templates": {
     "text": "{n, plural, one {# template} other {# templates}}",
     "note": "Count above the template list, updated as you search.",
@@ -115,6 +128,11 @@
     "text": "Description",
     "note": "Label of the description field in the template editor.",
     "max": 20
+  },
+  "mcu-panel.panel.details": {
+    "text": "Details",
+    "note": "Accessible name of the details panel beside the list.",
+    "max": 15
   },
   "mcu-panel.panel.dismiss": {
     "text": "Dismiss",
@@ -268,6 +286,11 @@
     "note": "Notice in the Images tab when Magic Card is not installed.",
     "max": 65
   },
+  "mcu-panel.panel.larger-rows": {
+    "text": "Larger rows",
+    "note": "Accessible name of the button that makes the list rows larger.",
+    "max": 20
+  },
   "mcu-panel.panel.library": {
     "text": "Library",
     "note": "Label of the Library tab in the panel tab bar.",
@@ -309,6 +332,11 @@
       "min": "The value that replaces min in the text.",
       "version": "The value that replaces version in the text."
     }
+  },
+  "mcu-panel.panel.modified-only": {
+    "text": "Modified only",
+    "note": "Switch in the details panel that shows only the fields you changed.",
+    "max": 25
   },
   "mcu-panel.panel.n-linked-cards": {
     "text": "{n, plural, one {# linked card} other {# linked cards}}",
@@ -360,6 +388,11 @@
     "note": "Error in the template preview when the card has no type to draw. `type` is the config key and stays as written.",
     "max": 125
   },
+  "mcu-panel.panel.no-changed-fields-yet": {
+    "text": "No changed fields yet.",
+    "note": "Shown in the details panel when Modified only is on and nothing has changed.",
+    "max": 40
+  },
   "mcu-panel.panel.no-config-to-preview": {
     "text": "No config to preview.",
     "note": "Message in the template preview when the template has no card settings to show.",
@@ -374,6 +407,11 @@
     "text": "No templates saved yet.",
     "note": "Empty state of the Templates tab when no template exists.",
     "max": 40
+  },
+  "mcu-panel.panel.nothing-selected": {
+    "text": "Nothing selected",
+    "note": "Title of the details panel while no item is picked.",
+    "max": 30
   },
   "mcu-panel.panel.only-administrators-can-create-or-change": {
     "text": "Only administrators can create or change images.",
@@ -398,6 +436,11 @@
       "name": "The value that replaces name in the text."
     }
   },
+  "mcu-panel.panel.pick-an-item": {
+    "text": "Pick an item",
+    "note": "Line under the title of the details panel while no item is picked.",
+    "max": 30
+  },
   "mcu-panel.panel.points": {
     "text": "{n, plural, one {# point} other {# points}}",
     "note": "Detail line on a shape in the Shapes tab. {n} is how many points the shape has.",
@@ -415,6 +458,21 @@
     "text": "Request failed",
     "note": "Fallback error message when a request to Home Assistant fails and returns no reason.",
     "max": 25
+  },
+  "mcu-panel.panel.reset": {
+    "text": "Reset",
+    "note": "Button next to a changed field in the details panel that puts back its default.",
+    "max": 12
+  },
+  "mcu-panel.panel.resize-details": {
+    "text": "Resize details",
+    "note": "Accessible name of the draggable divider between the list and the details panel.",
+    "max": 35
+  },
+  "mcu-panel.panel.row-size": {
+    "text": "Row size",
+    "note": "Accessible name of the group of buttons that make the list rows smaller or larger.",
+    "max": 20
   },
   "mcu-panel.panel.save": {
     "text": "Save",
@@ -448,6 +506,11 @@
     "text": "Shapes",
     "note": "Label of the Shapes tab in the panel tab bar.",
     "max": 10
+  },
+  "mcu-panel.panel.smaller-rows": {
+    "text": "Smaller rows",
+    "note": "Accessible name of the button that makes the list rows smaller.",
+    "max": 20
   },
   "mcu-panel.panel.template": {
     "text": "Template",

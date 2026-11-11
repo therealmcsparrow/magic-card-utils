@@ -7,6 +7,10 @@
     "text": "Animaties",
     "hash": "7f7c3306"
   },
+  "mcu-panel.panel.back": {
+    "text": "Terug",
+    "hash": "76900f1b"
+  },
   "mcu-panel.panel.cancel": {
     "text": "Annuleren",
     "hash": "19766ed6"
@@ -43,6 +47,10 @@
     "text": "Hoekvorm",
     "hash": "7833e955"
   },
+  "mcu-panel.panel.count-groups": {
+    "text": "{n, plural, one {# groep} other {# groepen}}",
+    "hash": "71e111f9"
+  },
   "mcu-panel.panel.count-templates": {
     "text": "{n, plural, one {# sjabloon} other {# sjablonen}}",
     "hash": "2343a9e7"
@@ -74,6 +82,10 @@
   "mcu-panel.panel.description": {
     "text": "Beschrijving",
     "hash": "526e0087"
+  },
+  "mcu-panel.panel.details": {
+    "text": "Details",
+    "hash": "45989de4"
   },
   "mcu-panel.panel.dismiss": {
     "text": "Sluiten",
@@ -179,6 +191,10 @@
     "text": "Installeer Magic Card om hier afbeeldingen te tekenen.",
     "hash": "0fdc1e5b"
   },
+  "mcu-panel.panel.larger-rows": {
+    "text": "Grotere rijen",
+    "hash": "5174d318"
+  },
   "mcu-panel.panel.library": {
     "text": "Bibliotheek",
     "hash": "dc20b3d5"
@@ -206,6 +222,10 @@
   "mcu-panel.panel.magic-card-version-is-too-old-for-magic": {
     "text": "Magic Card {version} is te oud voor Magic Card Utils (API-versie {min} of nieuwer nodig). Werk Magic Card bij.",
     "hash": "ecaa55e6"
+  },
+  "mcu-panel.panel.modified-only": {
+    "text": "Alleen gewijzigd",
+    "hash": "d5f0ab19"
   },
   "mcu-panel.panel.n-linked-cards": {
     "text": "{n, plural, one {# gekoppelde kaart} other {# gekoppelde kaarten}}",
@@ -239,6 +259,10 @@
     "text": "Geen kaarttype beschikbaar: noch de configuratie noch het sjabloon bevat een `type`.",
     "hash": "4e67d440"
   },
+  "mcu-panel.panel.no-changed-fields-yet": {
+    "text": "Nog geen gewijzigde velden.",
+    "hash": "d94a7e00"
+  },
   "mcu-panel.panel.no-config-to-preview": {
     "text": "Geen configuratie om te bekijken.",
     "hash": "2280220b"
@@ -250,6 +274,10 @@
   "mcu-panel.panel.no-templates-saved-yet": {
     "text": "Nog geen sjablonen opgeslagen.",
     "hash": "6d4c6b7c"
+  },
+  "mcu-panel.panel.nothing-selected": {
+    "text": "Niets geselecteerd",
+    "hash": "f8c10424"
   },
   "mcu-panel.panel.only-administrators-can-create-or-change": {
     "text": "Alleen beheerders kunnen afbeeldingen maken of wijzigen.",
@@ -267,6 +295,10 @@
     "text": "{name} openen in de studio",
     "hash": "16681a49"
   },
+  "mcu-panel.panel.pick-an-item": {
+    "text": "Kies een item",
+    "hash": "5c4c9834"
+  },
   "mcu-panel.panel.points": {
     "text": "{n, plural, one {# punt} other {# punten}}",
     "hash": "0dbf0152"
@@ -278,6 +310,18 @@
   "mcu-panel.panel.request-failed": {
     "text": "Het verzoek is mislukt",
     "hash": "cfce761b"
+  },
+  "mcu-panel.panel.reset": {
+    "text": "Herstellen",
+    "hash": "daee7606"
+  },
+  "mcu-panel.panel.resize-details": {
+    "text": "Details vergroten of verkleinen",
+    "hash": "53196438"
+  },
+  "mcu-panel.panel.row-size": {
+    "text": "Rijgrootte",
+    "hash": "38415e82"
   },
   "mcu-panel.panel.save": {
     "text": "Opslaan",
@@ -302,6 +346,10 @@
   "mcu-panel.panel.shapes": {
     "text": "Vormen",
     "hash": "75e8028a"
+  },
+  "mcu-panel.panel.smaller-rows": {
+    "text": "Kleinere rijen",
+    "hash": "4826d498"
   },
   "mcu-panel.panel.template": {
     "text": "Sjabloon",

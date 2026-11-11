@@ -7,6 +7,10 @@
     "text": "Animations",
     "hash": "7f7c3306"
   },
+  "mcu-panel.panel.back": {
+    "text": "Back",
+    "hash": "76900f1b"
+  },
   "mcu-panel.panel.cancel": {
     "text": "Cancel",
     "hash": "19766ed6"
@@ -43,6 +47,10 @@
     "text": "Corner shape",
     "hash": "7833e955"
   },
+  "mcu-panel.panel.count-groups": {
+    "text": "{n, plural, one {# group} other {# groups}}",
+    "hash": "71e111f9"
+  },
   "mcu-panel.panel.count-templates": {
     "text": "{n, plural, one {# template} other {# templates}}",
     "hash": "2343a9e7"
@@ -74,6 +82,10 @@
   "mcu-panel.panel.description": {
     "text": "Description",
     "hash": "526e0087"
+  },
+  "mcu-panel.panel.details": {
+    "text": "Details",
+    "hash": "45989de4"
   },
   "mcu-panel.panel.dismiss": {
     "text": "Dismiss",
@@ -179,6 +191,10 @@
     "text": "Install Magic Card to draw images here.",
     "hash": "0fdc1e5b"
   },
+  "mcu-panel.panel.larger-rows": {
+    "text": "Larger rows",
+    "hash": "5174d318"
+  },
   "mcu-panel.panel.library": {
     "text": "Library",
     "hash": "dc20b3d5"
@@ -206,6 +222,10 @@
   "mcu-panel.panel.magic-card-version-is-too-old-for-magic": {
     "text": "Magic Card {version} is too old for Magic Card Utils (needs API version {min} or newer). Update Magic Card.",
     "hash": "ecaa55e6"
+  },
+  "mcu-panel.panel.modified-only": {
+    "text": "Modified only",
+    "hash": "d5f0ab19"
   },
   "mcu-panel.panel.n-linked-cards": {
     "text": "{n, plural, one {# linked card} other {# linked cards}}",
@@ -239,6 +259,10 @@
     "text": "No card type available — neither the config nor the template carries a `type`.",
     "hash": "4e67d440"
   },
+  "mcu-panel.panel.no-changed-fields-yet": {
+    "text": "No changed fields yet.",
+    "hash": "d94a7e00"
+  },
   "mcu-panel.panel.no-config-to-preview": {
     "text": "No config to preview.",
     "hash": "2280220b"
@@ -250,6 +274,10 @@
   "mcu-panel.panel.no-templates-saved-yet": {
     "text": "No templates saved yet.",
     "hash": "6d4c6b7c"
+  },
+  "mcu-panel.panel.nothing-selected": {
+    "text": "Nothing selected",
+    "hash": "f8c10424"
   },
   "mcu-panel.panel.only-administrators-can-create-or-change": {
     "text": "Only administrators can create or change images.",
@@ -267,6 +295,10 @@
     "text": "Open {name} in studio",
     "hash": "16681a49"
   },
+  "mcu-panel.panel.pick-an-item": {
+    "text": "Pick an item",
+    "hash": "5c4c9834"
+  },
   "mcu-panel.panel.points": {
     "text": "{n, plural, one {# point} other {# points}}",
     "hash": "0dbf0152"
@@ -278,6 +310,18 @@
   "mcu-panel.panel.request-failed": {
     "text": "Request failed",
     "hash": "cfce761b"
+  },
+  "mcu-panel.panel.reset": {
+    "text": "Reset",
+    "hash": "daee7606"
+  },
+  "mcu-panel.panel.resize-details": {
+    "text": "Resize details",
+    "hash": "53196438"
+  },
+  "mcu-panel.panel.row-size": {
+    "text": "Row size",
+    "hash": "38415e82"
   },
   "mcu-panel.panel.save": {
     "text": "Save",
@@ -302,6 +346,10 @@
   "mcu-panel.panel.shapes": {
     "text": "Shapes",
     "hash": "75e8028a"
+  },
+  "mcu-panel.panel.smaller-rows": {
+    "text": "Smaller rows",
+    "hash": "4826d498"
   },
   "mcu-panel.panel.template": {
     "text": "Template",
