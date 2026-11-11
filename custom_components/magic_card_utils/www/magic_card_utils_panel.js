@@ -579,6 +579,17 @@ class MagicCardUtilsPanel extends LitElement {
       _themeMessage: { type: String, state: true },
       _forumStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _forumMessage: { type: String, state: true },
+      _forumCards: { state: true },
+      _forumListError: { type: String, state: true },
+      _forumFilter: { type: String, state: true },
+      _forumSort: { state: true },
+      _selectedForumCard: { type: String, state: true },
+      _forumColours: { type: String, state: true },
+      _forumLooks: { type: Boolean, state: true },
+      _forumBusy: { type: Boolean, state: true },
+      _forumError: { type: String, state: true },
+      _forumSaved: { type: Boolean, state: true },
+      _forumPreview: { state: true },
       // library, icons and shapes tabs
       _libraryStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _libraryMessage: { type: String, state: true },
@@ -651,6 +662,18 @@ class MagicCardUtilsPanel extends LitElement {
     this._forumStatus = "";
     this._forumMessage = "";
     this._forumEl = null;
+    this._forumApi = null;
+    this._forumCards = null;
+    this._forumListError = "";
+    this._forumFilter = "";
+    this._forumSort = null;
+    this._selectedForumCard = null;
+    this._forumColours = "both";
+    this._forumLooks = false;
+    this._forumBusy = false;
+    this._forumError = "";
+    this._forumSaved = false;
+    this._forumPreview = null;
     this._animations = {};
     this._animStatus = "";
     this._animMessage = "";
@@ -1845,6 +1868,13 @@ class MagicCardUtilsPanel extends LitElement {
       this._forumMessage = status.message;
       return;
     }
+    const ctor = customElements.get(FORUM_SHOT_TAG);
+    if (ctor && typeof ctor.listCards === "function" && typeof ctor.download === "function") {
+      this._forumApi = ctor;
+      this._forumStatus = "ready";
+      this._loadForumCards();
+      return;
+    }
     const el = document.createElement(FORUM_SHOT_TAG);
     el.hass = this.hass;
     el.narrow = !!this.narrow;
@@ -1862,21 +1892,288 @@ class MagicCardUtilsPanel extends LitElement {
     host.appendChild(this._forumEl);
   }
 
+  /** Reads the card list through the entry's static `listCards`; a failure shows its text with a Retry button. */
+  async _loadForumCards() {
+    const api = this._forumApi;
+    if (!api) return;
+    this._forumCards = null;
+    this._forumListError = "";
+    try {
+      const cards = await api.listCards(this.hass);
+      this._forumCards = Array.isArray(cards) ? cards : [];
+    } catch (err) {
+      const code = err && typeof err === "object" ? err.code : "";
+      this._forumCards = [];
+      if (code !== "no_cards") this._forumListError = this._forumErrorText(code);
+    }
+    if (this._selectedForumCard != null && !this._forumCardByKey(this._selectedForumCard)) this._selectedForumCard = null;
+  }
+
+  _forumKey(c) {
+    return `${c.dashboard ?? ""}|${c.view}|${(c.path || []).join(".")}`;
+  }
+
+  _forumCardByKey(key) {
+    return key == null ? null : (this._forumCards || []).find((c) => this._forumKey(c) === key) || null;
+  }
+
+  /** The dashboard's name: its title, else the default dashboard's title or text, else its address. */
+  _forumDashboardName(c) {
+    if (c.dashboardTitle) return c.dashboardTitle;
+    if (c.dashboard === null) {
+      const title = this.hass && this.hass.panels && this.hass.panels.lovelace && this.hass.panels.lovelace.title;
+      return typeof title === "string" && title.trim() ? title.trim() : tr("mcu-panel.panel.default-dashboard");
+    }
+    return c.dashboard;
+  }
+
+  _forumLockReason(lock) {
+    switch (lock) {
+      case "custom_card":
+        return tr("mcu-panel.panel.lock-reason-custom-card");
+      case "limit":
+        return tr("mcu-panel.panel.lock-reason-limit");
+      case "outside_address":
+        return tr("mcu-panel.panel.lock-reason-outside-address");
+      default:
+        return tr("mcu-panel.panel.lock-reason-cannot-judge");
+    }
+  }
+
+  /** The text for an error code of the forum shot entry; `remote_asset` says why from the listed card's lock. */
+  _forumErrorText(code, card) {
+    switch (code) {
+      case "remote_asset":
+        return card && card.lock === "custom_card" ? tr("mcu-panel.panel.custom-card-lock") : tr("mcu-panel.panel.remote-asset-lock");
+      case "card_not_defined":
+        return tr("mcu-panel.panel.error-card-not-defined");
+      case "too_large":
+        return tr("mcu-panel.panel.error-too-large");
+      case "font_unavailable":
+        return tr("mcu-panel.panel.error-font-unavailable");
+      case "hosts_changed":
+        return tr("mcu-panel.panel.error-hosts-changed");
+      case "config_read_failed":
+        return tr("mcu-panel.panel.card-config-read-failed");
+      default:
+        return tr("mcu-panel.panel.error-capture-failed");
+    }
+  }
+
+  /** The cards the search keeps, in the chosen sort order; with no sort they stay in dashboard order. */
+  _forumRows() {
+    const q = (this._forumFilter || "").trim().toLocaleLowerCase();
+    const all = this._forumCards || [];
+    const rows = q ? all.filter((c) => [c.cardName, this._forumDashboardName(c), c.view].some((v) => String(v || "").toLocaleLowerCase().includes(q))) : all.slice();
+    const sort = this._forumSort;
+    if (!sort) return rows;
+    const locale = (this.hass && ((this.hass.locale && this.hass.locale.language) || this.hass.language)) || "en";
+    let collator;
+    try {
+      collator = new Intl.Collator(locale, { numeric: true, sensitivity: "base" });
+    } catch (_err) {
+      collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
+    }
+    const order = ["custom_card", "limit", "outside_address", "cannot_judge"];
+    const rank = (c) => (c.lock == null ? 0 : 1 + order.indexOf(c.lock));
+    const sign = sort.dir === "descending" ? -1 : 1;
+    const cmp = (a, b) =>
+      sort.key === "dashboard" ? collator.compare(this._forumDashboardName(a), this._forumDashboardName(b))
+      : sort.key === "view" ? collator.compare(String(a.view), String(b.view))
+      : sort.key === "card" ? collator.compare(String(a.cardName), String(b.cardName))
+      : rank(a) - rank(b);
+    const index = new Map(rows.map((r, i) => [r, i]));
+    return rows.sort((a, b) => sign * cmp(a, b) || index.get(a) - index.get(b));
+  }
+
+  /** First click sorts ascending, the next on the same column toggles. */
+  _sortForumBy(key) {
+    const same = this._forumSort && this._forumSort.key === key;
+    this._forumSort = { key, dir: same && this._forumSort.dir === "ascending" ? "descending" : "ascending" };
+  }
+
+  _selectForumCard(key, opener) {
+    if (!this._forumCardByKey(key)) return;
+    if (this._selectedForumCard == null) this._openGroups = new Set([...this._openGroups, "card", "colours", "preview"]);
+    this._selectedForumCard = key;
+    this._forumError = "";
+    this._forumSaved = false;
+    this._openInspector(opener);
+  }
+
+  _dropForumPreview() {
+    if (this._forumPreview && this._forumPreview.url) URL.revokeObjectURL(this._forumPreview.url);
+    this._forumPreview = null;
+  }
+
+  /** Download: the entry makes and saves the picture; the panel keeps the sheet and an object URL for the preview. */
+  async _downloadForumShot() {
+    const key = this._selectedForumCard;
+    const card = this._forumCardByKey(key);
+    if (!card || card.lock != null || this._forumBusy || !this._forumApi) return;
+    this._forumBusy = true;
+    this._forumError = "";
+    this._forumSaved = false;
+    try {
+      const sheet = await this._forumApi.download(this.hass, card, { mode: this._forumColours || "both", looks: !!this._forumLooks });
+      const url = URL.createObjectURL(sheet.blob);
+      this._dropForumPreview();
+      this._forumPreview = { key, sheet, url };
+      this._forumSaved = true;
+    } catch (err) {
+      const code = err && typeof err === "object" ? err.code : "";
+      if (code === "hosts_changed" || code === "remote_asset") await this._loadForumCards();
+      this._forumError = this._forumErrorText(code, this._forumCardByKey(key));
+    }
+    this._forumBusy = false;
+  }
+
   _renderForumShotTab() {
-    return html`
-      ${this._forumStatus === "loading" || this._forumStatus === ""
-        ? html`<div class="studio-status" role="status" aria-label=${tr("mcu-panel.panel.loading-the-forum-shot")}><ha-circular-progress active></ha-circular-progress></div>`
+    if (this._forumEl) {
+      return html`
+        ${this._forumStatus === "loading" || this._forumStatus === ""
+          ? html`<div class="studio-status" role="status" aria-label=${tr("mcu-panel.panel.loading-the-forum-shot")}><ha-circular-progress active></ha-circular-progress></div>`
+          : ""}
+        ${this._forumStatus === "error"
+          ? html`<div class="content">
+              <div class="notice error" role="alert">
+                ${glyph("error", 20)}
+                <div class="body"><p>${this._forumMessage}</p></div>
+              </div>
+            </div>`
+          : ""}
+        <div class="forum-host" ?hidden=${this._forumStatus !== "ready"}></div>
+      `;
+    }
+    if (!this._forumStatus || this._forumStatus === "loading") {
+      return html`<div class="studio-status" role="status" aria-label=${tr("mcu-panel.panel.loading-the-forum-shot")}><ha-circular-progress active></ha-circular-progress></div>`;
+    }
+    if (this._forumStatus === "error") {
+      return html`<div class="content">
+        <div class="notice error" role="alert">
+          ${glyph("error", 20)}
+          <div class="body"><p>${this._forumMessage}</p></div>
+        </div>
+      </div>`;
+    }
+    return this._renderForumList();
+  }
+
+  /** The drafting list: search, a count, sortable columns and one ruled row per Magic Card. */
+  _renderForumList() {
+    const cards = this._forumCards;
+    if (this._forumListError) {
+      return html`<div class="content">
+        <div class="notice error" role="alert">
+          ${glyph("error", 20)}
+          <div class="body">
+            <p>${this._forumListError}</p>
+            <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._loadForumCards()}>${tr("mcu-panel.panel.try-again")}</button></div>
+          </div>
+        </div>
+      </div>`;
+    }
+    if (cards == null) {
+      return html`<div class="content"><p class="help" role="status">${tr("mcu-panel.panel.looking-for-your-magic-cards")}</p></div>`;
+    }
+    const rows = this._forumRows();
+    const sort = this._forumSort;
+    const head = (key, label) => html`<div class="sort-col" role="columnheader" aria-sort=${sort && sort.key === key ? sort.dir : "none"}>
+      <button type="button" class="sort" @click=${() => this._sortForumBy(key)}>${label}<span aria-hidden="true">${sort && sort.key === key ? (sort.dir === "ascending" ? " ▲" : " ▼") : ""}</span></button>
+    </div>`;
+    return html`<div class="content">
+      ${this.hass && this.hass.user && this.hass.user.is_admin === false
+        ? html`<div class="notice info" role="note">${glyph("info", 20)}<div class="body"><p>${tr("mcu-panel.panel.forum-admin-only")}</p></div></div>`
         : ""}
-      ${this._forumStatus === "error"
-        ? html`<div class="content">
-            <div class="notice error" role="alert">
-              ${glyph("error", 20)}
-              <div class="body"><p>${this._forumMessage}</p></div>
+      <div class="field">
+        <div class="field-head"><label for="mcu-forum-search">${tr("mcu-panel.panel.search-cards")}</label></div>
+        <div class="with-icon">
+          <ha-icon icon="mdi:magnify"></ha-icon>
+          <input id="mcu-forum-search" class="input" type="search" .value=${this._forumFilter || ""}
+            @input=${(e) => (this._forumFilter = e.target.value)} />
+        </div>
+      </div>
+      <div role="status" aria-live="polite" class="help">${tr("mcu-panel.panel.count-cards", { n: rows.length })}</div>
+      ${!cards.length
+        ? html`<p class="empty">${tr("mcu-panel.panel.no-magic-cards-found")}</p>`
+        : rows.length
+        ? html`<div class="rows" role="table" aria-label=${tr("mcu-panel.panel.forum-shot")}>
+            <div class="rows-head" role="row">
+              ${head("card", tr("mcu-panel.panel.card"))}${head("dashboard", tr("mcu-panel.panel.dashboard"))}${head("view", tr("mcu-panel.panel.view"))}${head("status", tr("mcu-panel.panel.status"))}
             </div>
+            ${rows.map((c) => {
+              const key = this._forumKey(c);
+              const on = this._selectedForumCard === key;
+              return html`<div class="row ${on ? "current" : ""}" role="row" data-id="${key}" aria-current="${on ? "true" : "false"}">
+                <span role="cell"><button type="button" class="name" @click=${(e) => this._selectForumCard(key, e.currentTarget)}><bdi>${c.cardName}</bdi></button></span>
+                <span role="cell">${this._forumDashboardName(c)}</span>
+                <span role="cell">${c.view}</span>
+                <span role="cell"><span class="badge ${c.lock == null ? "ok" : "locked"}">${c.lock == null ? tr("mcu-panel.panel.available") : tr("mcu-panel.panel.locked")}</span></span>
+              </div>`;
+            })}
           </div>`
-        : ""}
-      <div class="forum-host" ?hidden=${this._forumStatus !== "ready"}></div>
-    `;
+        : html`<p class="empty">${tr("mcu-panel.panel.no-cards-match-your-search")}</p>`}
+      <p class="fld-help">${tr("mcu-panel.panel.forum-shot-intro")}</p>
+    </div>`;
+  }
+
+  /** The inspector content for the selected card: the card, the colour choice and the picture preview. */
+  _forumInspectorModel() {
+    const c = this._forumCardByKey(this._selectedForumCard);
+    if (!c) return null;
+    const colours = this._forumColours || "both";
+    const locked = c.lock != null;
+    const fonts = Array.isArray(c.fontHosts) ? c.fontHosts : [];
+    const choice = (value, label) => html`<label class="choice"><input type="radio" name="mcu-forum-colours" value=${value} .checked=${colours === value}
+      @change=${() => (this._forumColours = value)} />${label}</label>`;
+    const row = (label, value) => html`<div class="fld"><div class="fld-head"><span class="fld-label">${label}</span></div><span class="fld-value">${value}</span></div>`;
+    const status = locked ? tr("mcu-panel.panel.locked") : tr("mcu-panel.panel.available");
+    const pv = this._forumPreview && this._forumPreview.key === this._selectedForumCard ? this._forumPreview : null;
+    const placeholder = pv && pv.sheet && Array.isArray(pv.sheet.notices) && pv.sheet.notices.includes("remote_placeholder");
+    const modeLabel = colours === "light" ? tr("mcu-panel.panel.colours-light") : colours === "dark" ? tr("mcu-panel.panel.colours-dark") : tr("mcu-panel.panel.colours-both");
+    const button = locked || this._forumBusy
+      ? html`<button type="button" class="btn btn-primary" data-a="dl" disabled aria-busy=${this._forumBusy ? "true" : "false"}>${tr("mcu-panel.panel.download")}</button>`
+      : html`<button type="button" class="btn btn-primary" data-a="dl" aria-busy="false" @click=${() => this._downloadForumShot()}>${tr("mcu-panel.panel.download")}</button>`;
+    return {
+      name: c.cardName,
+      type: tr("mcu-panel.panel.card"),
+      groups: [
+        {
+          id: "card",
+          title: tr("mcu-panel.panel.card"),
+          summary: status,
+          body: html`${row(tr("mcu-panel.panel.card"), c.cardName)}${row(tr("mcu-panel.panel.dashboard"), this._forumDashboardName(c))}${row(tr("mcu-panel.panel.view"), c.view)}${row(tr("mcu-panel.panel.status"), status)}${locked
+            ? html`<p class="warn" role="note">${this._forumLockReason(c.lock)}</p>`
+            : html`<p class="fld-help">${tr("mcu-panel.panel.available-detail")}</p>`}${fonts.length
+            ? html`<p class="fld-help">${tr("mcu-panel.panel.fonts-from-hosts", { hosts: fonts.join(", ") })}</p>`
+            : ""}`,
+        },
+        {
+          id: "colours",
+          title: tr("mcu-panel.panel.colours"),
+          summary: modeLabel,
+          body: html`<fieldset class="fld"><legend class="fld-label">${tr("mcu-panel.panel.colours")}</legend>${choice("both", tr("mcu-panel.panel.colours-both"))}${choice("light", tr("mcu-panel.panel.colours-light"))}${choice("dark", tr("mcu-panel.panel.colours-dark"))}</fieldset>
+            <label class="choice"><input type="checkbox" .checked=${!!this._forumLooks} @change=${(e) => (this._forumLooks = e.target.checked)} />${tr("mcu-panel.panel.show-the-quiet-living-and-glow-looks")}</label>`,
+        },
+        {
+          id: "preview",
+          title: tr("mcu-panel.panel.preview"),
+          summary: "",
+          body: html`<div class="forum-preview">${pv
+              ? html`<img src=${pv.url} width=${pv.sheet.width / 2} height=${pv.sheet.height / 2} alt=${tr("mcu-panel.panel.preview-alt")} />`
+              : html`<p class="fld-help">${tr("mcu-panel.panel.picture-shows-after-download")}</p>`}</div>
+            ${this._forumBusy ? html`<p class="fld-help" role="status">${tr("mcu-panel.panel.making-the-picture")}</p>` : ""}
+            ${this._forumError ? html`<p class="warn" role="alert">${this._forumError}</p>` : ""}
+            ${this._forumSaved && !this._forumBusy ? html`<p class="fld-help" role="status">${tr("mcu-panel.panel.saved-to-downloads")}</p>` : ""}
+            ${placeholder ? html`<p class="fld-help">${fonts.length ? tr("mcu-panel.panel.notice-remote-placeholder-font") : tr("mcu-panel.panel.notice-remote-placeholder")}</p>` : ""}
+            <p class="fld-help">${tr("mcu-panel.panel.privacy-check")}</p>
+            ${fonts.length
+              ? html`<p class="fld-help">${tr("mcu-panel.panel.font-host-contact", { hosts: fonts.join(", ") })}</p><p class="fld-help">${tr("mcu-panel.panel.local-only-font")}</p>`
+              : html`<p class="fld-help">${tr("mcu-panel.panel.local-only")}</p>`}`,
+        },
+      ],
+      footer: button,
+    };
   }
 
   // ---- Library, Icons and Shapes tabs ---------------------------------------------
@@ -2422,6 +2719,7 @@ class MagicCardUtilsPanel extends LitElement {
     this._themeEl = null;
     if (this._forumEl && this._forumEl.parentNode) this._forumEl.parentNode.removeChild(this._forumEl);
     this._forumEl = null;
+    this._dropForumPreview();
     if (this._forumStatus !== "error") this._forumStatus = "";
     if (this._editorEl) {
       for (const [type, fn] of this._editorListeners || []) this._editorEl.removeEventListener(type, fn);
@@ -2509,6 +2807,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (this._tab === "templates") return this._templatesInspectorModel();
     if (this._tab === "animations") return this._animationInspectorModel();
     if (this._tab === "themes") return this._themeInspectorModel();
+    if (this._tab === "forum-shot") return this._forumInspectorModel();
     return this._itemInspectorModel();
   }
 
