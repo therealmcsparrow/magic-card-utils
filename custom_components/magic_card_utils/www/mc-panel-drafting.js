@@ -233,7 +233,7 @@ export function fitListElement(el) {
       :host { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
       .wrap { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
       .wrap > * { flex: none; }
-      .wrap > .rows { flex: 1 1 auto; min-height: 160px; overflow-y: auto; padding-bottom: var(--mcu-list-pad, 0); }
+      .wrap > .rows { flex: 1 1 auto; min-height: 160px; overflow-y: auto; align-content: start; grid-auto-rows: max-content; padding-bottom: var(--mcu-list-pad, 0); }
     `);
   }
   if (!root.adoptedStyleSheets.includes(fitSheet)) root.adoptedStyleSheets = [...root.adoptedStyleSheets, fitSheet];
@@ -333,8 +333,10 @@ export const draftingStyles = [
       overflow-y: auto;
       padding-bottom: var(--mcu-list-pad, 0);
     }
+    .content > .rows,
     .content > .tiles {
       align-content: start;
+      grid-auto-rows: max-content;
     }
     .content > .rows > .rows-head {
       position: sticky;
