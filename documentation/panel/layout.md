@@ -48,6 +48,8 @@ When the Animations or Themes tab has nothing yet, it offers one button, Open an
 
 Below 1024 px wide, the inspector opens as a full-height sheet with a back button and the name of the selection. The tab bar scrolls sideways and stays on one row, down to a phone width of 375 px. Escape closes the sheet.
 
+The page itself never scrolls. The panel is as tall as the window; the header, the tab bar, the search and buttons above a list, and the inspector stay in place. The list or grid of each tab scrolls in its own area, with the column heads staying put, and the inspector scrolls on its own when it is taller than the room. This holds in the side-by-side layout and in the sheet layout.
+
 ## Light, dark and fonts
 
 The panel follows Home Assistant's light or dark mode. Its fonts ship with the integration and load from your Home Assistant, so no outside site is asked. Their licences are in the third-party notices: see [Third-party](../../README.md#third-party).

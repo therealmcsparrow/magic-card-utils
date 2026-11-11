@@ -218,12 +218,36 @@ export function renderInspector(s, ctx, model) {
     : html`<aside class="inspector" aria-label=${s.details}>${inner}</aside>`;
 }
 
+let fitSheet;
+
+/**
+ * Lets an embedded library list fill the room its host gives it: the controls above the list stay put and the
+ * ruled list scrolls inside the element. The styles are adopted into the element's own shadow root once.
+ */
+export function fitListElement(el) {
+  const root = el && el.shadowRoot;
+  if (!root || !root.adoptedStyleSheets || typeof CSSStyleSheet === "undefined") return;
+  if (!fitSheet) {
+    fitSheet = new CSSStyleSheet();
+    fitSheet.replaceSync(`
+      :host { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
+      .wrap { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
+      .wrap > * { flex: none; }
+      .wrap > .rows { flex: 1 1 auto; min-height: 160px; overflow-y: auto; padding-bottom: var(--mcu-list-pad, 0); }
+    `);
+  }
+  if (!root.adoptedStyleSheets.includes(fitSheet)) root.adoptedStyleSheets = [...root.adoptedStyleSheets, fitSheet];
+}
+
 export const draftingStyles = [
   mcUiKit,
   css`
     :host {
-      display: block;
-      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
       font-family: "MCU Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
       --bp-mono: "MCU JetBrains Mono", ui-monospace, "SF Mono", Consolas, monospace;
       --bp-bg: #f8f5f1;
@@ -263,6 +287,7 @@ export const draftingStyles = [
     }
     .header {
       display: flex;
+      flex: none;
       align-items: center;
       height: 48px;
       padding: 0 12px;
@@ -290,12 +315,35 @@ export const draftingStyles = [
       white-space: nowrap;
     }
     .content {
-      display: grid;
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      min-height: 0;
       gap: 12px;
-      align-content: start;
       padding: 16px;
+      overflow-y: auto;
+    }
+    .content > * {
+      flex: none;
+    }
+    .content > .rows,
+    .content > .tiles {
+      flex: 1 1 auto;
+      min-height: 160px;
+      overflow-y: auto;
+      padding-bottom: var(--mcu-list-pad, 0);
+    }
+    .content > .tiles {
+      align-content: start;
+    }
+    .content > .rows > .rows-head {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--bp-bg);
     }
     .tabs {
+      flex: none;
       display: flex;
       gap: 2px;
       padding: 0 10px;
@@ -364,7 +412,9 @@ export const draftingStyles = [
       display: grid;
       grid-template-columns: 18px minmax(0, 1fr);
       position: relative;
-      min-height: calc(100vh - 48px - 43px);
+      flex: 1 1 auto;
+      min-height: 0;
+      grid-template-rows: minmax(0, 1fr);
     }
     .bp-grid.has-inspector {
       grid-template-columns: 18px minmax(0, 1fr) 7px var(--iw, 360px);
@@ -385,11 +435,23 @@ export const draftingStyles = [
       background-position: left bottom;
     }
     .main {
+      display: flex;
+      flex-direction: column;
       min-width: 0;
-      overflow-x: hidden;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .main > .ruler-x {
+      flex: none;
+    }
+    .main > [role="tabpanel"] {
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      min-height: 0;
     }
     .main.has-pill {
-      padding-bottom: 90px;
+      --mcu-list-pad: 90px;
     }
     .main.has-pill .rows .row {
       padding-block: calc(2px * var(--z, 1));
@@ -604,9 +666,7 @@ export const draftingStyles = [
       min-width: 0;
       background: var(--bp-sheet);
       border-inline-start: 1px solid var(--bp-line);
-      position: sticky;
-      top: calc(48px + 42px);
-      max-height: calc(100vh - 48px - 43px);
+      overflow: hidden;
     }
     .ins-head {
       display: flex;
@@ -798,8 +858,8 @@ export const draftingStyles = [
     }
     .studio-host {
       display: block;
-      height: calc(100vh - 48px - 43px - 49px);
-      min-height: 480px;
+      flex: 1 1 auto;
+      min-height: 0;
     }
     .studio-host[hidden],
     .theme-host[hidden] {
@@ -812,8 +872,12 @@ export const draftingStyles = [
     .icons-host,
     .images-host,
     .shapes-host {
-      display: block;
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      min-height: 0;
       padding: 16px;
+      overflow-y: auto;
     }
     .library-host[hidden],
     .icons-host[hidden],
@@ -830,8 +894,8 @@ export const draftingStyles = [
     }
     .editor-host {
       display: block;
-      height: calc(100vh - 48px);
-      min-height: 480px;
+      flex: 1 1 auto;
+      min-height: 0;
     }
     .editor-notice {
       margin: 16px;
@@ -841,12 +905,14 @@ export const draftingStyles = [
     }
     .forum-host {
       display: block;
-      min-height: 480px;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
     }
     .theme-host {
       display: block;
-      height: calc(100vh - 48px - 43px - 49px);
-      min-height: 480px;
+      flex: 1 1 auto;
+      min-height: 0;
     }
     .bar {
       display: flex;
@@ -1045,7 +1111,6 @@ export const draftingStyles = [
       position: fixed;
       inset: 0;
       z-index: 12;
-      max-height: none;
       border-inline-start: 0;
     }
     :host([data-layout="sheet"]) .ruler-y {

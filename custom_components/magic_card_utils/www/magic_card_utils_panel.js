@@ -9,6 +9,7 @@ import {
   INSPECTOR,
   draftingStyles,
   fadeFor,
+  fitListElement,
   gripKey,
   layoutFor,
   loadPanelFonts,
@@ -2534,6 +2535,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (!host || !this._imagesEl || this._imagesEl.parentNode === host) return;
     host.innerHTML = "";
     host.appendChild(this._imagesEl);
+    fitListElement(this._imagesEl);
   }
 
   _retryImages() {
@@ -2546,6 +2548,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (!host || !this._iconsEl || this._iconsEl.parentNode === host) return;
     host.innerHTML = "";
     host.appendChild(this._iconsEl);
+    fitListElement(this._iconsEl);
   }
 
   _retryIcons() {
@@ -2558,6 +2561,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (!host || !this._shapesEl || this._shapesEl.parentNode === host) return;
     host.innerHTML = "";
     host.appendChild(this._shapesEl);
+    fitListElement(this._shapesEl);
   }
 
   /** What an edit of a saved shape does to cards, as the card resolves it (a ref follows the library, an own copy stays). */
@@ -2631,6 +2635,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (!host || !this._libraryEl || this._libraryEl.parentNode === host) return;
     host.innerHTML = "";
     host.appendChild(this._libraryEl);
+    fitListElement(this._libraryEl);
   }
 
   _retryLibrary() {
