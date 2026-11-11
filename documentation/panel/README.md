@@ -21,6 +21,7 @@ Everything in the panel updates live. When a template or animation changes anywh
 
 ## Pages
 
+- [Panel layout](layout.md): the tab bar, ruled list with search, density pill, inspector with Preview, Modified only and the sheet on narrow screens.
 - [Templates](templates.md): the table, the template view with YAML and live preview, editing a template, the studio, duplicate and delete.
 - [Animations](animations.md): what the tab needs, loading, saving and deleting animations, and the `?animation=` link.
 - [Themes](themes.md): what the tab needs, how the editor loads, the `?theme=` link, which files it reads and writes, and importing a theme file.

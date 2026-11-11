@@ -3,9 +3,29 @@
     "text": "Er bestaat al een sjabloon met de naam ‘{name}’.",
     "hash": "bd93b912"
   },
+  "mcu-panel.panel.animation": {
+    "text": "Animatie",
+    "hash": "1dd10f24"
+  },
   "mcu-panel.panel.animations": {
     "text": "Animaties",
     "hash": "7f7c3306"
+  },
+  "mcu-panel.panel.available": {
+    "text": "Beschikbaar",
+    "hash": "e6744473"
+  },
+  "mcu-panel.panel.available-detail": {
+    "text": "Je kunt deze kaart kiezen voor een forumafbeelding.",
+    "hash": "db25542b"
+  },
+  "mcu-panel.panel.back": {
+    "text": "Terug",
+    "hash": "76900f1b"
+  },
+  "mcu-panel.panel.back-to-the-list": {
+    "text": "Terug naar de lijst",
+    "hash": "79b6c5ff"
   },
   "mcu-panel.panel.cancel": {
     "text": "Annuleren",
@@ -23,6 +43,14 @@
     "text": "{n, plural, one {Kan niet verwijderen: nog gekoppeld aan # kaart.} other {Kan niet verwijderen: nog gekoppeld aan # kaarten.}}",
     "hash": "1fdb90ac"
   },
+  "mcu-panel.panel.card": {
+    "text": "Kaart",
+    "hash": "be3702e3"
+  },
+  "mcu-panel.panel.card-config-read-failed": {
+    "text": "Je dashboards konden niet worden gelezen. Controleer of het geen YAML-dashboards zijn en probeer het opnieuw.",
+    "hash": "f4f5d640"
+  },
   "mcu-panel.panel.card-type": {
     "text": "Kaarttype",
     "hash": "c1b8c367"
@@ -35,6 +63,22 @@
     "text": "Sluiten",
     "hash": "7d9eb7ac"
   },
+  "mcu-panel.panel.colours": {
+    "text": "Kleuren",
+    "hash": "88f20221"
+  },
+  "mcu-panel.panel.colours-both": {
+    "text": "Licht en donker",
+    "hash": "59644334"
+  },
+  "mcu-panel.panel.colours-dark": {
+    "text": "Alleen donker",
+    "hash": "0470ad2d"
+  },
+  "mcu-panel.panel.colours-light": {
+    "text": "Alleen licht",
+    "hash": "a5d1af23"
+  },
   "mcu-panel.panel.copies-the-config-description-and-card": {
     "text": "Kopieert de configuratie, de beschrijving en het kaarttype. De tijdstippen van aanmaken en bijwerken worden teruggezet naar nu.",
     "hash": "79e6d149"
@@ -43,9 +87,37 @@
     "text": "Hoekvorm",
     "hash": "7833e955"
   },
+  "mcu-panel.panel.count-animations": {
+    "text": "{n, plural, one {# animatie} other {# animaties}}",
+    "hash": "626cefeb"
+  },
+  "mcu-panel.panel.count-cards": {
+    "text": "{n, plural, one {# kaart} other {# kaarten}}",
+    "hash": "2d0d4925"
+  },
+  "mcu-panel.panel.count-groups": {
+    "text": "{n, plural, one {# groep} other {# groepen}}",
+    "hash": "71e111f9"
+  },
   "mcu-panel.panel.count-templates": {
     "text": "{n, plural, one {# sjabloon} other {# sjablonen}}",
     "hash": "2343a9e7"
+  },
+  "mcu-panel.panel.count-themes": {
+    "text": "{n, plural, one {# thema} other {# thema’s}}",
+    "hash": "ded85d0d"
+  },
+  "mcu-panel.panel.custom-card-lock": {
+    "text": "Deze kaart bevat een andere kaart (een custom-card-module). Die kaart kan afbeeldingen van buiten Home Assistant laden en dat valt niet te controleren, dus deze kaart kan niet voor een forumafbeelding worden gebruikt.",
+    "hash": "78df6dc2"
+  },
+  "mcu-panel.panel.dashboard": {
+    "text": "Dashboard",
+    "hash": "67b69646"
+  },
+  "mcu-panel.panel.default-dashboard": {
+    "text": "Standaarddashboard",
+    "hash": "4913c670"
   },
   "mcu-panel.panel.delete": {
     "text": "Verwijderen",
@@ -75,9 +147,17 @@
     "text": "Beschrijving",
     "hash": "526e0087"
   },
+  "mcu-panel.panel.details": {
+    "text": "Details",
+    "hash": "45989de4"
+  },
   "mcu-panel.panel.dismiss": {
     "text": "Sluiten",
     "hash": "48845bff"
+  },
+  "mcu-panel.panel.download": {
+    "text": "Downloaden",
+    "hash": "d6eafe82"
   },
   "mcu-panel.panel.drawing-icons-and-shapes-here-needs": {
     "text": "Om hier pictogrammen en vormen te tekenen is Magic Card {version} of nieuwer nodig. Werk Magic Card bij.",
@@ -131,6 +211,30 @@
     "text": "Editor",
     "hash": "936a161c"
   },
+  "mcu-panel.panel.error-capture-failed": {
+    "text": "De afbeelding kon in deze browser niet worden gemaakt. Probeer het opnieuw of gebruik een andere browser.",
+    "hash": "dd7a86c4"
+  },
+  "mcu-panel.panel.error-card-not-defined": {
+    "text": "De Magic Card is niet geladen in dit browsertabblad. Laad de pagina opnieuw en probeer het opnieuw.",
+    "hash": "433ffe34"
+  },
+  "mcu-panel.panel.error-font-unavailable": {
+    "text": "Een lettertype kon niet worden geladen, dus er is geen afbeelding gemaakt. Controleer je verbinding en probeer het opnieuw.",
+    "hash": "9924ac84"
+  },
+  "mcu-panel.panel.error-hosts-changed": {
+    "text": "De lettertypen die deze kaart vraagt zijn veranderd sinds de lijst is gemaakt, en er is niets opgehaald. De lijst is nu bijgewerkt. Controleer de genoemde sites en kies daarna opnieuw Downloaden.",
+    "hash": "198f0eb0"
+  },
+  "mcu-panel.panel.error-too-large": {
+    "text": "De afbeelding zou te groot worden. Kies alleen licht of donker, of zet de drie looks uit.",
+    "hash": "15a5ec38"
+  },
+  "mcu-panel.panel.export": {
+    "text": "Exporteren",
+    "hash": "36648955"
+  },
   "mcu-panel.panel.export-all": {
     "text": "Alles exporteren",
     "hash": "51427688"
@@ -143,13 +247,45 @@
     "text": "Het voorbeeld kon niet worden weergegeven.",
     "hash": "aeade066"
   },
+  "mcu-panel.panel.file": {
+    "text": "Bestand",
+    "hash": "50009ce1"
+  },
+  "mcu-panel.panel.font-host-contact": {
+    "text": "Om de lettertypen te tekenen vraagt je browser ze op bij {hosts}. Elk verzoek laat die sites je IP-adres zien, het tijdstip, de lettertypen die je opvraagt en het adres van je Home Assistant (een DuckDNS-naam, een Nabu Casa-adres of een adres op je lokale netwerk), plus het type en de taal van je browser. Je kaarten en instellingen worden niet verstuurd.",
+    "hash": "e4e8bf0b"
+  },
+  "mcu-panel.panel.fonts-from-hosts": {
+    "text": "Lettertypen van {hosts}",
+    "hash": "9f44f4ca"
+  },
+  "mcu-panel.panel.forum-admin-only": {
+    "text": "Alleen het standaarddashboard wordt getoond, omdat het tonen van de andere dashboards een beheerdersaccount vraagt.",
+    "hash": "705163a8"
+  },
   "mcu-panel.panel.forum-shot": {
     "text": "Forumplaatje",
     "hash": "de9aca8d"
   },
+  "mcu-panel.panel.forum-shot-intro": {
+    "text": "Kies een van je Magic Cards en bewaar die als afbeelding om op een forum te plaatsen.",
+    "hash": "87c3964a"
+  },
+  "mcu-panel.panel.icon": {
+    "text": "Pictogram",
+    "hash": "a35abcd6"
+  },
   "mcu-panel.panel.icons": {
     "text": "Pictogrammen",
     "hash": "eae96e02"
+  },
+  "mcu-panel.panel.id": {
+    "text": "ID",
+    "hash": "3843971d"
+  },
+  "mcu-panel.panel.image": {
+    "text": "Afbeelding",
+    "hash": "1aa4cb0b"
   },
   "mcu-panel.panel.images": {
     "text": "Afbeeldingen",
@@ -179,13 +315,57 @@
     "text": "Installeer Magic Card om hier afbeeldingen te tekenen.",
     "hash": "0fdc1e5b"
   },
+  "mcu-panel.panel.kind": {
+    "text": "Soort",
+    "hash": "f5387f9b"
+  },
+  "mcu-panel.panel.larger-rows": {
+    "text": "Grotere rijen",
+    "hash": "5174d318"
+  },
   "mcu-panel.panel.library": {
     "text": "Bibliotheek",
     "hash": "dc20b3d5"
   },
+  "mcu-panel.panel.light-and-dark": {
+    "text": "Licht en donker",
+    "hash": "59644334"
+  },
   "mcu-panel.panel.loading-the-forum-shot": {
     "text": "Forumplaatje wordt geladen",
     "hash": "a2cc7b19"
+  },
+  "mcu-panel.panel.local-only": {
+    "text": "De afbeelding wordt in je browser gemaakt. Er verlaat niets Home Assistant en Magic Card bewaart geen kopie.",
+    "hash": "b4702d63"
+  },
+  "mcu-panel.panel.local-only-font": {
+    "text": "De afbeelding wordt in je browser gemaakt en Magic Card bewaart geen kopie. Je kaarten en instellingen blijven in Home Assistant, maar de lettertypen worden opgehaald bij de sites die hier staan.",
+    "hash": "85ee4021"
+  },
+  "mcu-panel.panel.lock-reason-cannot-judge": {
+    "text": "De instellingen konden niet worden gecontroleerd op externe adressen.",
+    "hash": "a7009139"
+  },
+  "mcu-panel.panel.lock-reason-custom-card": {
+    "text": "Er zit een andere kaart in (een custom-card-module) die hier niet te controleren is.",
+    "hash": "f37f797c"
+  },
+  "mcu-panel.panel.lock-reason-limit": {
+    "text": "Er staan te veel externe websites in, of de kaart is te groot om te controleren.",
+    "hash": "cec07c66"
+  },
+  "mcu-panel.panel.lock-reason-outside-address": {
+    "text": "Er wordt iets van buiten Home Assistant geladen.",
+    "hash": "56e035ab"
+  },
+  "mcu-panel.panel.locked": {
+    "text": "Vergrendeld",
+    "hash": "a424e33d"
+  },
+  "mcu-panel.panel.looking-for-your-magic-cards": {
+    "text": "Je Magic Cards worden gezocht…",
+    "hash": "23af3ec6"
   },
   "mcu-panel.panel.lovelace-card-helpers-are-unavailable": {
     "text": "De Lovelace-kaarthulpmiddelen zijn pas beschikbaar nadat een dashboard is geopend.",
@@ -207,9 +387,25 @@
     "text": "Magic Card {version} is te oud voor Magic Card Utils (API-versie {min} of nieuwer nodig). Werk Magic Card bij.",
     "hash": "ecaa55e6"
   },
+  "mcu-panel.panel.making-the-picture": {
+    "text": "De afbeelding wordt gemaakt…",
+    "hash": "608e07ed"
+  },
+  "mcu-panel.panel.modes": {
+    "text": "Modi",
+    "hash": "e9c29ff5"
+  },
+  "mcu-panel.panel.modified-only": {
+    "text": "Alleen gewijzigd",
+    "hash": "d5f0ab19"
+  },
   "mcu-panel.panel.n-linked-cards": {
     "text": "{n, plural, one {# gekoppelde kaart} other {# gekoppelde kaarten}}",
     "hash": "72f415cb"
+  },
+  "mcu-panel.panel.n-variables": {
+    "text": "{n, plural, one {# variabele} other {# variabelen}}",
+    "hash": "f9d82f0c"
   },
   "mcu-panel.panel.name": {
     "text": "Naam",
@@ -227,6 +423,14 @@
     "text": "Een naam is verplicht.",
     "hash": "f83a4bc1"
   },
+  "mcu-panel.panel.name-preview": {
+    "text": "Voorbeeld van {name}",
+    "hash": "6a434cf4"
+  },
+  "mcu-panel.panel.new-animation": {
+    "text": "Animatiestudio openen",
+    "hash": "cb5ba04a"
+  },
   "mcu-panel.panel.new-template": {
     "text": "Nieuw sjabloon",
     "hash": "30d87ec4"
@@ -235,13 +439,41 @@
     "text": "Naam van het nieuwe sjabloon",
     "hash": "0a05447d"
   },
+  "mcu-panel.panel.new-theme": {
+    "text": "Thema-editor openen",
+    "hash": "38c4b2f1"
+  },
+  "mcu-panel.panel.no-animations-match-search": {
+    "text": "Geen animaties komen overeen met je zoekopdracht.",
+    "hash": "bf38ebcb"
+  },
+  "mcu-panel.panel.no-animations-saved-yet": {
+    "text": "Nog geen animaties opgeslagen",
+    "hash": "d1388672"
+  },
   "mcu-panel.panel.no-card-type-available-neither-the": {
     "text": "Geen kaarttype beschikbaar: noch de configuratie noch het sjabloon bevat een `type`.",
     "hash": "4e67d440"
   },
+  "mcu-panel.panel.no-cards-match-your-search": {
+    "text": "Geen kaarten gevonden voor je zoekopdracht.",
+    "hash": "df2d1a4f"
+  },
+  "mcu-panel.panel.no-changed-fields-yet": {
+    "text": "Nog geen gewijzigde velden.",
+    "hash": "d94a7e00"
+  },
   "mcu-panel.panel.no-config-to-preview": {
     "text": "Geen configuratie om te bekijken.",
     "hash": "2280220b"
+  },
+  "mcu-panel.panel.no-magic-cards-found": {
+    "text": "Er zijn geen Magic Cards gevonden op je dashboards.",
+    "hash": "db9cdd82"
+  },
+  "mcu-panel.panel.no-preview-available": {
+    "text": "Geen voorbeeld beschikbaar",
+    "hash": "e5c083cf"
   },
   "mcu-panel.panel.no-templates-match-search": {
     "text": "Geen sjablonen gevonden voor je zoekopdracht.",
@@ -250,6 +482,30 @@
   "mcu-panel.panel.no-templates-saved-yet": {
     "text": "Nog geen sjablonen opgeslagen.",
     "hash": "6d4c6b7c"
+  },
+  "mcu-panel.panel.no-themes-match-search": {
+    "text": "Geen thema’s komen overeen met je zoekopdracht.",
+    "hash": "32c5f0cd"
+  },
+  "mcu-panel.panel.no-themes-saved-yet": {
+    "text": "Nog geen thema’s opgeslagen",
+    "hash": "fb75ab71"
+  },
+  "mcu-panel.panel.nothing-selected": {
+    "text": "Niets geselecteerd",
+    "hash": "f8c10424"
+  },
+  "mcu-panel.panel.notice-remote-placeholder": {
+    "text": "Een afbeelding van buiten Home Assistant is vervangen door een plaatshouder, zodat er geen andere server is benaderd. Je kaart kan er op je dashboard anders uitzien.",
+    "hash": "4d773277"
+  },
+  "mcu-panel.panel.notice-remote-placeholder-font": {
+    "text": "Een afbeelding van buiten Home Assistant is vervangen door een plaatshouder en daarvoor is geen server benaderd. Je kaart kan er op je dashboard anders uitzien.",
+    "hash": "95051ca3"
+  },
+  "mcu-panel.panel.one-mode": {
+    "text": "Eén modus",
+    "hash": "687e12a9"
   },
   "mcu-panel.panel.only-administrators-can-create-or-change": {
     "text": "Alleen beheerders kunnen afbeeldingen maken of wijzigen.",
@@ -267,21 +523,73 @@
     "text": "{name} openen in de studio",
     "hash": "16681a49"
   },
+  "mcu-panel.panel.open-the-animation-in-the-studio-to-play": {
+    "text": "Open deze animatie in de studio om hem af te spelen.",
+    "hash": "15dd4940"
+  },
+  "mcu-panel.panel.path": {
+    "text": "Pad",
+    "hash": "62fa5a5b"
+  },
+  "mcu-panel.panel.pick-an-item": {
+    "text": "Kies een item",
+    "hash": "5c4c9834"
+  },
+  "mcu-panel.panel.picture-shows-after-download": {
+    "text": "De afbeelding verschijnt hier nadat je op Downloaden drukt.",
+    "hash": "66f0ba32"
+  },
   "mcu-panel.panel.points": {
     "text": "{n, plural, one {# punt} other {# punten}}",
     "hash": "0dbf0152"
+  },
+  "mcu-panel.panel.preset": {
+    "text": "Preset",
+    "hash": "7252e7ce"
   },
   "mcu-panel.panel.preview": {
     "text": "Voorbeeld",
     "hash": "324b134f"
   },
+  "mcu-panel.panel.preview-alt": {
+    "text": "Voorbeeld van de forumafbeelding",
+    "hash": "51beebfe"
+  },
+  "mcu-panel.panel.privacy-check": {
+    "text": "Controleer de afbeelding voordat je hem plaatst. Een kaart kan namen, plaatsen, camerabeelden en de status van je apparaten laten zien, en iedereen die je bericht ziet, ziet ze ook.",
+    "hash": "7be450e3"
+  },
+  "mcu-panel.panel.read-only": {
+    "text": "Alleen lezen",
+    "hash": "8ac76735"
+  },
+  "mcu-panel.panel.remote-asset-lock": {
+    "text": "Deze kaart laadt een afbeelding, webadres of bestand van buiten Home Assistant dat niet te controleren is. Hij kan niet voor een forumafbeelding dienen: het maken ervan zou een ongecontroleerde server benaderen.",
+    "hash": "24f49698"
+  },
   "mcu-panel.panel.request-failed": {
     "text": "Het verzoek is mislukt",
     "hash": "cfce761b"
   },
+  "mcu-panel.panel.reset": {
+    "text": "Herstellen",
+    "hash": "daee7606"
+  },
+  "mcu-panel.panel.resize-details": {
+    "text": "Details vergroten of verkleinen",
+    "hash": "53196438"
+  },
+  "mcu-panel.panel.row-size": {
+    "text": "Rijgrootte",
+    "hash": "38415e82"
+  },
   "mcu-panel.panel.save": {
     "text": "Opslaan",
     "hash": "1509f561"
+  },
+  "mcu-panel.panel.saved-to-downloads": {
+    "text": "De afbeelding is bewaard in je downloads.",
+    "hash": "bc4f343c"
   },
   "mcu-panel.panel.saved-to-the-library-cards-with-their": {
     "text": "Opgeslagen in de bibliotheek. Kaarten met een eigen kopie van deze vorm houden die. Kies de vorm in zo'n kaart opnieuw onder Mijn vormen in de kaarteditor om deze versie te gebruiken.",
@@ -291,17 +599,45 @@
     "text": "Bezig met opslaan…",
     "hash": "23e39291"
   },
+  "mcu-panel.panel.search-animations": {
+    "text": "Zoek animaties",
+    "hash": "15159e54"
+  },
+  "mcu-panel.panel.search-cards": {
+    "text": "Kaarten zoeken",
+    "hash": "8d0b0964"
+  },
   "mcu-panel.panel.search-templates": {
     "text": "Sjablonen zoeken",
     "hash": "04b9835b"
+  },
+  "mcu-panel.panel.search-themes": {
+    "text": "Zoek thema’s",
+    "hash": "22da14c0"
   },
   "mcu-panel.panel.select-name": {
     "text": "{name} selecteren",
     "hash": "cbe2f067"
   },
+  "mcu-panel.panel.shape": {
+    "text": "Vorm",
+    "hash": "e0e49270"
+  },
   "mcu-panel.panel.shapes": {
     "text": "Vormen",
     "hash": "75e8028a"
+  },
+  "mcu-panel.panel.show-the-quiet-living-and-glow-looks": {
+    "text": "Toon de looks Rustig, Levendig en Gloed van geanimeerde iconen, elk op een eigen rij",
+    "hash": "a44c2916"
+  },
+  "mcu-panel.panel.smaller-rows": {
+    "text": "Kleinere rijen",
+    "hash": "4826d498"
+  },
+  "mcu-panel.panel.status": {
+    "text": "Status",
+    "hash": "920e413c"
   },
   "mcu-panel.panel.template": {
     "text": "Sjabloon",
@@ -367,9 +703,25 @@
     "text": "Het sjabloon kon niet worden opgeslagen.",
     "hash": "d7c3ca43"
   },
+  "mcu-panel.panel.the-theme-could-not-be-deleted": {
+    "text": "Het thema kon niet worden verwijderd.",
+    "hash": "a2a30632"
+  },
+  "mcu-panel.panel.the-theme-could-not-be-exported": {
+    "text": "Het thema kon niet worden geëxporteerd.",
+    "hash": "db0b645c"
+  },
   "mcu-panel.panel.the-theme-editor-could-not-be-loaded-it": {
     "text": "De theme-editor kon niet worden geladen. Hij wordt met Magic Card meegeleverd als {file}: werk Magic Card bij naar {version} of nieuwer.",
     "hash": "beaf6a42"
+  },
+  "mcu-panel.panel.the-theme-list-could-not-be-loaded": {
+    "text": "De themalijst kon niet worden geladen.",
+    "hash": "16fecb1e"
+  },
+  "mcu-panel.panel.theme": {
+    "text": "Thema",
+    "hash": "efb52e71"
   },
   "mcu-panel.panel.themes": {
     "text": "Thema's",
@@ -383,6 +735,10 @@
     "text": "{n, plural, one {Dit sjabloon is nog gekoppeld aan # kaart en kan niet worden verwijderd. Verwijder eerst de koppelingen.} other {Dit sjabloon is nog gekoppeld aan # kaarten en kan niet worden verwijderd. Verwijder eerst de koppelingen.}}",
     "hash": "83def8f0"
   },
+  "mcu-panel.panel.this-theme-is-read-only-copy-it-to-edit": {
+    "text": "Dit thema is alleen-lezen. Open het in de studio en sla een kopie op om het te bewerken.",
+    "hash": "6db9fa47"
+  },
   "mcu-panel.panel.try-again": {
     "text": "Opnieuw proberen",
     "hash": "d8b8392e"
@@ -390,5 +746,17 @@
   "mcu-panel.panel.updated-date": {
     "text": "Bijgewerkt {date}",
     "hash": "328a4d4c"
+  },
+  "mcu-panel.panel.variables": {
+    "text": "Variabelen",
+    "hash": "02db55ba"
+  },
+  "mcu-panel.panel.view": {
+    "text": "Weergave",
+    "hash": "dcc839a4"
+  },
+  "mcu-panel.panel.view-box-w-h": {
+    "text": "Weergavegebied {w} × {h}",
+    "hash": "6bfc63a8"
   }
 }

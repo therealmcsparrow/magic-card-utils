@@ -33,7 +33,7 @@ above is the checksum of the committed file.
 # Generated: Magic Card UI kit (CSS only)
 
 `mc-ui-kit.js` is the panel's copy of the Magic Card UI kit (contract
-`ui-kit` 1.0.0, revision 3). It is generated, never edited by hand. It holds
+`ui-kit` 1.4.0, revision 7). It is generated, never edited by hand. It holds
 the kit's CSS as one Lit `css` template (editor tokens, kit tokens, card editor
 primitives, notices, chips, empty state, toast) and the few Material Design
 Icons paths the panel draws. It has no templates and no custom elements, so the
@@ -42,9 +42,9 @@ panel needs no other Magic Card file to load.
 | Field | Value |
 | --- | --- |
 | File | `mc-ui-kit.js` |
-| Magic Card version | `2026.11.01` (`MC_UI_KIT_VERSION`) |
-| Magic Card commit | `2603eba` (tag `v2026.11.01`), exported from a clean `git archive` of that commit |
-| SHA-256 | `8263e179dfb07d2ec61bf69d4bf99c60bf4ce2c054703f5710514f4a868ce308` |
+| Magic Card version | `2026.11.03-beta.2` (`MC_UI_KIT_VERSION`) |
+| Magic Card commit | `51af8ac` (tag `v2026.11.03-beta.2`), exported from a clean `git archive` of that commit |
+| SHA-256 | `3f75f845572dba22bb02227e30c60c8bfeabf64a3e41532a66245dae7d7c48e3` |
 | Icons | `@mdi/js` 7.4.47, Apache-2.0 (https://github.com/Templarian/MaterialDesign-JS), licence text in `LICENSE-mdi.txt` |
 | Imports | `lit-core.min.js` (`css`, `html`) |
 
@@ -80,9 +80,9 @@ The panel imports `t`, `tx` and `locale` from `mc-i18n-panel.js`, already bound 
 | Field | Value |
 | --- | --- |
 | Files | `mc-i18n.js`, `mc-i18n-panel.js` |
-| Magic Card commit | the Magic Card main commit written in `.magic-card-ref` (2026.11.01), for both files |
+| Magic Card commit | the Magic Card main commit written in `.magic-card-ref` (2026.11.03-beta.2), for both files |
 | SHA-256 `mc-i18n.js` | `aefa56ac90aed1d114571fe8db490c90365dcc072e0db57ecabd7e058f0f92a5` |
-| SHA-256 `mc-i18n-panel.js` | `06ba1a6644df2f22ea6ef2efe8c3423d4acedbe6867c477455385f77700916bd` |
+| SHA-256 `mc-i18n-panel.js` | `f0917299df4c7df20a01bc0da38f39bf46a7e4952490b6da2d2bf1b9298b8e79` |
 | Sources in this repo | `magic_card_utils_panel.js` (the `tr()` calls), `i18n/en-GB.json` (English, notes and length limits), `i18n/nl.json` (written by hand, with the hash of the English it was made from), `i18n/en-US.json` (generated) |
 
 The exporter reads the panel source and runs the drift checks: every message is a literal, has an en-US and a nl
@@ -101,3 +101,26 @@ two SHA-256 rows. A new or changed panel message needs its entry in `i18n/en-GB.
 
 The config flow does not use these files. Home Assistant reads `translations/en.json`, `en-GB.json` and
 `nl.json` in the integration folder (`strings.json` is only for core integrations).
+
+# Vendored: panel fonts (Space Grotesk, JetBrains Mono)
+
+The panel draws its text in two self-hosted fonts, served from `fonts/` so it needs no font host and no network
+access. They load with the FontFace API under the names `MCU Space Grotesk` and `MCU JetBrains Mono`; if a file
+fails to load, the system fonts stay.
+
+| Font | File | Package (npm) | SHA-256 |
+| --- | --- | --- | --- |
+| Space Grotesk | `fonts/space-grotesk-latin-wght-normal.woff2` | `@fontsource-variable/space-grotesk` 5.3.0 | `0640890476fc1198ab4de571fb658de443c4d85b66466ec09534a8737ab1ce9d` |
+| JetBrains Mono | `fonts/jetbrains-mono-latin-wght-normal.woff2` | `@fontsource-variable/jetbrains-mono` 5.3.0 | `18be452724bfdc236c074ca94a249a7f41a86752c7d04ab258ce9ed5651f6a7e` |
+
+Both fonts are licensed under the SIL Open Font License 1.1 (SPDX: OFL-1.1). The full licence text and the
+copyright lines are in `fonts/OFL.txt`, next to the font files:
+
+- Space Grotesk: Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk)
+- JetBrains Mono: Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
+
+Each file is `files/<name>-latin-wght-normal.woff2` from the published 5.3.0 package, unchanged. Neither font declares a Reserved Font Name. The files are the Latin, variable-weight WOFF2 subsets from the
+Fontsource packages, so they are Modified Versions under the SIL Open Font License 1.1 (definitions and
+section 3): converted to WOFF2 and reduced to a subset of the characters. They keep their original family
+names, keep the copyright notice and licence, are distributed under the same licence and are never sold on
+their own. The licence covers the fonts only, not Magic Card Utils.

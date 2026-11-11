@@ -7,10 +7,35 @@
       "name": "The value that replaces name in the text."
     }
   },
+  "mcu-panel.panel.animation": {
+    "text": "Animation",
+    "note": "Type shown under the name of the selected animation in the details pane.",
+    "max": 15
+  },
   "mcu-panel.panel.animations": {
     "text": "Animations",
     "note": "Label of the Animations tab in the panel tab bar.",
     "max": 20
+  },
+  "mcu-panel.panel.available": {
+    "text": "Available",
+    "note": "Status of a card that can be picked for a forum shot.",
+    "max": 20
+  },
+  "mcu-panel.panel.available-detail": {
+    "text": "You can pick this card for a forum shot.",
+    "note": "Line in the status details of a card that can be picked.",
+    "max": 60
+  },
+  "mcu-panel.panel.back": {
+    "text": "Back",
+    "note": "Button that closes the details sheet on a narrow screen and returns to the list.",
+    "max": 10
+  },
+  "mcu-panel.panel.back-to-the-list": {
+    "text": "Back to the list",
+    "note": "Button above the animation studio or theme editor that closes it and returns to the list.",
+    "max": 25
   },
   "mcu-panel.panel.cancel": {
     "text": "Cancel",
@@ -42,6 +67,16 @@
       "n": "The count the text is about."
     }
   },
+  "mcu-panel.panel.card": {
+    "text": "Card",
+    "note": "Column header of the card list: the name of the Magic Card.",
+    "max": 20
+  },
+  "mcu-panel.panel.card-config-read-failed": {
+    "text": "Your dashboards could not be read. Check that they are not YAML dashboards, then try again.",
+    "note": "Error when no dashboard configuration could be read.",
+    "max": 110
+  },
   "mcu-panel.panel.card-type": {
     "text": "Card Type",
     "note": "Column heading in the templates table and label of the card type field in the template editor.",
@@ -57,6 +92,26 @@
     "note": "Tooltip and screen reader label of the close button on the template editor and on the duplicate and delete windows.",
     "max": 10
   },
+  "mcu-panel.panel.colours": {
+    "text": "Colours",
+    "note": "Legend of the group where the user chooses light, dark or both.",
+    "max": 14
+  },
+  "mcu-panel.panel.colours-both": {
+    "text": "Light and dark",
+    "note": "Option: the picture holds a light and a dark version of the card side by side.",
+    "max": 20
+  },
+  "mcu-panel.panel.colours-dark": {
+    "text": "Dark only",
+    "note": "Option: the picture holds only the dark version of the card.",
+    "max": 20
+  },
+  "mcu-panel.panel.colours-light": {
+    "text": "Light only",
+    "note": "Option: the picture holds only the light version of the card.",
+    "max": 20
+  },
   "mcu-panel.panel.copies-the-config-description-and-card": {
     "text": "Copies the config, description, and card type. Created and updated timestamps reset to now.",
     "note": "Help text under the name field in the duplicate window, saying what the copy takes over.",
@@ -67,6 +122,30 @@
     "note": "Detail line on a shape in the Shapes tab when the shape has no points of its own and is a corner shape.",
     "max": 20
   },
+  "mcu-panel.panel.count-animations": {
+    "text": "{n, plural, one {# animation} other {# animations}}",
+    "note": "Count above the animation list, updated as you search.",
+    "max": 30,
+    "vars": {
+      "n": "How many animations are shown."
+    }
+  },
+  "mcu-panel.panel.count-cards": {
+    "text": "{n, plural, one {# card} other {# cards}}",
+    "note": "Line above the card list. {n} is how many cards are listed.",
+    "max": 60,
+    "vars": {
+      "n": "The value that replaces n in the text."
+    }
+  },
+  "mcu-panel.panel.count-groups": {
+    "text": "{n, plural, one {# group} other {# groups}}",
+    "note": "Count of the collapsible groups in the details panel.",
+    "max": 25,
+    "vars": {
+      "n": "The number of groups."
+    }
+  },
   "mcu-panel.panel.count-templates": {
     "text": "{n, plural, one {# template} other {# templates}}",
     "note": "Count above the template list, updated as you search.",
@@ -74,6 +153,29 @@
     "vars": {
       "n": "How many templates are shown."
     }
+  },
+  "mcu-panel.panel.count-themes": {
+    "text": "{n, plural, one {# theme} other {# themes}}",
+    "note": "Count above the theme list, updated as you search.",
+    "max": 30,
+    "vars": {
+      "n": "How many themes are shown."
+    }
+  },
+  "mcu-panel.panel.custom-card-lock": {
+    "text": "This card holds another card inside it (a custom-card module). That card can load pictures from outside Home Assistant and nothing here can check it, so this card cannot be used for a forum shot.",
+    "note": "Notice next to a card that cannot be picked because it holds a custom-card module. Also the error when the picture is refused for that reason.",
+    "max": 220
+  },
+  "mcu-panel.panel.dashboard": {
+    "text": "Dashboard",
+    "note": "Column header of the card list: the dashboard a card is on.",
+    "max": 20
+  },
+  "mcu-panel.panel.default-dashboard": {
+    "text": "Default dashboard",
+    "note": "Name shown for the dashboard that Home Assistant opens first, which has no title of its own.",
+    "max": 30
   },
   "mcu-panel.panel.delete": {
     "text": "Delete",
@@ -116,10 +218,20 @@
     "note": "Label of the description field in the template editor.",
     "max": 20
   },
+  "mcu-panel.panel.details": {
+    "text": "Details",
+    "note": "Accessible name of the details panel beside the list.",
+    "max": 15
+  },
   "mcu-panel.panel.dismiss": {
     "text": "Dismiss",
     "note": "Tooltip and screen reader label of the button that hides an error message in the Animations tab.",
     "max": 15
+  },
+  "mcu-panel.panel.download": {
+    "text": "Download",
+    "note": "Button that makes the picture and saves it to the user's device.",
+    "max": 14
   },
   "mcu-panel.panel.drawing-icons-and-shapes-here-needs": {
     "text": "Drawing icons and shapes here needs Magic Card {version} or newer. Update Magic Card.",
@@ -198,6 +310,36 @@
     "note": "Heading of the right-hand pane of the template window while you edit the card.",
     "max": 10
   },
+  "mcu-panel.panel.error-capture-failed": {
+    "text": "The picture could not be made in this browser. Try again, or use another browser.",
+    "note": "Error when the capture failed.",
+    "max": 110
+  },
+  "mcu-panel.panel.error-card-not-defined": {
+    "text": "The Magic Card is not loaded in this browser tab. Reload the page and try again.",
+    "note": "Error when the card element is not available.",
+    "max": 100
+  },
+  "mcu-panel.panel.error-font-unavailable": {
+    "text": "A font could not be loaded, so no picture was made. Check your connection and try again.",
+    "note": "Error when a font from another website could not be fetched or was not a usable font file.",
+    "max": 130
+  },
+  "mcu-panel.panel.error-hosts-changed": {
+    "text": "The fonts this card asks for changed since the list was made, and nothing was fetched. The list is up to date now. Check the sites it names, then press Download again.",
+    "note": "Error when the font sites of the card differ from those shown before Download; the card list has been read again.",
+    "max": 200
+  },
+  "mcu-panel.panel.error-too-large": {
+    "text": "The picture would be too large. Choose light or dark only, or turn off the three looks.",
+    "note": "Error when the sheet would exceed the size limit.",
+    "max": 100
+  },
+  "mcu-panel.panel.export": {
+    "text": "Export",
+    "note": "Button in the theme details that downloads the theme as a file.",
+    "max": 15
+  },
   "mcu-panel.panel.export-all": {
     "text": "Export all",
     "note": "Button above the template list when no row is ticked: downloads every template as a file.",
@@ -216,14 +358,61 @@
     "note": "Error in the template preview when the card could not be drawn and gave no message of its own.",
     "max": 45
   },
+  "mcu-panel.panel.file": {
+    "text": "File",
+    "note": "Label of the field that shows where a theme file is stored.",
+    "max": 15
+  },
+  "mcu-panel.panel.font-host-contact": {
+    "text": "To draw the fonts, your browser asks {hosts} for them. Each request shows those sites your IP address, the time, the fonts you ask for and the address of your Home Assistant (a DuckDNS name, a Nabu Casa address or a local network address), plus your browser's type and language. Your cards and settings are not sent.",
+    "note": "Privacy notice under the preview of a card that uses fonts from other websites, naming who is contacted and what they learn. {hosts} is a list of website domain names, such as example.com, already joined with commas; do not translate it.",
+    "max": 380,
+    "vars": {
+      "hosts": "The value that replaces hosts in the text."
+    },
+    "legal": true
+  },
+  "mcu-panel.panel.fonts-from-hosts": {
+    "text": "Fonts from {hosts}",
+    "note": "Line in the status details of a card that uses fonts from other websites. {hosts} is a list of website domain names, such as example.com, already joined with commas; do not translate it.",
+    "max": 120,
+    "vars": {
+      "hosts": "The value that replaces hosts in the text."
+    }
+  },
+  "mcu-panel.panel.forum-admin-only": {
+    "text": "Only the default dashboard is listed, because listing the others needs an administrator account.",
+    "note": "Note for a user who is not an administrator, shown above the list of cards.",
+    "max": 120
+  },
   "mcu-panel.panel.forum-shot": {
     "text": "Forum shot",
     "note": "Label of the Forum shot tab in the panel tab bar.",
     "max": 15
   },
+  "mcu-panel.panel.forum-shot-intro": {
+    "text": "Pick one of your Magic Cards and save it as a picture to post in a forum.",
+    "note": "Short introduction under the heading of the forum shot area.",
+    "max": 90
+  },
+  "mcu-panel.panel.icon": {
+    "text": "Icon",
+    "note": "Type line in the inspector for a saved icon.",
+    "max": 15
+  },
   "mcu-panel.panel.icons": {
     "text": "Icons",
     "note": "Label of the Icons tab in the panel tab bar.",
+    "max": 15
+  },
+  "mcu-panel.panel.id": {
+    "text": "ID",
+    "note": "Label of the identifier field in the inspector of a Library, Icons, Shapes or Images item.",
+    "max": 10
+  },
+  "mcu-panel.panel.image": {
+    "text": "Image",
+    "note": "Type line in the inspector for a saved image.",
     "max": 15
   },
   "mcu-panel.panel.images": {
@@ -268,15 +457,71 @@
     "note": "Notice in the Images tab when Magic Card is not installed.",
     "max": 65
   },
+  "mcu-panel.panel.kind": {
+    "text": "Kind",
+    "note": "Label of the field that tells how an animation is built (keyframes, path or particles).",
+    "max": 15
+  },
+  "mcu-panel.panel.larger-rows": {
+    "text": "Larger rows",
+    "note": "Accessible name of the button that makes the list rows larger.",
+    "max": 20
+  },
   "mcu-panel.panel.library": {
     "text": "Library",
     "note": "Label of the Library tab in the panel tab bar.",
     "max": 15
   },
+  "mcu-panel.panel.light-and-dark": {
+    "text": "Light and dark",
+    "note": "Summary of a theme that has a light and a dark mode.",
+    "max": 20
+  },
   "mcu-panel.panel.loading-the-forum-shot": {
     "text": "Loading the forum shot",
     "note": "Spoken label of the progress indicator while the Forum shot tab loads.",
     "max": 35
+  },
+  "mcu-panel.panel.local-only": {
+    "text": "The picture is made in your browser. Nothing leaves Home Assistant, and Magic Card does not keep a copy.",
+    "note": "Sentence under the privacy warning: the picture is made locally and nothing is stored.",
+    "max": 120
+  },
+  "mcu-panel.panel.local-only-font": {
+    "text": "The picture is made in your browser, and Magic Card does not keep a copy. Your cards and settings stay in Home Assistant, but the fonts are fetched from the sites named here.",
+    "note": "Sentence under the privacy warning for a card that uses fonts from other websites: the picture is made locally, nothing is stored, and the fonts come from outside.",
+    "max": 200,
+    "legal": true
+  },
+  "mcu-panel.panel.lock-reason-cannot-judge": {
+    "text": "Its settings could not be checked for outside addresses.",
+    "note": "Reason a card is locked: the check could not tell whether an address is safe.",
+    "max": 80
+  },
+  "mcu-panel.panel.lock-reason-custom-card": {
+    "text": "It holds another card (a custom-card module) that nothing here can check.",
+    "note": "Reason a card is locked: it contains a custom-card module.",
+    "max": 90
+  },
+  "mcu-panel.panel.lock-reason-limit": {
+    "text": "It names too many outside websites, or it is too large to check.",
+    "note": "Reason a card is locked: it names too many outside websites or is too large to check.",
+    "max": 80
+  },
+  "mcu-panel.panel.lock-reason-outside-address": {
+    "text": "It loads something from outside Home Assistant.",
+    "note": "Reason a card is locked: it names an address outside Home Assistant that is not an allowed font.",
+    "max": 70
+  },
+  "mcu-panel.panel.locked": {
+    "text": "Locked",
+    "note": "Status of a card that cannot be picked. A reason follows it.",
+    "max": 20
+  },
+  "mcu-panel.panel.looking-for-your-magic-cards": {
+    "text": "Looking for your Magic Cards…",
+    "note": "Status text while the dashboards are read.",
+    "max": 40
   },
   "mcu-panel.panel.lovelace-card-helpers-are-unavailable": {
     "text": "Lovelace card helpers are unavailable until a dashboard has been opened.",
@@ -310,12 +555,35 @@
       "version": "The value that replaces version in the text."
     }
   },
+  "mcu-panel.panel.making-the-picture": {
+    "text": "Making the picture…",
+    "note": "Status text while the picture is made.",
+    "max": 30
+  },
+  "mcu-panel.panel.modes": {
+    "text": "Modes",
+    "note": "Label of the field that tells whether a theme has light and dark modes.",
+    "max": 15
+  },
+  "mcu-panel.panel.modified-only": {
+    "text": "Modified only",
+    "note": "Switch in the details panel that shows only the fields you changed.",
+    "max": 25
+  },
   "mcu-panel.panel.n-linked-cards": {
     "text": "{n, plural, one {# linked card} other {# linked cards}}",
     "note": "Part of the second line of a template row: how many cards use the template.",
     "max": 30,
     "vars": {
       "n": "How many cards use the template."
+    }
+  },
+  "mcu-panel.panel.n-variables": {
+    "text": "{n, plural, one {# variable} other {# variables}}",
+    "note": "Number of variables in a theme, in its row and details.",
+    "max": 25,
+    "vars": {
+      "n": "How many variables the theme sets."
     }
   },
   "mcu-panel.panel.name": {
@@ -345,6 +613,19 @@
     "note": "Error under the name field when you save or duplicate a template with an empty name.",
     "max": 30
   },
+  "mcu-panel.panel.name-preview": {
+    "text": "{name} preview",
+    "note": "Screen reader name of the item picture in the inspector. {name} is the item name.",
+    "max": 40,
+    "vars": {
+      "name": "The value that replaces name in the text."
+    }
+  },
+  "mcu-panel.panel.new-animation": {
+    "text": "Open animation studio",
+    "note": "Button above the animation list: opens the animation studio at its list, where animations are made, imported and edited.",
+    "max": 24
+  },
   "mcu-panel.panel.new-template": {
     "text": "New template",
     "note": "Primary button above the template list, and the dialog title until the new template has a name.",
@@ -355,15 +636,50 @@
     "note": "Label of the name field in the duplicate window.",
     "max": 30
   },
+  "mcu-panel.panel.new-theme": {
+    "text": "Open theme editor",
+    "note": "Button above the theme list: opens the theme editor at its list, where themes are made, imported and edited.",
+    "max": 24
+  },
+  "mcu-panel.panel.no-animations-match-search": {
+    "text": "No animations match your search.",
+    "note": "Message under the search box when no animation matches.",
+    "max": 50
+  },
+  "mcu-panel.panel.no-animations-saved-yet": {
+    "text": "No animations saved yet",
+    "note": "Message in place of the animation list when there are no animations.",
+    "max": 40
+  },
   "mcu-panel.panel.no-card-type-available-neither-the": {
     "text": "No card type available — neither the config nor the template carries a `type`.",
     "note": "Error in the template preview when the card has no type to draw. `type` is the config key and stays as written.",
     "max": 125
   },
+  "mcu-panel.panel.no-cards-match-your-search": {
+    "text": "No cards match your search.",
+    "note": "Shown in place of the card list on the Forum shot tab when the search matches no card.",
+    "max": 80
+  },
+  "mcu-panel.panel.no-changed-fields-yet": {
+    "text": "No changed fields yet.",
+    "note": "Shown in the details panel when Modified only is on and nothing has changed.",
+    "max": 40
+  },
   "mcu-panel.panel.no-config-to-preview": {
     "text": "No config to preview.",
     "note": "Message in the template preview when the template has no card settings to show.",
     "max": 35
+  },
+  "mcu-panel.panel.no-magic-cards-found": {
+    "text": "No Magic Cards were found on your dashboards.",
+    "note": "Empty state when no dashboard holds a Magic Card.",
+    "max": 60
+  },
+  "mcu-panel.panel.no-preview-available": {
+    "text": "No preview available",
+    "note": "Shown in the inspector Preview group when an item has no picture.",
+    "max": 30
   },
   "mcu-panel.panel.no-templates-match-search": {
     "text": "No templates match your search.",
@@ -374,6 +690,36 @@
     "text": "No templates saved yet.",
     "note": "Empty state of the Templates tab when no template exists.",
     "max": 40
+  },
+  "mcu-panel.panel.no-themes-match-search": {
+    "text": "No themes match your search.",
+    "note": "Message under the search box when no theme matches.",
+    "max": 50
+  },
+  "mcu-panel.panel.no-themes-saved-yet": {
+    "text": "No themes saved yet",
+    "note": "Message in place of the theme list when there are no theme files.",
+    "max": 40
+  },
+  "mcu-panel.panel.nothing-selected": {
+    "text": "Nothing selected",
+    "note": "Title of the details panel while no item is picked.",
+    "max": 30
+  },
+  "mcu-panel.panel.notice-remote-placeholder": {
+    "text": "A picture from outside Home Assistant was replaced by a placeholder, so no other server was contacted. Your card may look different on your dashboard.",
+    "note": "Notice under the preview when an image from another server was left out.",
+    "max": 170
+  },
+  "mcu-panel.panel.notice-remote-placeholder-font": {
+    "text": "A picture from outside Home Assistant was replaced by a placeholder, and no server was asked for it. Your card may look different on your dashboard.",
+    "note": "Notice under the preview of a card that uses fonts from other websites, when an image from another server was left out.",
+    "max": 170
+  },
+  "mcu-panel.panel.one-mode": {
+    "text": "One mode",
+    "note": "Summary of a theme that has a single mode.",
+    "max": 20
   },
   "mcu-panel.panel.only-administrators-can-create-or-change": {
     "text": "Only administrators can create or change images.",
@@ -398,6 +744,26 @@
       "name": "The value that replaces name in the text."
     }
   },
+  "mcu-panel.panel.open-the-animation-in-the-studio-to-play": {
+    "text": "Open this animation in the studio to see it play.",
+    "note": "Hint in the animation preview, which stays still.",
+    "max": 60
+  },
+  "mcu-panel.panel.path": {
+    "text": "Path",
+    "note": "Label of the file path field in the inspector of an image.",
+    "max": 10
+  },
+  "mcu-panel.panel.pick-an-item": {
+    "text": "Pick an item",
+    "note": "Line under the title of the details panel while no item is picked.",
+    "max": 30
+  },
+  "mcu-panel.panel.picture-shows-after-download": {
+    "text": "The picture shows here after you press Download.",
+    "note": "Placeholder in the preview box of the Forum shot details pane until a picture has been made for the selected card.",
+    "max": 60
+  },
   "mcu-panel.panel.points": {
     "text": "{n, plural, one {# point} other {# points}}",
     "note": "Detail line on a shape in the Shapes tab. {n} is how many points the shape has.",
@@ -406,20 +772,65 @@
       "n": "The count the text is about."
     }
   },
+  "mcu-panel.panel.preset": {
+    "text": "Preset",
+    "note": "Type line in the inspector for a saved look in the Library tab.",
+    "max": 15
+  },
   "mcu-panel.panel.preview": {
     "text": "Preview",
     "note": "Heading of the right-hand pane of the template window while it only shows the card.",
     "max": 15
+  },
+  "mcu-panel.panel.preview-alt": {
+    "text": "Preview of the forum shot picture",
+    "note": "Text alternative of the preview image.",
+    "max": 40
+  },
+  "mcu-panel.panel.privacy-check": {
+    "text": "Check the picture before you post it. A card can show names, places, camera images and the state of your devices, and everyone who sees your post can see them too.",
+    "note": "Privacy warning shown before the Download button.",
+    "max": 190
+  },
+  "mcu-panel.panel.read-only": {
+    "text": "Read only",
+    "note": "Tag on a theme row that cannot be edited here.",
+    "max": 15
+  },
+  "mcu-panel.panel.remote-asset-lock": {
+    "text": "This card loads an image, a web address or another file from outside Home Assistant that cannot be checked. It cannot be used for a forum shot, because making the picture would contact an unchecked server.",
+    "note": "Notice next to a card that cannot be picked because its settings name something outside Home Assistant. Also the error when the picture is refused for that reason.",
+    "max": 220
   },
   "mcu-panel.panel.request-failed": {
     "text": "Request failed",
     "note": "Fallback error message when a request to Home Assistant fails and returns no reason.",
     "max": 25
   },
+  "mcu-panel.panel.reset": {
+    "text": "Reset",
+    "note": "Button next to a changed field in the details panel that puts back its default.",
+    "max": 12
+  },
+  "mcu-panel.panel.resize-details": {
+    "text": "Resize details",
+    "note": "Accessible name of the draggable divider between the list and the details panel.",
+    "max": 35
+  },
+  "mcu-panel.panel.row-size": {
+    "text": "Row size",
+    "note": "Accessible name of the group of buttons that make the list rows smaller or larger.",
+    "max": 20
+  },
   "mcu-panel.panel.save": {
     "text": "Save",
     "note": "Button in the template editor that saves your changes.",
     "max": 10
+  },
+  "mcu-panel.panel.saved-to-downloads": {
+    "text": "The picture was saved to your downloads.",
+    "note": "Status text after the picture was saved.",
+    "max": 50
   },
   "mcu-panel.panel.saved-to-the-library-cards-with-their": {
     "text": "Saved to the library. Cards with their own copy of this shape keep it. To use this version in such a card, pick the shape again under My shapes in the card editor.",
@@ -431,9 +842,24 @@
     "note": "Label of the save button in the template editor while the save is running.",
     "max": 20
   },
+  "mcu-panel.panel.search-animations": {
+    "text": "Search animations",
+    "note": "Label of the search box above the animation list on the Animations tab.",
+    "max": 30
+  },
+  "mcu-panel.panel.search-cards": {
+    "text": "Search cards",
+    "note": "Label of the search box above the card list on the Forum shot tab. It filters by card, dashboard or view name.",
+    "max": 30
+  },
   "mcu-panel.panel.search-templates": {
     "text": "Search templates",
     "note": "Label of the search field above the templates table. It filters rows by name, description or card type.",
+    "max": 30
+  },
+  "mcu-panel.panel.search-themes": {
+    "text": "Search themes",
+    "note": "Label of the search box above the theme list on the Themes tab.",
     "max": 30
   },
   "mcu-panel.panel.select-name": {
@@ -444,10 +870,30 @@
       "name": "The template name."
     }
   },
+  "mcu-panel.panel.shape": {
+    "text": "Shape",
+    "note": "Type line in the inspector for a saved shape.",
+    "max": 15
+  },
   "mcu-panel.panel.shapes": {
     "text": "Shapes",
     "note": "Label of the Shapes tab in the panel tab bar.",
     "max": 10
+  },
+  "mcu-panel.panel.show-the-quiet-living-and-glow-looks": {
+    "text": "Show the Quiet, Living and Glow looks of animated icons, one row each",
+    "note": "Checkbox: the picture gets three rows, one per look of the animated icons.",
+    "max": 90
+  },
+  "mcu-panel.panel.smaller-rows": {
+    "text": "Smaller rows",
+    "note": "Accessible name of the button that makes the list rows smaller.",
+    "max": 20
+  },
+  "mcu-panel.panel.status": {
+    "text": "Status",
+    "note": "Column header of the card list: whether the card can be used.",
+    "max": 20
   },
   "mcu-panel.panel.template": {
     "text": "Template",
@@ -539,6 +985,16 @@
     "note": "Error in the template editor when saving fails and the server gave no reason.",
     "max": 55
   },
+  "mcu-panel.panel.the-theme-could-not-be-deleted": {
+    "text": "The theme could not be deleted.",
+    "note": "Error above the theme list when deleting a theme fails.",
+    "max": 50
+  },
+  "mcu-panel.panel.the-theme-could-not-be-exported": {
+    "text": "The theme could not be exported.",
+    "note": "Error above the theme list when exporting a theme fails.",
+    "max": 50
+  },
   "mcu-panel.panel.the-theme-editor-could-not-be-loaded-it": {
     "text": "The theme editor could not be loaded. It ships with Magic Card as {file}: update Magic Card to {version} or newer.",
     "note": "Notice in the Themes tab when the theme editor file is missing. {file} is the name of that file, {version} the lowest Magic Card version that has it.",
@@ -547,6 +1003,16 @@
       "file": "The value that replaces file in the text.",
       "version": "The value that replaces version in the text."
     }
+  },
+  "mcu-panel.panel.the-theme-list-could-not-be-loaded": {
+    "text": "The theme list could not be loaded.",
+    "note": "Error above the theme list when the list of theme files cannot be read.",
+    "max": 60
+  },
+  "mcu-panel.panel.theme": {
+    "text": "Theme",
+    "note": "Type shown under the name of the selected theme and heading of its details group.",
+    "max": 15
   },
   "mcu-panel.panel.themes": {
     "text": "Themes",
@@ -566,6 +1032,11 @@
       "n": "The count the text is about."
     }
   },
+  "mcu-panel.panel.this-theme-is-read-only-copy-it-to-edit": {
+    "text": "This theme is read-only. Open it in the studio and save a copy to edit it.",
+    "note": "Note in the theme details for a theme file that cannot be changed from the panel.",
+    "max": 90
+  },
   "mcu-panel.panel.try-again": {
     "text": "Try again",
     "note": "Button under a load error in the Animations, Themes, Library, Shapes, Images and Icons tabs that tries the load again.",
@@ -577,6 +1048,25 @@
     "max": 40,
     "vars": {
       "date": "The formatted date."
+    }
+  },
+  "mcu-panel.panel.variables": {
+    "text": "Variables",
+    "note": "Label of the field that shows how many variables a theme sets.",
+    "max": 15
+  },
+  "mcu-panel.panel.view": {
+    "text": "View",
+    "note": "Column header of the card list: the view (tab) of the dashboard a card is on.",
+    "max": 20
+  },
+  "mcu-panel.panel.view-box-w-h": {
+    "text": "View box {w} × {h}",
+    "note": "Caption under the item preview in the inspector. {w} and {h} are the width and height of the SVG view box.",
+    "max": 30,
+    "vars": {
+      "h": "The view box height.",
+      "w": "The view box width."
     }
   }
 }

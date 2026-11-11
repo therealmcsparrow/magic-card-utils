@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2026.11.2-beta.2] - 2026-11-11
+
+This is a pre-release. It works with the matching Magic Card release, 2026.11.03-beta.2. To install it, choose **Include pre-releases** in the Marketplace, or turn on **Show beta versions** in HACS.
+
+### Changed
+- The Magic Card Templates panel has a new look. A header and a one-row tab bar sit above a ruled list or grid with search and a density pill. A right-hand inspector shows the selection in collapsible groups that display their current value when closed. Nothing was removed: all eight tabs keep their fields and actions.
+- Templates: the inspector has a Preview section with the live Magic Card, or the existing error text when it cannot be drawn. Forum shot, Icons and Shapes show their picture preview there too.
+- Modified only shows the inspector fields that differ from their default.
+- The Animations and Themes tabs have an Open animation studio or Open theme editor button that opens the studio at its list.
+- On screens narrower than 1024 px the inspector becomes a full-height sheet with a back button. The tab bar scrolls and stays on one row.
+- The panel follows Home Assistant's light or dark mode and uses bundled fonts, with no request to an outside site. Font licences are in the third-party notices.
+
 ## [2026.11.2-beta.1] - 2026-11-09
 
 This is a pre-release. It works with the matching Magic Card release, 2026.11.03-beta.1. To install it, choose **Include pre-releases** in the Marketplace, or turn on **Show beta versions** in HACS.

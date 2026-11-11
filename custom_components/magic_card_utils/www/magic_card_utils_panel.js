@@ -3,7 +3,27 @@ import {
   html,
   css,
 } from "./lit-core.min.js";
-import { mcUiKit, glyph } from "./mc-ui-kit.js";
+import { glyph } from "./mc-ui-kit.js";
+import {
+  DENSITY,
+  INSPECTOR,
+  draftingStyles,
+  fadeFor,
+  fitListElement,
+  gripKey,
+  layoutFor,
+  loadPanelFonts,
+  modeFor,
+  renderBody,
+  renderDensityPill,
+  renderGrip,
+  renderInspector,
+  sheetKey,
+  shouldOpenSheet,
+  stepDensity,
+  tabKeyTarget,
+  tabWrapTarget,
+} from "./mc-panel-drafting.js";
 import { setI18nLocale } from "./mc-i18n.js";
 import { t as tr, tx as trx, locale } from "./mc-i18n-panel.js";
 
@@ -465,6 +485,80 @@ function _deepFindByFocusKey(root, key) {
   return null;
 }
 
+const ITEM_KINDS = ["preset", "icon", "shape", "image"];
+const NUM_RE = /^-?(?:\d+(?:\.\d+)?|\.\d+)(?:e-?\d+)?$/i;
+const PATH_D_RE = /^[MmLlHhVvCcSsQqTtAaZz0-9eE.,\s+-]*$/;
+const PART_TAG_RE = /<(path|circle|rect)(?=[\s/>])/gi;
+const MAX_NUM_CHARS = 32;
+const MAX_TAG_CHARS = 70000;
+const MAX_PARTS = 500;
+const DATA_THUMB_RE = /^data:image\/(?:png|webp);base64,[A-Za-z0-9+/=]*$/i;
+
+/** A template result in the SVG namespace (what Lit's `svg` tag returns); the vendored bundle exports only `html`. */
+const svg = (strings, ...values) => ({ _$litType$: 2, strings, values });
+
+/** True for a plain number of at most MAX_NUM_CHARS characters; longer values are refused before the pattern runs. */
+function _isNum(v) {
+  return typeof v === "string" && v.length <= MAX_NUM_CHARS && NUM_RE.test(v);
+}
+
+/**
+ * The drawable parts of a saved SVG for the inspector picture: its view box and its path, circle and rect
+ * elements with plain numeric values. Everything else (scripts, handlers, styles, links) is dropped, so the
+ * markup itself never reaches the panel DOM. Every scan moves forward only, so hostile input stays linear.
+ */
+function _svgParts(text) {
+  if (typeof text !== "string" || text.length > 262144) return null;
+  const vb = /viewBox\s*=\s*"([^"]{0,200})"/i.exec(text);
+  const box = vb ? vb[1].trim().split(/[\s,]+/) : [];
+  if (box.length !== 4 || !box.every(_isNum) || !(+box[2] > 0) || !(+box[3] > 0)) return null;
+  const attr = (tag, name) => {
+    const m = new RegExp(`\\s${name}\\s*=\\s*"([^"]*)"`, "i").exec(tag);
+    return m ? m[1].trim() : "";
+  };
+  const parts = [];
+  let end = -1;
+  PART_TAG_RE.lastIndex = 0;
+  for (let m = PART_TAG_RE.exec(text); m && parts.length < MAX_PARTS; m = PART_TAG_RE.exec(text)) {
+    if (end < m.index) {
+      end = text.indexOf(">", m.index);
+      if (end < 0) break;
+    }
+    const next = text.indexOf("<", m.index + 1);
+    if ((next >= 0 && next < end) || end - m.index > MAX_TAG_CHARS) continue;
+    const tag = text.slice(m.index, end + 1);
+    const kind = m[1].toLowerCase();
+    if (kind === "path") {
+      const d = attr(tag, "d");
+      if (d && d.length < 65536 && PATH_D_RE.test(d)) parts.push({ kind, d });
+    } else {
+      const names = kind === "circle" ? ["cx", "cy", "r"] : ["x", "y", "width", "height"];
+      const v = names.map((n) => attr(tag, n) || (n === "x" || n === "y" || n === "cx" || n === "cy" ? "0" : ""));
+      if (v.every(_isNum)) parts.push({ kind, v });
+    }
+  }
+  return { viewBox: box.join(" "), w: +box[2], h: +box[3], parts };
+}
+
+/**
+ * A thumbnail address the inspector may load: a PNG or WebP data URL, a blob URL of this origin, or a path on this
+ * origin. Paths are resolved the way the browser resolves them and must stay on this origin; tabs, line breaks and
+ * backslashes are refused because the URL parser drops a tab and reads a backslash as a slash, which turns such a path into another host.
+ */
+function _safeThumb(v) {
+  if (typeof v !== "string" || !v || v.length > 2000000) return "";
+  if (v.startsWith("data:")) return DATA_THUMB_RE.test(v) ? v : "";
+  if (v.length > 2048) return "";
+  try {
+    const origin = window.location.origin;
+    if (v.startsWith("blob:")) return new URL(v).origin === origin ? v : "";
+    if (!v.startsWith("/") || v.startsWith("//") || /[\t\n\r\\]/.test(v)) return "";
+    return new URL(v, origin).origin === origin ? v : "";
+  } catch (_err) {
+    return "";
+  }
+}
+
 class MagicCardUtilsPanel extends LitElement {
   static get properties() {
     return {
@@ -474,7 +568,15 @@ class MagicCardUtilsPanel extends LitElement {
       panel: { type: Object },
       _templates: { type: Array, state: true },
       _templateFilter: { type: String, state: true },
+      _templateSelected: { type: String, state: true },
       _templatePicked: { state: true },
+      _density: { state: true },
+      _modifiedOnly: { state: true },
+      _inspectorWidth: { state: true },
+      _viewWidth: { state: true },
+      _sheetOpen: { state: true },
+      _openGroups: { state: true },
+      _tabFade: { state: true },
       _templateNotice: { state: true },
       _error: { type: String, state: true },
       // template detail overlay
@@ -497,10 +599,33 @@ class MagicCardUtilsPanel extends LitElement {
       _animMessage: { type: String, state: true },
       _animError: { type: String, state: true },
       // themes tab
+      _animations: { type: Object, state: true },
+      _animLoad: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
+      _animFilter: { type: String, state: true },
+      _selectedAnimation: { type: String, state: true },
+      _studioOpen: { type: Boolean, state: true },
+      _themeFiles: { type: Array, state: true },
+      _themeListLoad: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
+      _themeFilter: { type: String, state: true },
+      _themeListError: { type: String, state: true },
+      _selectedTheme: { type: String, state: true },
+      _themeEditorOpen: { type: Boolean, state: true },
+      _themeDeleteAsk: { type: String, state: true },
       _themeStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _themeMessage: { type: String, state: true },
       _forumStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _forumMessage: { type: String, state: true },
+      _forumCards: { state: true },
+      _forumListError: { type: String, state: true },
+      _forumFilter: { type: String, state: true },
+      _forumSort: { state: true },
+      _selectedForumCard: { type: String, state: true },
+      _forumColours: { type: String, state: true },
+      _forumLooks: { type: Boolean, state: true },
+      _forumBusy: { type: Boolean, state: true },
+      _forumError: { type: String, state: true },
+      _forumSaved: { type: Boolean, state: true },
+      _forumPreview: { state: true },
       // library, icons and shapes tabs
       _libraryStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _libraryMessage: { type: String, state: true },
@@ -522,7 +647,17 @@ class MagicCardUtilsPanel extends LitElement {
     this._templates = [];
     this._templateFilter = "";
     this._templatePicked = new Set();
+    this._templateSelected = null;
+    this._builtPreviewHost = null;
     this._templateNotice = null;
+    this._density = DENSITY.initial;
+    this._modifiedOnly = false;
+    this._inspectorWidth = INSPECTOR.initial;
+    this._viewWidth = typeof window.innerWidth === "number" ? window.innerWidth : 1280;
+    this._sheetOpen = false;
+    this._openGroups = new Set();
+    this._tabFade = "none";
+    this._sheetOpener = null;
     this.addEventListener("mc-editor-fullscreen", () => this.requestUpdate());
     this._error = "";
     this._viewRow = null;
@@ -549,9 +684,32 @@ class MagicCardUtilsPanel extends LitElement {
     this._themeStatus = "";
     this._themeMessage = "";
     this._themeEl = null;
+    this._themeFiles = [];
+    this._themeListLoad = "";
+    this._themeFilter = "";
+    this._themeListError = "";
+    this._themeDeleteAsk = "";
+    this._themeEditorOpen = !!this._selectedTheme || !!(_themeElCache && _lastTab === "themes");
+    this._themeEditorOpener = null;
+    this._animFilter = "";
+    this._animLoad = "";
+    this._studioOpen = !!this._selectedAnimation;
+    this._studioOpener = null;
     this._forumStatus = "";
     this._forumMessage = "";
     this._forumEl = null;
+    this._forumApi = null;
+    this._forumCards = null;
+    this._forumListError = "";
+    this._forumFilter = "";
+    this._forumSort = null;
+    this._selectedForumCard = null;
+    this._forumColours = "both";
+    this._forumLooks = false;
+    this._forumBusy = false;
+    this._forumError = "";
+    this._forumSaved = false;
+    this._forumPreview = null;
     this._animations = {};
     this._animStatus = "";
     this._animMessage = "";
@@ -641,6 +799,7 @@ class MagicCardUtilsPanel extends LitElement {
   }
 
   _openStudio(row) {
+    if (this._tab === "animations") return this._openAnimationStudio(row);
     this._openEditTemplate(row);
     this._studioOnMount = true;
   }
@@ -659,7 +818,7 @@ class MagicCardUtilsPanel extends LitElement {
     this._editConfig = { ...e.detail.config };
   }
 
-  async _buildPreview() {
+  async _buildPreview(row = this._viewRow) {
     const host = this.shadowRoot.querySelector(".preview-host");
     if (!host) return;
     // A newer build may start while this one awaits the card; only the latest may render.
@@ -668,14 +827,14 @@ class MagicCardUtilsPanel extends LitElement {
     this._previewEl = null;
 
     // In edit mode, the preview is the Magic Card editor itself
-    if (this._viewMode === "edit") return;
+    if (row === this._viewRow && this._viewMode === "edit") return;
 
-    const config = this._viewRow?.raw?.config || this._viewRow?.raw || null;
+    const config = row?.raw?.config || row?.raw || null;
     if (!config || typeof config !== "object") {
       this._previewError = tr("mcu-panel.panel.no-config-to-preview");
       return;
     }
-    const card_type = this._viewRow?.card_type || "";
+    const card_type = row?.card_type || "";
     const renderConfig =
       config.type
         ? config
@@ -719,6 +878,11 @@ class MagicCardUtilsPanel extends LitElement {
   }
 
   updated(changedProps) {
+    if (this._tab === "templates" && !this._viewRow && this._templateSelected) {
+      // The inspector preview host is a new element after the sheet opens, the dialog closes or the layout switches.
+      const host = this.shadowRoot.querySelector(".preview-host");
+      if (host && host !== this._builtPreviewHost) this._buildTemplatePreview();
+    }
     if (changedProps.has("hass") && this._previewEl && this.hass) {
       this._previewEl.hass = this.hass;
     }
@@ -760,7 +924,8 @@ class MagicCardUtilsPanel extends LitElement {
       }
       if (this._tab === "images" && this._imagesStatus === "ready") this._attachImagesView();
     }
-    if (this._tab === "themes" && this.hass && !this._themeEl && this._themeStatus === "") {
+    if (this._tab === "themes" && this.hass && this._themeListLoad === "") this._loadThemeFiles();
+    if (this._tab === "themes" && this.hass && this._themeEditorOpen && !this._themeEl && this._themeStatus === "") {
       this._mountThemeEditor();
     }
     if (this._tab === "themes" && this._themeStatus === "ready") this._attachThemeEditor();
@@ -768,7 +933,8 @@ class MagicCardUtilsPanel extends LitElement {
       this._mountForumShot();
     }
     if (this._tab === "forum-shot" && this._forumStatus === "ready") this._attachForumShot();
-    if (this._tab === "animations" && this.hass && !this._studioEl && this._animStatus === "") {
+    if (this._tab === "animations" && this.hass && this._animLoad === "") this._loadAnimations();
+    if (this._tab === "animations" && this.hass && this._studioOpen && !this._studioEl && this._animStatus === "") {
       this._mountAnimationStudio();
     }
     if (changedProps.has("_viewMode") || changedProps.has("_editConfig") || changedProps.has("_viewRow")) {
@@ -1053,13 +1219,12 @@ class MagicCardUtilsPanel extends LitElement {
   }
 
   _onTabKeydown(e) {
-    const i = TABS.findIndex(([t]) => t === this._tab);
-    let j;
-    if (e.key === "ArrowRight") j = (i + 1) % TABS.length;
-    else if (e.key === "ArrowLeft") j = (i - 1 + TABS.length) % TABS.length;
-    else if (e.key === "Home") j = 0;
-    else if (e.key === "End") j = TABS.length - 1;
-    else return;
+    const j = tabKeyTarget(
+      e.key,
+      TABS.findIndex(([t]) => t === this._tab),
+      TABS.length
+    );
+    if (j < 0) return;
     e.preventDefault();
     const next = TABS[j][0];
     this._setTab(next);
@@ -1253,33 +1418,176 @@ class MagicCardUtilsPanel extends LitElement {
     }
   }
 
+  /** Loads the animation library for the list and the inspector; the studio is only mounted when one is opened. */
+  async _loadAnimations() {
+    if (!this.hass || this._animLoad === "loading") return;
+    this._animLoad = "loading";
+    try {
+      await this._subscribeAnimations();
+      this._animLoad = "ready";
+    } catch (err) {
+      console.error("[magic_card_utils] animation library unavailable", err);
+      this._animLoad = "error";
+      this._animError = tr("mcu-panel.panel.the-animation-library-could-not-be");
+    }
+  }
+
+  _filteredAnimations() {
+    const q = (this._animFilter || "").trim().toLocaleLowerCase();
+    const all = Object.values(this._animations || {}).filter((d) => d && typeof d.id === "string");
+    const shown = q
+      ? all.filter((d) => [d.id, d.name, d.kind].some((v) => String(v || "").toLocaleLowerCase().includes(q)))
+      : all.slice();
+    return shown.sort((x, y) => String(x.name || x.id).localeCompare(String(y.name || y.id)));
+  }
+
+  /** Marks an animation for the inspector (and `?animation=`); below 1024 px that opens the sheet. */
+  _selectAnimation(id, opener) {
+    if (typeof id !== "string" || !ANIMATION_ID_RE.test(id) || !Object.prototype.hasOwnProperty.call(this._animations || {}, id)) return;
+    if (this._selectedAnimation == null) this._openGroups = new Set([...this._openGroups, "preview", "details"]);
+    this._selectedAnimation = id;
+    this._syncTabQuery("animations");
+    if (this._studioEl) this._studioEl.selectedId = id;
+    this._openInspector(opener);
+  }
+
+  /** The inspector content for the selected animation: a still preview note and its details. */
+  _animationInspectorModel() {
+    const id = this._selectedAnimation;
+    if (this._studioOpen || !id || !Object.prototype.hasOwnProperty.call(this._animations || {}, id)) return null;
+    const def = this._animations[id] || {};
+    const name = typeof def.name === "string" && def.name ? def.name : id;
+    const kind = typeof def.kind === "string" ? def.kind : "";
+    return {
+      name,
+      type: tr("mcu-panel.panel.animation"),
+      groups: [
+        {
+          id: "preview",
+          title: tr("mcu-panel.panel.preview"),
+          summary: kind,
+          body: html`<div class="item-pic"><p class="fld-help">${tr("mcu-panel.panel.open-the-animation-in-the-studio-to-play")}</p></div>`,
+        },
+        {
+          id: "details",
+          title: tr("mcu-panel.panel.details"),
+          summary: id,
+          fields: [
+            { kind: "field", label: tr("mcu-panel.panel.name"), value: name },
+            { kind: "field", label: tr("mcu-panel.panel.id"), value: id },
+            { kind: "field", label: tr("mcu-panel.panel.kind"), value: kind },
+          ],
+        },
+      ],
+      footer: html`<button type="button" class="btn btn-primary" data-a="studio" @click=${(e) => this._openStudio(e.currentTarget)}>${glyph("fullscreen", 18)}${tr("mcu-panel.panel.open-in-studio")}</button>`,
+    };
+  }
+
+  /** Shows the studio in place of the list, mounting it the first time. */
+  _openAnimationStudio(opener) {
+    this._studioOpen = true;
+    this._studioOpener = opener || null;
+    if (this._studioEl) {
+      this._studioEl.selectedId = this._selectedAnimation;
+      this._pushLibrary();
+    } else {
+      this._mountAnimationStudio();
+    }
+  }
+
+  /** New and Import: opens the studio at its own list, which holds both actions, with no item picked. */
+  _startAnimationStudio(opener) {
+    this._selectedAnimation = null;
+    this._syncTabQuery("animations");
+    this._openAnimationStudio(opener);
+  }
+
+  _closeStudio() {
+    const opener = this._studioOpener;
+    this._studioOpener = null;
+    this._studioOpen = false;
+    this._refocus(opener, this._selectedAnimation ? `.tile[data-id="${this._selectedAnimation}"]` : ".tile");
+  }
+
+  /** Puts focus back on the control that opened a view; its node is new after the list re-renders, so fall back to `selector`. */
+  _refocus(opener, selector) {
+    this.updateComplete.then(() => {
+      const el = opener && opener.isConnected ? opener : this.shadowRoot && this.shadowRoot.querySelector(selector);
+      if (el && typeof el.focus === "function") el.focus();
+    });
+  }
+
   _renderAnimationsTab() {
+    if (this._studioOpen) return this._renderStudioView();
+    const shown = this._filteredAnimations();
+    const total = Object.keys(this._animations || {}).length;
+    return html`<div class="content">
+      ${this._animError
+        ? html`<div class="notice error" role="alert">
+            ${glyph("error", 20)}
+            <div class="body">
+              <p>${this._animError}</p>
+              ${this._animLoad === "error"
+                ? html`<div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => { this._animError = ""; this._animLoad = ""; }}>${tr("mcu-panel.panel.try-again")}</button></div>`
+                : ""}
+            </div>
+            <button type="button" class="icon-btn sm close-btn" aria-label=${tr("mcu-panel.panel.dismiss")} title=${tr("mcu-panel.panel.dismiss")} @click=${() => (this._animError = "")}>${glyph("close")}</button>
+          </div>`
+        : ""}
+      <div class="bar">
+        <button type="button" class="btn btn-primary" data-a="new" @click=${(e) => this._startAnimationStudio(e.currentTarget)}>
+          <ha-icon icon="mdi:open-in-new"></ha-icon>${tr("mcu-panel.panel.new-animation")}
+        </button>
+      </div>
+      <div class="field">
+        <div class="field-head"><label for="mcu-anim-search">${tr("mcu-panel.panel.search-animations")}</label></div>
+        <div class="with-icon">
+          <ha-icon icon="mdi:magnify"></ha-icon>
+          <input id="mcu-anim-search" class="input" type="search" .value=${this._animFilter || ""}
+            @input=${(e) => (this._animFilter = e.target.value)} />
+        </div>
+      </div>
+      <div role="status" aria-live="polite" class="help">${tr("mcu-panel.panel.count-animations", { n: shown.length })}</div>
+      ${this._animLoad === "loading"
+        ? html`<div class="studio-status"><ha-circular-progress active></ha-circular-progress></div>`
+        : total === 0
+        ? html`<div class="empty"><strong>${tr("mcu-panel.panel.no-animations-saved-yet")}</strong></div>`
+        : shown.length
+        ? html`<div class="tiles" role="list">${shown.map(
+            (d) => html`<button type="button" class="tile" role="listitem" data-id="${d.id}" aria-current="${this._selectedAnimation === d.id ? "true" : "false"}"
+              @click=${(e) => this._selectAnimation(d.id, e.currentTarget)}><b title="${d.id}">${d.name || d.id}</b><small>${d.kind || ""}</small></button>`
+          )}</div>`
+        : html`<p class="empty">${tr("mcu-panel.panel.no-animations-match-search")}</p>`}
+    </div>`;
+  }
+
+  /** The studio in place of the list: a back button, then the card's studio in its own frame look. */
+  _renderStudioView() {
     if (this._animStatus === "ready") this.updateComplete.then(() => this._attachStudio());
     return html`
+      <div class="bar">
+        <button type="button" class="btn btn-secondary btn-sm studio-back" @click=${() => this._closeStudio()}>${glyph("back", 18)}${tr("mcu-panel.panel.back-to-the-list")}</button>
+      </div>
       ${this._animError
-        ? html`<div class="content">
-            <div class="notice error" role="alert">
-              ${glyph("error", 20)}
-              <div class="body"><p>${this._animError}</p></div>
-              <button type="button" class="icon-btn sm close-btn" aria-label=${tr("mcu-panel.panel.dismiss")} title=${tr("mcu-panel.panel.dismiss")} @click=${() => (this._animError = "")}>${glyph("close")}</button>
-            </div>
+        ? html`<div class="notice error" role="alert">
+            ${glyph("error", 20)}
+            <div class="body"><p>${this._animError}</p></div>
+            <button type="button" class="icon-btn sm close-btn" aria-label=${tr("mcu-panel.panel.dismiss")} title=${tr("mcu-panel.panel.dismiss")} @click=${() => (this._animError = "")}>${glyph("close")}</button>
           </div>`
         : ""}
       ${this._animStatus === "loading" || this._animStatus === ""
         ? html`<div class="studio-status"><ha-circular-progress active></ha-circular-progress></div>`
         : ""}
       ${this._animStatus === "error"
-        ? html`<div class="content">
-            <div class="notice error" role="alert">
-              ${glyph("error", 20)}
-              <div class="body">
-                <p>${this._animMessage}</p>
-                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._mountAnimationStudio()}>${tr("mcu-panel.panel.try-again")}</button></div>
-              </div>
+        ? html`<div class="notice error" role="alert">
+            ${glyph("error", 20)}
+            <div class="body">
+              <p>${this._animMessage}</p>
+              <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._mountAnimationStudio()}>${tr("mcu-panel.panel.try-again")}</button></div>
             </div>
           </div>`
         : ""}
-      <div class="studio-host" ?hidden=${this._animStatus !== "ready"}></div>
+      <div ?hidden=${this._animStatus !== "ready"} class="studio-host"></div>
     `;
   }
 
@@ -1372,23 +1680,199 @@ class MagicCardUtilsPanel extends LitElement {
     this._syncTabQuery("themes");
   }
 
+  /** The theme files for the list and the inspector (`themes_list`); the editor is only mounted when one is opened. */
+  async _loadThemeFiles() {
+    if (!this.hass) return;
+    if (this._themeListLoad !== "ready") this._themeListLoad = "loading";
+    try {
+      const res = await this.hass.callWS({ type: CMD_THEMES_LIST });
+      if (res && Array.isArray(res.files)) this._themeFiles = res.files.filter((f) => f && typeof f.name === "string");
+      this._themeListError = "";
+      this._themeListLoad = "ready";
+    } catch (err) {
+      console.error("[magic_card_utils] theme list unavailable", err);
+      this._themeListError = tr("mcu-panel.panel.the-theme-list-could-not-be-loaded");
+      this._themeListLoad = "error";
+    }
+  }
+
+  _filteredThemes() {
+    const q = (this._themeFilter || "").trim().toLocaleLowerCase();
+    const files = this._themeFiles || [];
+    return q ? files.filter((f) => [f.name, f.file].some((v) => String(v || "").toLocaleLowerCase().includes(q))) : files;
+  }
+
+  /** Marks a theme file for the inspector and `?theme=`; below 1024 px that opens the sheet. */
+  _selectTheme(name, opener) {
+    if (typeof name !== "string" || !THEME_NAME_RE.test(name) || !(this._themeFiles || []).some((f) => f.name === name)) return;
+    if (this._selectedTheme == null) this._openGroups = new Set([...this._openGroups, "theme"]);
+    this._selectedTheme = name;
+    this._themeDeleteAsk = "";
+    this._syncTabQuery("themes");
+    this._openInspector(opener);
+  }
+
+  /** The inspector content for the selected theme file: name, modes, variables and file, with Delete and Export when it is editable. */
+  _themeInspectorModel() {
+    const f = this._themeEditorOpen ? null : (this._themeFiles || []).find((x) => x.name === this._selectedTheme);
+    if (!f) return null;
+    const modes = f.has_modes ? tr("mcu-panel.panel.light-and-dark") : tr("mcu-panel.panel.one-mode");
+    const count = tr("mcu-panel.panel.n-variables", { n: f.var_count || 0 });
+    const row = (label, value) => html`<div class="fld"><div class="fld-head"><span class="fld-label">${label}</span></div><span class="fld-value">${value}</span></div>`;
+    const ask = this._themeDeleteAsk === f.name;
+    const open = html`<button type="button" class="btn btn-primary" data-a="studio" @click=${(e) => this._openThemeEditor(e.currentTarget)}>${glyph("fullscreen", 18)}${tr("mcu-panel.panel.open-in-studio")}</button>`;
+    let footer = open;
+    if (f.editable) {
+      footer = ask
+        ? html`<p class="fld-help" role="alert">${tr("mcu-panel.panel.delete-name-this-action-cannot-be-undone", { name: f.name })}</p>
+            <button type="button" class="btn btn-secondary" @click=${() => (this._themeDeleteAsk = "")}>${tr("mcu-panel.panel.cancel")}</button>
+            <button type="button" class="btn btn-danger" data-a="del" @click=${() => this._deleteTheme(f.name)}>${glyph("delete", 18)}${tr("mcu-panel.panel.delete")}</button>`
+        : html`${open}
+            <button type="button" class="btn btn-secondary" data-a="export" @click=${() => this._exportTheme(f.name)}>${tr("mcu-panel.panel.export")}</button>
+            <button type="button" class="btn btn-danger" data-a="del" @click=${() => (this._themeDeleteAsk = f.name)}>${glyph("delete", 18)}${tr("mcu-panel.panel.delete")}</button>`;
+    }
+    return {
+      name: f.name,
+      type: tr("mcu-panel.panel.theme"),
+      groups: [
+        {
+          id: "theme",
+          title: tr("mcu-panel.panel.theme"),
+          summary: modes,
+          fields: [{ kind: "field", label: tr("mcu-panel.panel.name"), value: f.name }],
+          body: html`${row(tr("mcu-panel.panel.modes"), modes)}${row(tr("mcu-panel.panel.variables"), count)}${row(tr("mcu-panel.panel.file"), `/config/${f.file}`)}${f.editable
+            ? ""
+            : html`<div class="notice info" role="note">${glyph("info", 20)}<div class="body"><p>${tr("mcu-panel.panel.this-theme-is-read-only-copy-it-to-edit")}</p></div></div>`}`,
+        },
+      ],
+      footer,
+    };
+  }
+
+  async _deleteTheme(name) {
+    try {
+      await this.hass.callWS({ type: CMD_THEMES_DELETE, name });
+      this._themeDeleteAsk = "";
+      if (this._selectedTheme === name) {
+        this._selectedTheme = null;
+        this._syncTabQuery("themes");
+      }
+      await this._loadThemeFiles();
+    } catch (err) {
+      console.error("[magic_card_utils] delete theme failed", err);
+      this._themeDeleteAsk = "";
+      this._themeListError = tr("mcu-panel.panel.the-theme-could-not-be-deleted");
+    }
+  }
+
+  async _exportTheme(name) {
+    try {
+      const res = await this.hass.callWS({ type: CMD_THEMES_GET, name });
+      const url = URL.createObjectURL(new Blob([JSON.stringify({ [name]: res.theme }, null, 2)], { type: "application/json" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${name}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("[magic_card_utils] export theme failed", err);
+      this._themeListError = tr("mcu-panel.panel.the-theme-could-not-be-exported");
+    }
+  }
+
+  /** Shows the theme editor in place of the list, mounting it the first time. */
+  _openThemeEditor(opener) {
+    this._themeEditorOpen = true;
+    this._themeEditorOpener = opener || null;
+    if (this._themeEl) {
+      this._themeEl.selectedName = this._selectedTheme || null;
+    } else {
+      this._mountThemeEditor();
+    }
+  }
+
+  /** New and Import: opens the editor at its own start view, which holds both actions, with no theme picked. */
+  _startThemeEditor(opener) {
+    this._selectedTheme = null;
+    this._syncTabQuery("themes");
+    this._openThemeEditor(opener);
+  }
+
+  _closeThemeEditor() {
+    const opener = this._themeEditorOpener;
+    this._themeEditorOpener = null;
+    this._themeEditorOpen = false;
+    this._refocus(opener, this._selectedTheme ? `.row[data-id="${this._selectedTheme}"] button` : ".row button");
+    this._loadThemeFiles();
+  }
+
   _renderThemesTab() {
+    if (this._themeEditorOpen) return this._renderThemeEditorView();
+    const shown = this._filteredThemes();
+    return html`<div class="content">
+      ${this._themeListError
+        ? html`<div class="notice error" role="alert">
+            ${glyph("error", 20)}
+            <div class="body">
+              <p>${this._themeListError}</p>
+              <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => { this._themeListError = ""; this._loadThemeFiles(); }}>${tr("mcu-panel.panel.try-again")}</button></div>
+            </div>
+          </div>`
+        : ""}
+      <div class="bar">
+        <button type="button" class="btn btn-primary" data-a="new" @click=${(e) => this._startThemeEditor(e.currentTarget)}>
+          <ha-icon icon="mdi:open-in-new"></ha-icon>${tr("mcu-panel.panel.new-theme")}
+        </button>
+      </div>
+      <div class="field">
+        <div class="field-head"><label for="mcu-theme-search">${tr("mcu-panel.panel.search-themes")}</label></div>
+        <div class="with-icon">
+          <ha-icon icon="mdi:magnify"></ha-icon>
+          <input id="mcu-theme-search" class="input" type="search" .value=${this._themeFilter || ""}
+            @input=${(e) => (this._themeFilter = e.target.value)} />
+        </div>
+      </div>
+      <div role="status" aria-live="polite" class="help">${tr("mcu-panel.panel.count-themes", { n: shown.length })}</div>
+      ${this._themeListLoad === "loading" && !(this._themeFiles || []).length
+        ? html`<div class="studio-status"><ha-circular-progress active></ha-circular-progress></div>`
+        : !(this._themeFiles || []).length
+        ? html`<div class="empty"><strong>${tr("mcu-panel.panel.no-themes-saved-yet")}</strong></div>`
+        : shown.length
+        ? html`<div class="rows" role="list">${shown.map((t) => {
+            const sub = [
+              `/config/${t.file}`,
+              tr("mcu-panel.panel.n-variables", { n: t.var_count || 0 }),
+              t.has_modes ? tr("mcu-panel.panel.light-and-dark") : "",
+              t.editable ? "" : tr("mcu-panel.panel.read-only"),
+            ].filter(Boolean).join(" · ");
+            return html`<div class="row" role="listitem" data-id="${t.name}">
+              <button type="button" class="name" aria-current="${this._selectedTheme === t.name ? "true" : "false"}"
+                @click=${(e) => this._selectTheme(t.name, e.currentTarget)}><bdi>${t.name}</bdi><small>${sub}</small></button>
+            </div>`;
+          })}</div>`
+        : html`<p class="empty">${tr("mcu-panel.panel.no-themes-match-search")}</p>`}
+    </div>`;
+  }
+
+  /** The theme editor in place of the list: a back button, then the card's editor in its own frame look. */
+  _renderThemeEditorView() {
     return html`
+      <div class="bar">
+        <button type="button" class="btn btn-secondary btn-sm theme-back" @click=${() => this._closeThemeEditor()}>${glyph("back", 18)}${tr("mcu-panel.panel.back-to-the-list")}</button>
+      </div>
       ${this._themeStatus === "loading" || this._themeStatus === ""
         ? html`<div class="studio-status"><ha-circular-progress active></ha-circular-progress></div>`
         : ""}
       ${this._themeStatus === "error"
-        ? html`<div class="content">
-            <div class="notice error" role="alert">
-              ${glyph("error", 20)}
-              <div class="body">
-                <p>${this._themeMessage}</p>
-                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryThemes()}>${tr("mcu-panel.panel.try-again")}</button></div>
-              </div>
+        ? html`<div class="notice error" role="alert">
+            ${glyph("error", 20)}
+            <div class="body">
+              <p>${this._themeMessage}</p>
+              <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryThemes()}>${tr("mcu-panel.panel.try-again")}</button></div>
             </div>
           </div>`
         : ""}
-      <div class="theme-host" ?hidden=${this._themeStatus !== "ready"}></div>
+      <div ?hidden=${this._themeStatus !== "ready"} class="theme-host"></div>
     `;
   }
 
@@ -1444,6 +1928,13 @@ class MagicCardUtilsPanel extends LitElement {
       this._forumMessage = status.message;
       return;
     }
+    const ctor = customElements.get(FORUM_SHOT_TAG);
+    if (ctor && typeof ctor.listCards === "function" && typeof ctor.download === "function") {
+      this._forumApi = ctor;
+      this._forumStatus = "ready";
+      this._loadForumCards();
+      return;
+    }
     const el = document.createElement(FORUM_SHOT_TAG);
     el.hass = this.hass;
     el.narrow = !!this.narrow;
@@ -1461,21 +1952,288 @@ class MagicCardUtilsPanel extends LitElement {
     host.appendChild(this._forumEl);
   }
 
+  /** Reads the card list through the entry's static `listCards`; a failure shows its text with a Retry button. */
+  async _loadForumCards() {
+    const api = this._forumApi;
+    if (!api) return;
+    this._forumCards = null;
+    this._forumListError = "";
+    try {
+      const cards = await api.listCards(this.hass);
+      this._forumCards = Array.isArray(cards) ? cards : [];
+    } catch (err) {
+      const code = err && typeof err === "object" ? err.code : "";
+      this._forumCards = [];
+      if (code !== "no_cards") this._forumListError = this._forumErrorText(code);
+    }
+    if (this._selectedForumCard != null && !this._forumCardByKey(this._selectedForumCard)) this._selectedForumCard = null;
+  }
+
+  _forumKey(c) {
+    return `${c.dashboard ?? ""}|${c.view}|${(c.path || []).join(".")}`;
+  }
+
+  _forumCardByKey(key) {
+    return key == null ? null : (this._forumCards || []).find((c) => this._forumKey(c) === key) || null;
+  }
+
+  /** The dashboard's name: its title, else the default dashboard's title or text, else its address. */
+  _forumDashboardName(c) {
+    if (c.dashboardTitle) return c.dashboardTitle;
+    if (c.dashboard === null) {
+      const title = this.hass && this.hass.panels && this.hass.panels.lovelace && this.hass.panels.lovelace.title;
+      return typeof title === "string" && title.trim() ? title.trim() : tr("mcu-panel.panel.default-dashboard");
+    }
+    return c.dashboard;
+  }
+
+  _forumLockReason(lock) {
+    switch (lock) {
+      case "custom_card":
+        return tr("mcu-panel.panel.lock-reason-custom-card");
+      case "limit":
+        return tr("mcu-panel.panel.lock-reason-limit");
+      case "outside_address":
+        return tr("mcu-panel.panel.lock-reason-outside-address");
+      default:
+        return tr("mcu-panel.panel.lock-reason-cannot-judge");
+    }
+  }
+
+  /** The text for an error code of the forum shot entry; `remote_asset` says why from the listed card's lock. */
+  _forumErrorText(code, card) {
+    switch (code) {
+      case "remote_asset":
+        return card && card.lock === "custom_card" ? tr("mcu-panel.panel.custom-card-lock") : tr("mcu-panel.panel.remote-asset-lock");
+      case "card_not_defined":
+        return tr("mcu-panel.panel.error-card-not-defined");
+      case "too_large":
+        return tr("mcu-panel.panel.error-too-large");
+      case "font_unavailable":
+        return tr("mcu-panel.panel.error-font-unavailable");
+      case "hosts_changed":
+        return tr("mcu-panel.panel.error-hosts-changed");
+      case "config_read_failed":
+        return tr("mcu-panel.panel.card-config-read-failed");
+      default:
+        return tr("mcu-panel.panel.error-capture-failed");
+    }
+  }
+
+  /** The cards the search keeps, in the chosen sort order; with no sort they stay in dashboard order. */
+  _forumRows() {
+    const q = (this._forumFilter || "").trim().toLocaleLowerCase();
+    const all = this._forumCards || [];
+    const rows = q ? all.filter((c) => [c.cardName, this._forumDashboardName(c), c.view].some((v) => String(v || "").toLocaleLowerCase().includes(q))) : all.slice();
+    const sort = this._forumSort;
+    if (!sort) return rows;
+    const locale = (this.hass && ((this.hass.locale && this.hass.locale.language) || this.hass.language)) || "en";
+    let collator;
+    try {
+      collator = new Intl.Collator(locale, { numeric: true, sensitivity: "base" });
+    } catch (_err) {
+      collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
+    }
+    const order = ["custom_card", "limit", "outside_address", "cannot_judge"];
+    const rank = (c) => (c.lock == null ? 0 : 1 + order.indexOf(c.lock));
+    const sign = sort.dir === "descending" ? -1 : 1;
+    const cmp = (a, b) =>
+      sort.key === "dashboard" ? collator.compare(this._forumDashboardName(a), this._forumDashboardName(b))
+      : sort.key === "view" ? collator.compare(String(a.view), String(b.view))
+      : sort.key === "card" ? collator.compare(String(a.cardName), String(b.cardName))
+      : rank(a) - rank(b);
+    const index = new Map(rows.map((r, i) => [r, i]));
+    return rows.sort((a, b) => sign * cmp(a, b) || index.get(a) - index.get(b));
+  }
+
+  /** First click sorts ascending, the next on the same column toggles. */
+  _sortForumBy(key) {
+    const same = this._forumSort && this._forumSort.key === key;
+    this._forumSort = { key, dir: same && this._forumSort.dir === "ascending" ? "descending" : "ascending" };
+  }
+
+  _selectForumCard(key, opener) {
+    if (!this._forumCardByKey(key)) return;
+    if (this._selectedForumCard == null) this._openGroups = new Set([...this._openGroups, "card", "colours", "preview"]);
+    this._selectedForumCard = key;
+    this._forumError = "";
+    this._forumSaved = false;
+    this._openInspector(opener);
+  }
+
+  _dropForumPreview() {
+    if (this._forumPreview && this._forumPreview.url) URL.revokeObjectURL(this._forumPreview.url);
+    this._forumPreview = null;
+  }
+
+  /** Download: the entry makes and saves the picture; the panel keeps the sheet and an object URL for the preview. */
+  async _downloadForumShot() {
+    const key = this._selectedForumCard;
+    const card = this._forumCardByKey(key);
+    if (!card || card.lock != null || this._forumBusy || !this._forumApi) return;
+    this._forumBusy = true;
+    this._forumError = "";
+    this._forumSaved = false;
+    try {
+      const sheet = await this._forumApi.download(this.hass, card, { mode: this._forumColours || "both", looks: !!this._forumLooks });
+      const url = URL.createObjectURL(sheet.blob);
+      this._dropForumPreview();
+      this._forumPreview = { key, sheet, url };
+      this._forumSaved = true;
+    } catch (err) {
+      const code = err && typeof err === "object" ? err.code : "";
+      if (code === "hosts_changed" || code === "remote_asset") await this._loadForumCards();
+      this._forumError = this._forumErrorText(code, this._forumCardByKey(key));
+    }
+    this._forumBusy = false;
+  }
+
   _renderForumShotTab() {
-    return html`
-      ${this._forumStatus === "loading" || this._forumStatus === ""
-        ? html`<div class="studio-status" role="status" aria-label=${tr("mcu-panel.panel.loading-the-forum-shot")}><ha-circular-progress active></ha-circular-progress></div>`
+    if (this._forumEl) {
+      return html`
+        ${this._forumStatus === "loading" || this._forumStatus === ""
+          ? html`<div class="studio-status" role="status" aria-label=${tr("mcu-panel.panel.loading-the-forum-shot")}><ha-circular-progress active></ha-circular-progress></div>`
+          : ""}
+        ${this._forumStatus === "error"
+          ? html`<div class="content">
+              <div class="notice error" role="alert">
+                ${glyph("error", 20)}
+                <div class="body"><p>${this._forumMessage}</p></div>
+              </div>
+            </div>`
+          : ""}
+        <div class="forum-host" ?hidden=${this._forumStatus !== "ready"}></div>
+      `;
+    }
+    if (!this._forumStatus || this._forumStatus === "loading") {
+      return html`<div class="studio-status" role="status" aria-label=${tr("mcu-panel.panel.loading-the-forum-shot")}><ha-circular-progress active></ha-circular-progress></div>`;
+    }
+    if (this._forumStatus === "error") {
+      return html`<div class="content">
+        <div class="notice error" role="alert">
+          ${glyph("error", 20)}
+          <div class="body"><p>${this._forumMessage}</p></div>
+        </div>
+      </div>`;
+    }
+    return this._renderForumList();
+  }
+
+  /** The drafting list: search, a count, sortable columns and one ruled row per Magic Card. */
+  _renderForumList() {
+    const cards = this._forumCards;
+    if (this._forumListError) {
+      return html`<div class="content">
+        <div class="notice error" role="alert">
+          ${glyph("error", 20)}
+          <div class="body">
+            <p>${this._forumListError}</p>
+            <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._loadForumCards()}>${tr("mcu-panel.panel.try-again")}</button></div>
+          </div>
+        </div>
+      </div>`;
+    }
+    if (cards == null) {
+      return html`<div class="content"><p class="help" role="status">${tr("mcu-panel.panel.looking-for-your-magic-cards")}</p></div>`;
+    }
+    const rows = this._forumRows();
+    const sort = this._forumSort;
+    const head = (key, label) => html`<div class="sort-col" role="columnheader" aria-sort=${sort && sort.key === key ? sort.dir : "none"}>
+      <button type="button" class="sort" @click=${() => this._sortForumBy(key)}>${label}<span aria-hidden="true">${sort && sort.key === key ? (sort.dir === "ascending" ? " ▲" : " ▼") : ""}</span></button>
+    </div>`;
+    return html`<div class="content">
+      ${this.hass && this.hass.user && this.hass.user.is_admin === false
+        ? html`<div class="notice info" role="note">${glyph("info", 20)}<div class="body"><p>${tr("mcu-panel.panel.forum-admin-only")}</p></div></div>`
         : ""}
-      ${this._forumStatus === "error"
-        ? html`<div class="content">
-            <div class="notice error" role="alert">
-              ${glyph("error", 20)}
-              <div class="body"><p>${this._forumMessage}</p></div>
+      <div class="field">
+        <div class="field-head"><label for="mcu-forum-search">${tr("mcu-panel.panel.search-cards")}</label></div>
+        <div class="with-icon">
+          <ha-icon icon="mdi:magnify"></ha-icon>
+          <input id="mcu-forum-search" class="input" type="search" .value=${this._forumFilter || ""}
+            @input=${(e) => (this._forumFilter = e.target.value)} />
+        </div>
+      </div>
+      <div role="status" aria-live="polite" class="help">${tr("mcu-panel.panel.count-cards", { n: rows.length })}</div>
+      ${!cards.length
+        ? html`<p class="empty">${tr("mcu-panel.panel.no-magic-cards-found")}</p>`
+        : rows.length
+        ? html`<div class="rows" role="table" aria-label=${tr("mcu-panel.panel.forum-shot")}>
+            <div class="rows-head" role="row">
+              ${head("card", tr("mcu-panel.panel.card"))}${head("dashboard", tr("mcu-panel.panel.dashboard"))}${head("view", tr("mcu-panel.panel.view"))}${head("status", tr("mcu-panel.panel.status"))}
             </div>
+            ${rows.map((c) => {
+              const key = this._forumKey(c);
+              const on = this._selectedForumCard === key;
+              return html`<div class="row ${on ? "current" : ""}" role="row" data-id="${key}" aria-current="${on ? "true" : "false"}">
+                <span role="cell"><button type="button" class="name" @click=${(e) => this._selectForumCard(key, e.currentTarget)}><bdi>${c.cardName}</bdi></button></span>
+                <span role="cell">${this._forumDashboardName(c)}</span>
+                <span role="cell">${c.view}</span>
+                <span role="cell"><span class="badge ${c.lock == null ? "ok" : "locked"}">${c.lock == null ? tr("mcu-panel.panel.available") : tr("mcu-panel.panel.locked")}</span></span>
+              </div>`;
+            })}
           </div>`
-        : ""}
-      <div class="forum-host" ?hidden=${this._forumStatus !== "ready"}></div>
-    `;
+        : html`<p class="empty">${tr("mcu-panel.panel.no-cards-match-your-search")}</p>`}
+      <p class="fld-help">${tr("mcu-panel.panel.forum-shot-intro")}</p>
+    </div>`;
+  }
+
+  /** The inspector content for the selected card: the card, the colour choice and the picture preview. */
+  _forumInspectorModel() {
+    const c = this._forumCardByKey(this._selectedForumCard);
+    if (!c) return null;
+    const colours = this._forumColours || "both";
+    const locked = c.lock != null;
+    const fonts = Array.isArray(c.fontHosts) ? c.fontHosts : [];
+    const choice = (value, label) => html`<label class="choice"><input type="radio" name="mcu-forum-colours" value=${value} .checked=${colours === value}
+      @change=${() => (this._forumColours = value)} />${label}</label>`;
+    const row = (label, value) => html`<div class="fld"><div class="fld-head"><span class="fld-label">${label}</span></div><span class="fld-value">${value}</span></div>`;
+    const status = locked ? tr("mcu-panel.panel.locked") : tr("mcu-panel.panel.available");
+    const pv = this._forumPreview && this._forumPreview.key === this._selectedForumCard ? this._forumPreview : null;
+    const placeholder = pv && pv.sheet && Array.isArray(pv.sheet.notices) && pv.sheet.notices.includes("remote_placeholder");
+    const modeLabel = colours === "light" ? tr("mcu-panel.panel.colours-light") : colours === "dark" ? tr("mcu-panel.panel.colours-dark") : tr("mcu-panel.panel.colours-both");
+    const button = locked || this._forumBusy
+      ? html`<button type="button" class="btn btn-primary" data-a="dl" disabled aria-busy=${this._forumBusy ? "true" : "false"}>${tr("mcu-panel.panel.download")}</button>`
+      : html`<button type="button" class="btn btn-primary" data-a="dl" aria-busy="false" @click=${() => this._downloadForumShot()}>${tr("mcu-panel.panel.download")}</button>`;
+    return {
+      name: c.cardName,
+      type: tr("mcu-panel.panel.card"),
+      groups: [
+        {
+          id: "card",
+          title: tr("mcu-panel.panel.card"),
+          summary: status,
+          body: html`${row(tr("mcu-panel.panel.card"), c.cardName)}${row(tr("mcu-panel.panel.dashboard"), this._forumDashboardName(c))}${row(tr("mcu-panel.panel.view"), c.view)}${row(tr("mcu-panel.panel.status"), status)}${locked
+            ? html`<p class="warn" role="note">${this._forumLockReason(c.lock)}</p>`
+            : html`<p class="fld-help">${tr("mcu-panel.panel.available-detail")}</p>`}${fonts.length
+            ? html`<p class="fld-help">${tr("mcu-panel.panel.fonts-from-hosts", { hosts: fonts.join(", ") })}</p>`
+            : ""}`,
+        },
+        {
+          id: "colours",
+          title: tr("mcu-panel.panel.colours"),
+          summary: modeLabel,
+          body: html`<fieldset class="fld"><legend class="fld-label">${tr("mcu-panel.panel.colours")}</legend>${choice("both", tr("mcu-panel.panel.colours-both"))}${choice("light", tr("mcu-panel.panel.colours-light"))}${choice("dark", tr("mcu-panel.panel.colours-dark"))}</fieldset>
+            <label class="choice"><input type="checkbox" .checked=${!!this._forumLooks} @change=${(e) => (this._forumLooks = e.target.checked)} />${tr("mcu-panel.panel.show-the-quiet-living-and-glow-looks")}</label>`,
+        },
+        {
+          id: "preview",
+          title: tr("mcu-panel.panel.preview"),
+          summary: "",
+          body: html`<div class="forum-preview">${pv
+              ? html`<img src=${pv.url} width=${pv.sheet.width / 2} height=${pv.sheet.height / 2} alt=${tr("mcu-panel.panel.preview-alt")} />`
+              : html`<p class="fld-help">${tr("mcu-panel.panel.picture-shows-after-download")}</p>`}</div>
+            ${this._forumBusy ? html`<p class="fld-help" role="status">${tr("mcu-panel.panel.making-the-picture")}</p>` : ""}
+            ${this._forumError ? html`<p class="warn" role="alert">${this._forumError}</p>` : ""}
+            ${this._forumSaved && !this._forumBusy ? html`<p class="fld-help" role="status">${tr("mcu-panel.panel.saved-to-downloads")}</p>` : ""}
+            ${placeholder ? html`<p class="fld-help">${fonts.length ? tr("mcu-panel.panel.notice-remote-placeholder-font") : tr("mcu-panel.panel.notice-remote-placeholder")}</p>` : ""}
+            <p class="fld-help">${tr("mcu-panel.panel.privacy-check")}</p>
+            ${fonts.length
+              ? html`<p class="fld-help">${tr("mcu-panel.panel.font-host-contact", { hosts: fonts.join(", ") })}</p><p class="fld-help">${tr("mcu-panel.panel.local-only-font")}</p>`
+              : html`<p class="fld-help">${tr("mcu-panel.panel.local-only")}</p>`}`,
+        },
+      ],
+      footer: button,
+    };
   }
 
   // ---- Library, Icons and Shapes tabs ---------------------------------------------
@@ -1693,6 +2451,7 @@ class MagicCardUtilsPanel extends LitElement {
     el.hass = this.hass;
     el.presets = _createPresetBackend(_makeCall(() => this.hass));
     el.addEventListener("mc-library-open", (e) => this._onLibraryOpen(e));
+    el.addEventListener("mc-library-select", (e) => this._onItemSelect(e));
     this._libraryEl = el;
     this._libraryStatus = "ready";
     await this.updateComplete;
@@ -1716,6 +2475,7 @@ class MagicCardUtilsPanel extends LitElement {
     el.hass = this.hass;
     el.presets = _createPresetBackend(_makeCall(() => this.hass));
     el.addEventListener("mc-library-open", (e) => this._onLibraryOpen(e));
+    el.addEventListener("mc-library-select", (e) => this._onItemSelect(e));
     this._shapesEl = el;
     this._shapesStatus = "ready";
     await this.updateComplete;
@@ -1740,6 +2500,7 @@ class MagicCardUtilsPanel extends LitElement {
     el.hass = this.hass;
     el.presets = _createPresetBackend(_makeCall(() => this.hass));
     el.addEventListener("mc-library-open", (e) => this._onLibraryOpen(e));
+    el.addEventListener("mc-library-select", (e) => this._onItemSelect(e));
     this._iconsEl = el;
     this._iconsStatus = "ready";
     await this.updateComplete;
@@ -1762,6 +2523,7 @@ class MagicCardUtilsPanel extends LitElement {
     el.kinds = ["image"];
     el.hass = this.hass;
     el.addEventListener("mc-library-open", (e) => this._onLibraryOpen(e));
+    el.addEventListener("mc-library-select", (e) => this._onItemSelect(e));
     this._imagesEl = el;
     this._imagesStatus = "ready";
     await this.updateComplete;
@@ -1773,6 +2535,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (!host || !this._imagesEl || this._imagesEl.parentNode === host) return;
     host.innerHTML = "";
     host.appendChild(this._imagesEl);
+    fitListElement(this._imagesEl);
   }
 
   _retryImages() {
@@ -1785,6 +2548,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (!host || !this._iconsEl || this._iconsEl.parentNode === host) return;
     host.innerHTML = "";
     host.appendChild(this._iconsEl);
+    fitListElement(this._iconsEl);
   }
 
   _retryIcons() {
@@ -1797,6 +2561,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (!host || !this._shapesEl || this._shapesEl.parentNode === host) return;
     host.innerHTML = "";
     host.appendChild(this._shapesEl);
+    fitListElement(this._shapesEl);
   }
 
   /** What an edit of a saved shape does to cards, as the card resolves it (a ref follows the library, an own copy stays). */
@@ -1835,6 +2600,7 @@ class MagicCardUtilsPanel extends LitElement {
         for (const it of Array.isArray(res && res.shapes) ? res.shapes : []) {
           if (it && typeof it.id === "string") byId.set(it.id, it.shape);
         }
+        this._shapeById = byId;
         publish();
       } catch (e) {
         /* rows stay without a thumbnail */
@@ -1869,6 +2635,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (!host || !this._libraryEl || this._libraryEl.parentNode === host) return;
     host.innerHTML = "";
     host.appendChild(this._libraryEl);
+    fitListElement(this._libraryEl);
   }
 
   _retryLibrary() {
@@ -2005,6 +2772,8 @@ class MagicCardUtilsPanel extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     this._stopShapeRows();
+    if (this._resizeObserver) this._resizeObserver.disconnect();
+    this._resizeObserver = null;
     const animPending = this._animUnsubPromise;
     this._animUnsubPromise = undefined;
     this._animReady = undefined;
@@ -2014,6 +2783,7 @@ class MagicCardUtilsPanel extends LitElement {
     this._themeEl = null;
     if (this._forumEl && this._forumEl.parentNode) this._forumEl.parentNode.removeChild(this._forumEl);
     this._forumEl = null;
+    this._dropForumPreview();
     if (this._forumStatus !== "error") this._forumStatus = "";
     if (this._editorEl) {
       for (const [type, fn] of this._editorListeners || []) this._editorEl.removeEventListener(type, fn);
@@ -2051,12 +2821,184 @@ class MagicCardUtilsPanel extends LitElement {
     }
   }
 
+  connectedCallback() {
+    super.connectedCallback();
+    loadPanelFonts();
+    if (typeof ResizeObserver === "function") {
+      this._resizeObserver = new ResizeObserver(() => this._measure());
+      this._resizeObserver.observe(this);
+    }
+  }
+
+  _isRtl() {
+    return getComputedStyle(this).direction === "rtl";
+  }
+
+  /** Reads the panel width (for the dock and sheet layout) and which edges of the tab bar hide tabs. */
+  _measure() {
+    const width = this.clientWidth || window.innerWidth;
+    if (width !== this._viewWidth) this._viewWidth = width;
+    if (layoutFor(width).docked) this._sheetOpen = false;
+    const tabs = this.shadowRoot && this.shadowRoot.querySelector(".tabs");
+    if (tabs) this._tabFade = fadeFor(tabs.scrollLeft, tabs.clientWidth, tabs.scrollWidth, this._isRtl());
+  }
+
+  _onTabsScroll(e) {
+    const el = e.currentTarget;
+    this._tabFade = fadeFor(el.scrollLeft, el.clientWidth, el.scrollWidth, this._isRtl());
+  }
+
+  /** The strings the drafting module renders, resolved here so the message tables are built from this file. */
+  _draftingStrings() {
+    return {
+      details: tr("mcu-panel.panel.details"),
+      nothing: tr("mcu-panel.panel.nothing-selected"),
+      pick: tr("mcu-panel.panel.pick-an-item"),
+      groups: (n) => tr("mcu-panel.panel.count-groups", { n }),
+      modifiedOnly: tr("mcu-panel.panel.modified-only"),
+      noChanged: tr("mcu-panel.panel.no-changed-fields-yet"),
+      back: tr("mcu-panel.panel.back"),
+      reset: tr("mcu-panel.panel.reset"),
+      rowSize: tr("mcu-panel.panel.row-size"),
+      smaller: tr("mcu-panel.panel.smaller-rows"),
+      larger: tr("mcu-panel.panel.larger-rows"),
+      resize: tr("mcu-panel.panel.resize-details"),
+    };
+  }
+
+  /** The details of the selected item for the docked inspector, or null while the tab has none. */
+  _inspectorModel() {
+    if (this._tab === "templates") return this._templatesInspectorModel();
+    if (this._tab === "animations") return this._animationInspectorModel();
+    if (this._tab === "themes") return this._themeInspectorModel();
+    if (this._tab === "forum-shot") return this._forumInspectorModel();
+    return this._itemInspectorModel();
+  }
+
+  /** `mc-library-select` from a hosted view: detail { id, name, kind, svg?, thumb?, path? }. Marks the item and shows it in the inspector. */
+  _onItemSelect(e) {
+    const d = e && e.detail;
+    if (!d || typeof d.id !== "string" || !d.id || typeof d.name !== "string" || !ITEM_KINDS.includes(d.kind)) return;
+    const str = (v) => (typeof v === "string" ? v : "");
+    if (!this._itemSel) this._openGroups = new Set([...this._openGroups, "preview"]);
+    this._itemSel = { tab: this._tab, id: d.id, name: d.name, kind: d.kind, svg: str(d.svg), thumb: str(d.thumb), path: str(d.path) };
+    const views = { library: this._libraryEl, shapes: this._shapesEl, icons: this._iconsEl, images: this._imagesEl };
+    for (const tab of Object.keys(views)) if (views[tab]) views[tab].selectedId = tab === this._tab ? d.id : "";
+    const path = typeof e.composedPath === "function" ? e.composedPath() : [];
+    this._openInspector(path.find((n) => n && n.tagName === "BUTTON") || e.target || null);
+    this.requestUpdate();
+  }
+
+  /** The inspector content for the picked Library, Icons, Shapes or Images item: its picture and its fields. */
+  _itemInspectorModel() {
+    const it = this._itemSel;
+    if (!it || it.tab !== this._tab) return null;
+    const typeText =
+      it.kind === "icon"
+        ? tr("mcu-panel.panel.icon")
+        : it.kind === "shape"
+        ? tr("mcu-panel.panel.shape")
+        : it.kind === "image"
+        ? tr("mcu-panel.panel.image")
+        : tr("mcu-panel.panel.preset");
+    const fields = [
+      { kind: "field", label: tr("mcu-panel.panel.name"), value: it.name },
+      { kind: "field", label: tr("mcu-panel.panel.id"), value: it.id },
+    ];
+    if (it.kind === "image" && it.path) fields.push({ kind: "field", label: tr("mcu-panel.panel.path"), value: it.path });
+    const pic = this._itemPicture(it);
+    return {
+      name: it.name,
+      type: typeText,
+      groups: [
+        { id: "preview", title: tr("mcu-panel.panel.preview"), summary: pic.caption || typeText, body: pic.body },
+        { id: "details", title: tr("mcu-panel.panel.details"), summary: it.id, fields },
+      ],
+    };
+  }
+
+  /** The picture of an item at 96 px (icons, shapes) or its thumbnail (library, images), else a text. */
+  _itemPicture(it) {
+    let parts = null;
+    if (it.kind === "icon") parts = _svgParts(it.svg);
+    else if (it.kind === "shape") {
+      parts = _svgParts(it.svg);
+      const outline = !parts && this._shapeById && this._shapeById.has(it.id) ? _shapeOutline(this._shapeById.get(it.id)) : null;
+      if (outline && outline.d) parts = { viewBox: `0 0 ${THUMB_W} ${THUMB_H}`, w: THUMB_W, h: THUMB_H, parts: [{ kind: "path", d: outline.d }] };
+    }
+    if (parts) {
+      const caption = tr("mcu-panel.panel.view-box-w-h", { w: parts.w, h: parts.h });
+      const label = tr("mcu-panel.panel.name-preview", { name: it.name });
+      return {
+        caption,
+        body: html`<div class="item-pic">
+          <svg role="img" aria-label="${label}" viewBox="${parts.viewBox}" width="96" height="96" fill="currentColor">${parts.parts.map((p) =>
+            p.kind === "path"
+              ? svg`<path d="${p.d}"></path>`
+              : p.kind === "circle"
+              ? svg`<circle cx="${p.v[0]}" cy="${p.v[1]}" r="${p.v[2]}"></circle>`
+              : svg`<rect x="${p.v[0]}" y="${p.v[1]}" width="${p.v[2]}" height="${p.v[3]}"></rect>`
+          )}</svg>
+          <small>${caption}</small>
+        </div>`,
+      };
+    }
+    const src = it.kind === "icon" || it.kind === "shape" ? "" : _safeThumb(it.thumb) || _safeThumb(it.path);
+    if (src) return { caption: "", body: html`<div class="item-pic"><img src="${src}" alt="${it.name}" /></div>` };
+    return { caption: "", body: html`<p class="fld-help">${tr("mcu-panel.panel.no-preview-available")}</p>` };
+  }
+
+  /** Selects an item for the inspector; below 1024 px that opens the sheet, except for the first selection on load. */
+  _openInspector(opener, initial = false) {
+    if (!shouldOpenSheet({ sheet: layoutFor(this._viewWidth).sheet, initial })) return;
+    this._sheetOpener = opener || null;
+    this._sheetOpen = true;
+    this.updateComplete.then(() => {
+      const back = this.shadowRoot && this.shadowRoot.querySelector(".ins-back");
+      if (back && typeof back.focus === "function") back.focus();
+    });
+  }
+
+  _closeSheet() {
+    this._sheetOpen = false;
+    const opener = this._sheetOpener;
+    this._sheetOpener = null;
+    this.updateComplete.then(() => opener && opener.isConnected && opener.focus());
+  }
+
+  _toggleGroup(id) {
+    const next = new Set(this._openGroups);
+    if (!next.delete(id)) next.add(id);
+    this._openGroups = next;
+  }
+
+  _gripPointerDown(e) {
+    e.preventDefault();
+    const rect = this.shadowRoot.querySelector(".bp-grid").getBoundingClientRect();
+    const rtl = this._isRtl();
+    const move = (ev) => {
+      const w = rtl ? ev.clientX - rect.left : rect.right - ev.clientX;
+      this._inspectorWidth = Math.min(INSPECTOR.max, Math.max(INSPECTOR.min, Math.round(w)));
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
+
   willUpdate(changed) {
     // One locale for the panel and every Magic Card element it hosts (they read the same hass).
     if (changed.has("hass") && this.hass) {
       setI18nLocale(this.hass);
       this.setAttribute("lang", locale());
+      this.setAttribute("data-bp-mode", modeFor(this.hass));
     }
+    // The same measure drives the code and the CSS, so the sheet and the narrow layout apply together.
+    const layout = layoutFor(this._viewWidth);
+    this.setAttribute("data-layout", layout.mode);
+    this.setAttribute("data-narrow", layout.narrow ? "true" : "false");
   }
 
   render() {
@@ -2065,22 +3007,26 @@ class MagicCardUtilsPanel extends LitElement {
     }
 
     const covered = this._editorCoversPanel();
+    const behindSheet = this._sheetCoversPanel();
+    const activeTab = TABS.find(([t]) => t === this._tab) || TABS[0];
     return html`
-      <div class="header" ?inert=${covered}>
+      <div class="header" ?inert=${covered || behindSheet}>
         <ha-menu-button
           .hass=${this.hass}
           .narrow=${this.narrow}
         ></ha-menu-button>
-        <div class="title">${this.panel && this.panel.title}</div>
+        <h1 class="title">${activeTab[1]()}</h1>
       </div>
 
       ${this._editorOpen
         ? html`<div class="editor-host"></div>`
-        : html`<div class="tabs" ?inert=${covered} role="tablist" aria-label=${tr("mcu-panel.panel.magic-card-utils")} @keydown=${this._onTabKeydown}>
+        : html`<div class="tabs" ?inert=${covered || behindSheet} role="tablist" aria-label=${tr("mcu-panel.panel.magic-card-utils")} data-fade=${this._tabFade} @keydown=${this._onTabKeydown} @scroll=${this._onTabsScroll}>
               ${TABS.map(
                 ([tab, label]) => html`<button
                   class="tab"
                   role="tab"
+                  id=${`mcu-tab-${tab}`}
+                  aria-controls="mcu-tabpanel"
                   data-tab=${tab}
                   aria-selected=${this._tab === tab ? "true" : "false"}
                   tabindex=${this._tab === tab ? "0" : "-1"}
@@ -2091,22 +3037,66 @@ class MagicCardUtilsPanel extends LitElement {
               )}
             </div>
 
-            ${this._tab === "animations"
-              ? this._renderAnimationsTab()
-              : this._tab === "forum-shot"
-              ? this._renderForumShotTab()
-              : this._tab === "themes"
-              ? this._renderThemesTab()
-              : this._tab === "library"
-              ? this._renderLibraryTab()
-              : this._tab === "shapes"
-              ? this._renderShapesTab()
-              : this._tab === "icons"
-              ? this._renderIconsTab()
-              : this._tab === "images"
-              ? this._renderImagesTab()
-              : this._renderTemplatesTab()}`}
+            ${this._renderDraftingBody(covered)}`}
     `;
+  }
+
+  _renderTabBody() {
+    return this._tab === "animations"
+      ? this._renderAnimationsTab()
+      : this._tab === "forum-shot"
+      ? this._renderForumShotTab()
+      : this._tab === "themes"
+      ? this._renderThemesTab()
+      : this._tab === "library"
+      ? this._renderLibraryTab()
+      : this._tab === "shapes"
+      ? this._renderShapesTab()
+      : this._tab === "icons"
+      ? this._renderIconsTab()
+      : this._tab === "images"
+      ? this._renderImagesTab()
+      : this._renderTemplatesTab();
+  }
+
+  _renderDraftingBody(covered) {
+    const layout = layoutFor(this._viewWidth);
+    const strings = this._draftingStrings();
+    const model = this._inspectorModel();
+    const ctx = {
+      width: this._inspectorWidth,
+      z: stepDensity(this._density, 0).z,
+      sheet: layout.sheet,
+      sheetOpen: layout.sheet && this._sheetOpen && !!model,
+      openGroups: this._openGroups,
+      modifiedOnly: this._modifiedOnly,
+      onToggleGroup: (id) => this._toggleGroup(id),
+      onModifiedOnly: (on) => (this._modifiedOnly = on),
+      onClose: () => this._closeSheet(),
+      onKeyDown: (e) => {
+        if (sheetKey(e.key, { open: this._sheetOpen, sheet: layout.sheet }) === "close") {
+          e.stopPropagation();
+          this._closeSheet();
+        } else if (e.key === "Tab") this._holdFocusInSheet(e);
+      },
+    };
+    const showInspector = !!model && (layout.docked || ctx.sheetOpen);
+    return renderBody(ctx, {
+      main: html`<div role="tabpanel" id="mcu-tabpanel" aria-labelledby=${`mcu-tab-${this._tab}`}>${this._renderTabBody()}</div>`,
+      inspector: showInspector ? renderInspector(strings, ctx, model) : null,
+      grip: renderGrip(strings, this._inspectorWidth, {
+        pointerDown: (e) => this._gripPointerDown(e),
+        keyDown: (e) => {
+          if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+          e.preventDefault();
+          this._inspectorWidth = gripKey(e.key, this._inspectorWidth, e.shiftKey);
+        },
+      }),
+      pill:
+        ["templates", "library", "icons", "shapes", "images"].includes(this._tab) && !covered
+          ? renderDensityPill(strings, this._density, (dir) => (this._density = stepDensity(this._density, dir).pct), ctx.sheetOpen)
+          : null,
+    });
   }
 
   _filteredTemplates() {
@@ -2115,6 +3105,37 @@ class MagicCardUtilsPanel extends LitElement {
     return this._templates.filter((row) =>
       [row.name, row.description, row.card_type].some((v) => String(v || "").toLocaleLowerCase().includes(q))
     );
+  }
+
+  /** True while the full-screen details sheet is open; everything behind it is then out of the focus order. */
+  _sheetCoversPanel() {
+    return layoutFor(this._viewWidth).sheet && this._sheetOpen && !!this._inspectorModel();
+  }
+
+  /** Keeps Tab and Shift+Tab inside the open sheet: from its last control to its first, and back. */
+  _holdFocusInSheet(e) {
+    const sheet = this.shadowRoot && this.shadowRoot.querySelector(".inspector.is-sheet");
+    if (!sheet) return;
+    const SEL = "button, input, select, textarea, a[href], [tabindex]";
+    const list = [];
+    const walk = (root) => {
+      for (const el of root.querySelectorAll(SEL)) {
+        if (el.disabled || el.tabIndex < 0 || el.closest("[hidden]") || el.closest("[inert]")) continue;
+        const before = list.length;
+        if (el.shadowRoot) walk(el.shadowRoot);
+        if (list.length === before) list.push(el);
+      }
+      for (const host of root.querySelectorAll("*")) {
+        if (host.shadowRoot && !host.matches(SEL) && !host.closest("[hidden]") && !host.closest("[inert]")) walk(host.shadowRoot);
+      }
+    };
+    walk(sheet);
+    let active = this.shadowRoot.activeElement;
+    while (active && active.shadowRoot && active.shadowRoot.activeElement) active = active.shadowRoot.activeElement;
+    const target = tabWrapTarget(e.shiftKey, active, list);
+    if (!target) return;
+    e.preventDefault();
+    target.focus();
   }
 
   /** True while the Animations or Themes editor fills the screen; the header and tabs then sit behind it. */
@@ -2199,6 +3220,51 @@ class MagicCardUtilsPanel extends LitElement {
         : { tone: "error", text: tr("mcu-panel.panel.imported-n-of-total-templates", { n: saved, total: usable.length }) };
   }
 
+  /** Selects a template for the inspector and renders its live preview there. */
+  _selectTemplate(name, opener) {
+    if (this._templateSelected == null) this._openGroups = new Set([...this._openGroups, "preview"]);
+    this._templateSelected = name;
+    this._openInspector(opener);
+    this.updateComplete.then(() => this._buildTemplatePreview());
+  }
+
+  /** The inspector content for the selected template: its details and the live card. */
+  _templatesInspectorModel() {
+    const row = this._templateSelected == null ? null : this._templates.find((r) => r.name === this._templateSelected);
+    if (!row) return null;
+    const config = (row.raw && (row.raw.config || row.raw)) || {};
+    const type = row.card_type || (config && config.type) || "";
+    const fields = [
+      { kind: "field", label: tr("mcu-panel.panel.description"), value: row.description || "" },
+      { kind: "field", label: tr("mcu-panel.panel.card-type"), value: type },
+      { kind: "field", label: tr("mcu-panel.panel.n-linked-cards", { n: row.linked_cards }), value: String(row.linked_cards) },
+      { kind: "field", label: tr("mcu-panel.panel.updated-date", { date: this._formatDate(row.last_updated) }), value: this._formatDate(row.last_updated) },
+    ];
+    return {
+      name: row.name,
+      type,
+      groups: [
+        { id: "details", title: tr("mcu-panel.panel.details"), summary: row.description || row.name, fields },
+        {
+          id: "preview",
+          title: tr("mcu-panel.panel.preview"),
+          summary: type,
+          body: html`${this._previewError
+              ? html`<div class="notice error preview-note" role="alert">${glyph("error", 20)}<div class="body"><p>${this._previewError}</p></div></div>`
+              : ""}${this._viewRow ? "" : html`<div class="preview-host"></div>`}`,
+        },
+      ],
+    };
+  }
+
+  async _buildTemplatePreview() {
+    const row = this._templates.find((r) => r.name === this._templateSelected);
+    if (!row || this._viewRow) return;
+    this._builtPreviewHost = this.shadowRoot.querySelector(".preview-host");
+    this._previewError = "";
+    await this._buildPreview(row);
+  }
+
   _renderTemplateRow(row) {
     const checkId = `mcu-template-${this._templates.indexOf(row)}`;
     const checked = this._templatePicked.has(row.name);
@@ -2209,10 +3275,11 @@ class MagicCardUtilsPanel extends LitElement {
       tr("mcu-panel.panel.updated-date", { date: this._formatDate(row.last_updated) }),
     ].filter(Boolean).join(" · ");
     return html`
-      <div class="row ${checked ? "selected" : ""}" role="listitem">
+      <div class="row ${checked ? "selected" : ""} ${this._templateSelected === row.name ? "current" : ""}" role="listitem">
         <input type="checkbox" class="check" id=${checkId} aria-label=${tr("mcu-panel.panel.select-name", { name: row.name })}
           .checked=${checked} @change=${(e) => this._pickTemplate(row.name, e.target.checked)} />
-        <label class="name" for=${checkId}><bdi>${row.name}</bdi><small>${sub}</small></label>
+        <button type="button" class="name" aria-current="${this._templateSelected === row.name ? "true" : "false"}"
+          @click=${(e) => this._selectTemplate(row.name, e.currentTarget)}><bdi>${row.name}</bdi><small>${sub}</small></button>
         <span class="acts">
           <button type="button" class="icon-btn xs action-btn studio" title=${tr("mcu-panel.panel.open-in-studio")}
             aria-label=${tr("mcu-panel.panel.open-name-in-studio", { name: row.name })} @click=${() => this._openStudio(row)}>${glyph("fullscreen")}</button>
@@ -2494,302 +3561,7 @@ class MagicCardUtilsPanel extends LitElement {
   }
 
   static get styles() {
-    // The kit first (buttons, fields, notices, icon buttons, chips, empty), then layout only. The page header
-    // and the page tab bar are Home Assistant's own chrome (design/10 D6) and keep their HA variables.
-    return [
-      mcUiKit,
-      css`
-      :host {
-        display: block;
-      }
-      .header {
-        display: flex;
-        align-items: center;
-        height: 64px;
-        padding: 0 16px;
-        background-color: var(
-          --app-header-background-color,
-          var(--primary-color)
-        );
-        color: var(--app-header-text-color, var(--text-primary-color, #fff));
-        box-shadow: var(
-          --ha-card-box-shadow,
-          0 2px 4px -1px rgba(0, 0, 0, 0.2),
-          0 4px 5px 0 rgba(0, 0, 0, 0.14),
-          0 1px 10px 0 rgba(0, 0, 0, 0.12)
-        );
-        position: sticky;
-        top: 0;
-        z-index: 4;
-      }
-      .header ha-menu-button {
-        --mdc-icon-button-size: 40px;
-        color: inherit;
-      }
-      .title {
-        margin-left: 16px;
-        font-size: 20px;
-        font-weight: 400;
-        line-height: 1;
-        flex: 1;
-      }
-      .content {
-        display: grid;
-        gap: 12px;
-        align-content: start;
-        padding: 16px;
-      }
-      .tabs {
-        display: flex;
-        gap: 4px;
-        padding: 0 16px;
-        background: var(--card-background-color, var(--ha-card-background));
-        border-bottom: 1px solid var(--divider-color);
-        position: sticky;
-        top: 64px;
-        z-index: 3;
-        overflow-x: auto;
-      }
-      .tab {
-        flex: none;
-        height: 48px;
-        padding: 0 16px;
-        background: none;
-        border: 0;
-        border-bottom: 2px solid transparent;
-        color: var(--secondary-text-color);
-        font: inherit;
-        font-weight: 500;
-        cursor: pointer;
-        transition: color 120ms ease, border-color 120ms ease;
-      }
-      .tab:hover {
-        color: var(--primary-text-color);
-      }
-      .tab[aria-selected="true"] {
-        color: var(--mc-accent-ink, var(--primary-color));
-        border-bottom-color: var(--primary-color);
-      }
-      .tab:focus-visible {
-        outline: 2px solid var(--primary-color);
-        outline-offset: -4px;
-        border-radius: 4px;
-      }
-      .studio-status {
-        display: flex;
-        justify-content: center;
-        padding: 48px 16px;
-      }
-      .studio-host {
-        display: block;
-        height: calc(100vh - 64px - 49px);
-        min-height: 480px;
-      }
-      .studio-host[hidden],
-      .theme-host[hidden],
-      .forum-host[hidden] {
-        display: none;
-      }
-      .library-host,
-      .icons-host,
-      .images-host,
-      .shapes-host {
-        display: block;
-        padding: 16px;
-      }
-      .library-host[hidden],
-      .icons-host[hidden],
-      .images-host[hidden],
-      .shapes-host[hidden] {
-        display: none;
-      }
-      .images-hint {
-        margin: 0;
-        padding: 0 16px 16px;
-        color: var(--secondary-text-color);
-        font-size: 0.875rem;
-        line-height: 1.5;
-      }
-      .editor-host {
-        display: block;
-        height: calc(100vh - 64px);
-        min-height: 480px;
-      }
-      .editor-notice {
-        margin: 16px;
-      }
-      .shape-note {
-        margin: 16px 16px 0;
-      }
-      .forum-host {
-        display: block;
-        min-height: 480px;
-      }
-      .theme-host {
-        display: block;
-        height: calc(100vh - 64px - 49px);
-        min-height: 480px;
-      }
-      .bar {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        align-items: center;
-      }
-      .overlay {
-        position: fixed;
-        inset: 0;
-        background: var(--mc-scrim);
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 16px;
-      }
-      .dialog {
-        background: var(--mc-surface);
-        color: var(--mc-text);
-        border-radius: var(--mc-radius-xl);
-        box-shadow: var(--mc-shadow-dialog);
-        max-width: 1280px;
-        width: 100%;
-        max-height: 90vh;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
-      .dialog-body {
-        flex: 1;
-        display: flex;
-        min-height: 0;
-      }
-      .pane {
-        display: flex;
-        flex-direction: column;
-        min-width: 0;
-        min-height: 0;
-        flex: 1 1 50%;
-      }
-      .pane + .pane {
-        border-left: 1px solid var(--mc-divider);
-      }
-      .pane-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 8px 16px;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--mc-text-2);
-        border-bottom: 1px solid var(--mc-divider);
-        background: var(--mc-surface-2);
-      }
-      .preview-wrap {
-        flex: 1;
-        overflow: auto;
-        padding: 16px;
-        background: var(--mc-ground);
-      }
-      .preview-host {
-        display: block;
-      }
-      .preview-note {
-        margin-bottom: 12px;
-      }
-      .editor-host {
-        flex: 1;
-        overflow: auto;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-      }
-      .editor-host > * {
-        flex: 1;
-        align-self: stretch;
-      }
-      .metadata-pane {
-        flex: 0 0 240px;
-        border-right: 1px solid var(--mc-divider);
-      }
-      .meta-body {
-        padding: 12px;
-        display: grid;
-        gap: 12px;
-        align-content: start;
-      }
-      @media (max-width: 720px) {
-        .dialog-body {
-          flex-direction: column;
-        }
-        .pane + .pane {
-          border-left: 0;
-          border-top: 1px solid var(--mc-divider);
-        }
-      }
-      .action-dialog {
-        max-width: 480px;
-      }
-      .action-body {
-        padding: 16px 20px;
-        display: grid;
-        gap: 16px;
-        overflow: auto;
-      }
-      .dialog-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 12px 12px 20px;
-        border-bottom: 1px solid var(--mc-divider);
-      }
-      .dialog-title {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        min-width: 0;
-      }
-      .dialog-title-name {
-        font-size: 1rem;
-        font-weight: 500;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      .dialog-header-actions {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
-      .action-footer,
-      .dialog-footer {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 16px;
-        border-top: 1px solid var(--mc-divider);
-      }
-      .footer-note {
-        margin-right: auto;
-        min-width: 0;
-      }
-      .yaml-body {
-        margin: 0;
-        padding: 16px;
-        background: var(--code-editor-background-color, #1e1e1e);
-        color: var(--primary-text-color);
-        font-family: var(--mc-mono);
-        font-size: 0.75rem;
-        line-height: 1.5;
-        overflow: auto;
-        flex: 1;
-        min-height: 0;
-        white-space: pre;
-      }
-    `,
-    ];
+    return draftingStyles;
   }
 }
 
