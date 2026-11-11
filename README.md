@@ -154,6 +154,7 @@ The MIT License covers the source code. It does not cover the brand assets (the 
 ### Third-party
 
 - **Lit 3.3.3** (BSD-3-Clause): the panel uses a local copy in `custom_components/magic_card_utils/www/` instead of loading it from unpkg.com. The licence text is in `custom_components/magic_card_utils/www/LICENSE-lit.txt`.
+- **Panel fonts** (SIL Open Font Licence 1.1): the panel loads its fonts from `custom_components/magic_card_utils/www/` and asks no outside site. The licence text is in `custom_components/magic_card_utils/www/fonts/OFL.txt`.
 - **Material Design Icons, @mdi/js 7.4.47** (Apache-2.0): a few icon paths are built into `custom_components/magic_card_utils/www/mc-ui-kit.js`. The licence text is in `custom_components/magic_card_utils/www/LICENSE-mdi.txt`.
 
 

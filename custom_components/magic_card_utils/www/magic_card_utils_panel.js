@@ -1535,10 +1535,7 @@ class MagicCardUtilsPanel extends LitElement {
         : ""}
       <div class="bar">
         <button type="button" class="btn btn-primary" data-a="new" @click=${(e) => this._startAnimationStudio(e.currentTarget)}>
-          <ha-icon icon="mdi:plus"></ha-icon>${tr("mcu-panel.panel.new-animation")}
-        </button>
-        <button type="button" class="btn btn-secondary" data-a="import" @click=${(e) => this._startAnimationStudio(e.currentTarget)}>
-          <ha-icon icon="mdi:import"></ha-icon>${tr("mcu-panel.panel.import")}
+          <ha-icon icon="mdi:open-in-new"></ha-icon>${tr("mcu-panel.panel.new-animation")}
         </button>
       </div>
       <div class="field">
@@ -1823,10 +1820,7 @@ class MagicCardUtilsPanel extends LitElement {
         : ""}
       <div class="bar">
         <button type="button" class="btn btn-primary" data-a="new" @click=${(e) => this._startThemeEditor(e.currentTarget)}>
-          <ha-icon icon="mdi:plus"></ha-icon>${tr("mcu-panel.panel.new-theme")}
-        </button>
-        <button type="button" class="btn btn-secondary" data-a="import" @click=${(e) => this._startThemeEditor(e.currentTarget)}>
-          <ha-icon icon="mdi:import"></ha-icon>${tr("mcu-panel.panel.import")}
+          <ha-icon icon="mdi:open-in-new"></ha-icon>${tr("mcu-panel.panel.new-theme")}
         </button>
       </div>
       <div class="field">
@@ -3117,10 +3111,23 @@ class MagicCardUtilsPanel extends LitElement {
   _holdFocusInSheet(e) {
     const sheet = this.shadowRoot && this.shadowRoot.querySelector(".inspector.is-sheet");
     if (!sheet) return;
-    const list = [...sheet.querySelectorAll("button, input, select, textarea, a[href], [tabindex]")].filter(
-      (el) => !el.disabled && el.tabIndex >= 0 && !el.closest("[hidden]") && !el.closest("[inert]")
-    );
-    const target = tabWrapTarget(e.shiftKey, this.shadowRoot.activeElement, list);
+    const SEL = "button, input, select, textarea, a[href], [tabindex]";
+    const list = [];
+    const walk = (root) => {
+      for (const el of root.querySelectorAll(SEL)) {
+        if (el.disabled || el.tabIndex < 0 || el.closest("[hidden]") || el.closest("[inert]")) continue;
+        const before = list.length;
+        if (el.shadowRoot) walk(el.shadowRoot);
+        if (list.length === before) list.push(el);
+      }
+      for (const host of root.querySelectorAll("*")) {
+        if (host.shadowRoot && !host.matches(SEL) && !host.closest("[hidden]") && !host.closest("[inert]")) walk(host.shadowRoot);
+      }
+    };
+    walk(sheet);
+    let active = this.shadowRoot.activeElement;
+    while (active && active.shadowRoot && active.shadowRoot.activeElement) active = active.shadowRoot.activeElement;
+    const target = tabWrapTarget(e.shiftKey, active, list);
     if (!target) return;
     e.preventDefault();
     target.focus();
