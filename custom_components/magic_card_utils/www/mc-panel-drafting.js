@@ -25,7 +25,28 @@ const RULER_MIN = 640;
 /** Which parts of the layout apply at a viewport width in px. */
 export function layoutFor(width) {
   const docked = width >= DOCK_MIN;
-  return { docked, sheet: !docked, grip: docked, ruler: width >= RULER_MIN, twoLine: width < RULER_MIN };
+  return {
+    docked,
+    sheet: !docked,
+    mode: docked ? "docked" : "sheet",
+    grip: docked,
+    ruler: width >= RULER_MIN,
+    twoLine: width < RULER_MIN,
+    narrow: width < RULER_MIN,
+  };
+}
+
+/**
+ * Where Tab moves inside the open sheet: the element to focus when the key would leave the list (first when going
+ * forward from the last or from outside, last when going back from the first), else null to let the browser move on.
+ */
+export function tabWrapTarget(shift, active, list) {
+  if (!list.length) return null;
+  const i = list.indexOf(active);
+  if (i < 0) return shift ? list[list.length - 1] : list[0];
+  if (!shift && i === list.length - 1) return list[0];
+  if (shift && i === 0) return list[list.length - 1];
+  return null;
 }
 
 /** Index of the tab a key moves to (wrapping), or -1 when the key does not move the selection. */
@@ -85,11 +106,11 @@ export function gripKey(key, width, shift) {
 
 /**
  * The density pill. `s` holds the strings: group, smaller, larger.
- * `onStep(dir)` is called with -1 or +1.
+ * `onStep(dir)` is called with -1 or +1; `inert` takes it out of the focus order while the sheet covers it.
  */
-export function renderDensityPill(s, pct, onStep) {
+export function renderDensityPill(s, pct, onStep, inert = false) {
   const st = stepDensity(pct, 0);
-  return html`<div class="density" role="group" aria-label=${s.rowSize}>
+  return html`<div class="density" ?inert=${inert} role="group" aria-label=${s.rowSize}>
     <button type="button" class="dbtn" aria-label=${s.smaller} ?disabled=${!st.canDec} @click=${() => onStep(-1)}>${glyph("remove", 18)}</button>
     <output aria-live="polite">${pct}%</output>
     <button type="button" class="dbtn" aria-label=${s.larger} ?disabled=${!st.canInc} @click=${() => onStep(1)}>${glyph("add", 18)}</button>
@@ -97,15 +118,11 @@ export function renderDensityPill(s, pct, onStep) {
 }
 
 /**
- * The resize grip between the list and the docked inspector: a vertical separator that Left, Right,
- * Shift, Home and End also move.
- */
-/**
  * The body grid: ruler, main area (inert while the sheet is open), and, when there is an inspector, the grip and the
  * inspector. `parts` holds main, inspector, grip and pill templates.
  */
 export function renderBody(ctx, parts) {
-  return html`<div class="body ${parts.inspector ? "has-inspector" : ""}" style=${parts.inspector ? `--iw:${ctx.width}px` : nothing}>
+  return html`<div class="bp-grid ${parts.inspector ? "has-inspector" : ""}" style=${parts.inspector ? `--iw:${ctx.width}px` : nothing}>
     <div class="ruler-y" aria-hidden="true"></div>
     <div class="main ${parts.pill ? "has-pill" : ""}" style=${`--z:${ctx.z}`} ?inert=${ctx.sheetOpen}>
       <div class="ruler-x" aria-hidden="true"></div>
@@ -116,6 +133,10 @@ export function renderBody(ctx, parts) {
   </div>`;
 }
 
+/**
+ * The resize grip between the list and the docked inspector: a vertical separator that Left, Right,
+ * Shift, Home and End also move.
+ */
 export function renderGrip(s, width, handlers) {
   return html`<div
     class="grip"
@@ -177,7 +198,7 @@ export function renderInspector(s, ctx, model) {
   const inner = html`<div class="ins-head">
       ${ctx.sheet ? html`<button type="button" class="btn btn-secondary ins-back" @click=${ctx.onClose}>${glyph("back", 18)}${s.back}</button>` : nothing}
       <div class="ins-title">
-        <strong>${model ? model.name : s.nothing}</strong>
+        <h2>${model ? model.name : s.nothing}</h2>
         <span>${model ? model.type : s.pick}</span>
       </div>
     </div>
@@ -257,6 +278,7 @@ export const draftingStyles = [
       color: inherit;
     }
     .title {
+      margin-block: 0;
       margin-inline-start: 8px;
       font-size: 1.125rem;
       font-weight: 500;
@@ -338,13 +360,13 @@ export const draftingStyles = [
       outline-offset: -3px;
       border-radius: 6px;
     }
-    .body {
+    .bp-grid {
       display: grid;
       grid-template-columns: 18px minmax(0, 1fr);
       position: relative;
       min-height: calc(100vh - 48px - 43px);
     }
-    .body.has-inspector {
+    .bp-grid.has-inspector {
       grid-template-columns: 18px minmax(0, 1fr) 7px var(--iw, 360px);
     }
     .ruler-y {
@@ -597,7 +619,8 @@ export const draftingStyles = [
       display: grid;
       min-width: 0;
     }
-    .ins-title strong {
+    .ins-title h2 {
+      margin: 0;
       font-size: 1rem;
       font-weight: 600;
       overflow: hidden;
@@ -1012,42 +1035,38 @@ export const draftingStyles = [
       min-height: 0;
       white-space: pre;
     }
-    @media (max-width: 1023px) {
-      .body.has-inspector {
-        grid-template-columns: 18px minmax(0, 1fr);
-      }
-      .grip {
-        display: none;
-      }
-      .inspector.is-sheet {
-        position: fixed;
-        inset: 0;
-        z-index: 12;
-        max-height: none;
-        border-inline-start: 0;
-      }
-      .ruler-y {
-        width: 16px;
-      }
+    :host([data-layout="sheet"]) .bp-grid.has-inspector {
+      grid-template-columns: 18px minmax(0, 1fr);
     }
-    @media (max-width: 639px) {
-      .body,
-      .body.has-inspector {
-        grid-template-columns: minmax(0, 1fr);
-      }
-      .ruler-x,
-      .ruler-y {
-        display: none;
-      }
-      .content {
-        padding: 16px;
-      }
-      .tiles {
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      }
-      .main .row {
-        min-height: 56px;
-      }
+    :host([data-layout="sheet"]) .grip {
+      display: none;
+    }
+    :host([data-layout="sheet"]) .inspector.is-sheet {
+      position: fixed;
+      inset: 0;
+      z-index: 12;
+      max-height: none;
+      border-inline-start: 0;
+    }
+    :host([data-layout="sheet"]) .ruler-y {
+      width: 16px;
+    }
+    :host([data-narrow="true"]) .bp-grid,
+    :host([data-narrow="true"]) .bp-grid.has-inspector {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    :host([data-narrow="true"]) .ruler-x,
+    :host([data-narrow="true"]) .ruler-y {
+      display: none;
+    }
+    :host([data-narrow="true"]) .content {
+      padding: 16px;
+    }
+    :host([data-narrow="true"]) .tiles {
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    }
+    :host([data-narrow="true"]) .main .row {
+      min-height: 56px;
     }
     @media (pointer: coarse) {
       .tab {

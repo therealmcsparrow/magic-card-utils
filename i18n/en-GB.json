@@ -621,6 +621,11 @@
       "name": "The value that replaces name in the text."
     }
   },
+  "mcu-panel.panel.new-animation": {
+    "text": "New animation",
+    "note": "Button above the animation list: opens the animation studio at its list, where a new animation is made or a file is imported.",
+    "max": 24
+  },
   "mcu-panel.panel.new-template": {
     "text": "New template",
     "note": "Primary button above the template list, and the dialog title until the new template has a name.",
@@ -630,6 +635,11 @@
     "text": "New template name",
     "note": "Label of the name field in the duplicate window.",
     "max": 30
+  },
+  "mcu-panel.panel.new-theme": {
+    "text": "New theme",
+    "note": "Button above the theme list: opens the theme editor at its start view, where a new theme is made or a file is imported.",
+    "max": 24
   },
   "mcu-panel.panel.no-animations-match-search": {
     "text": "No animations match your search.",

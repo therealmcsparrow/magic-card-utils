@@ -21,6 +21,7 @@ import {
   shouldOpenSheet,
   stepDensity,
   tabKeyTarget,
+  tabWrapTarget,
 } from "./mc-panel-drafting.js";
 import { setI18nLocale } from "./mc-i18n.js";
 import { t as tr, tx as trx, locale } from "./mc-i18n-panel.js";
@@ -483,28 +484,48 @@ function _deepFindByFocusKey(root, key) {
   return null;
 }
 
-const ITEM_THUMB_RE = /^(?:data:image\/(?:png|jpe?g|webp|gif|svg\+xml)[;,]|blob:|\/(?!\/))/i;
 const ITEM_KINDS = ["preset", "icon", "shape", "image"];
-const NUM_RE = /^-?\d*\.?\d+(?:e-?\d+)?$/i;
+const NUM_RE = /^-?(?:\d+(?:\.\d+)?|\.\d+)(?:e-?\d+)?$/i;
 const PATH_D_RE = /^[MmLlHhVvCcSsQqTtAaZz0-9eE.,\s+-]*$/;
+const PART_TAG_RE = /<(path|circle|rect)(?=[\s/>])/gi;
+const MAX_NUM_CHARS = 32;
+const MAX_TAG_CHARS = 70000;
+const MAX_PARTS = 500;
+const DATA_THUMB_RE = /^data:image\/(?:png|webp);base64,[A-Za-z0-9+/=]*$/i;
+
+/** A template result in the SVG namespace (what Lit's `svg` tag returns); the vendored bundle exports only `html`. */
+const svg = (strings, ...values) => ({ _$litType$: 2, strings, values });
+
+/** True for a plain number of at most MAX_NUM_CHARS characters; longer values are refused before the pattern runs. */
+function _isNum(v) {
+  return typeof v === "string" && v.length <= MAX_NUM_CHARS && NUM_RE.test(v);
+}
 
 /**
  * The drawable parts of a saved SVG for the inspector picture: its view box and its path, circle and rect
  * elements with plain numeric values. Everything else (scripts, handlers, styles, links) is dropped, so the
- * markup itself never reaches the panel DOM.
+ * markup itself never reaches the panel DOM. Every scan moves forward only, so hostile input stays linear.
  */
 function _svgParts(text) {
   if (typeof text !== "string" || text.length > 262144) return null;
-  const vb = /viewBox\s*=\s*"([^"]*)"/i.exec(text);
+  const vb = /viewBox\s*=\s*"([^"]{0,200})"/i.exec(text);
   const box = vb ? vb[1].trim().split(/[\s,]+/) : [];
-  if (box.length !== 4 || !box.every((n) => NUM_RE.test(n)) || !(+box[2] > 0) || !(+box[3] > 0)) return null;
+  if (box.length !== 4 || !box.every(_isNum) || !(+box[2] > 0) || !(+box[3] > 0)) return null;
   const attr = (tag, name) => {
     const m = new RegExp(`\\s${name}\\s*=\\s*"([^"]*)"`, "i").exec(tag);
     return m ? m[1].trim() : "";
   };
   const parts = [];
-  for (const m of text.matchAll(/<(path|circle|rect)[^>]*>/gi)) {
-    const tag = m[0];
+  let end = -1;
+  PART_TAG_RE.lastIndex = 0;
+  for (let m = PART_TAG_RE.exec(text); m && parts.length < MAX_PARTS; m = PART_TAG_RE.exec(text)) {
+    if (end < m.index) {
+      end = text.indexOf(">", m.index);
+      if (end < 0) break;
+    }
+    const next = text.indexOf("<", m.index + 1);
+    if ((next >= 0 && next < end) || end - m.index > MAX_TAG_CHARS) continue;
+    const tag = text.slice(m.index, end + 1);
     const kind = m[1].toLowerCase();
     if (kind === "path") {
       const d = attr(tag, "d");
@@ -512,15 +533,29 @@ function _svgParts(text) {
     } else {
       const names = kind === "circle" ? ["cx", "cy", "r"] : ["x", "y", "width", "height"];
       const v = names.map((n) => attr(tag, n) || (n === "x" || n === "y" || n === "cx" || n === "cy" ? "0" : ""));
-      if (v.every((n) => NUM_RE.test(n))) parts.push({ kind, v });
+      if (v.every(_isNum)) parts.push({ kind, v });
     }
   }
   return { viewBox: box.join(" "), w: +box[2], h: +box[3], parts };
 }
 
-/** A thumbnail address the inspector may load: a data or blob image, or a path on this host. */
+/**
+ * A thumbnail address the inspector may load: a PNG or WebP data URL, a blob URL of this origin, or a path on this
+ * origin. Paths are resolved the way the browser resolves them and must stay on this origin; tabs, line breaks and
+ * backslashes are refused because the URL parser drops a tab and reads a backslash as a slash, which turns such a path into another host.
+ */
 function _safeThumb(v) {
-  return typeof v === "string" && v.length < 2000000 && ITEM_THUMB_RE.test(v) ? v : "";
+  if (typeof v !== "string" || !v || v.length > 2000000) return "";
+  if (v.startsWith("data:")) return DATA_THUMB_RE.test(v) ? v : "";
+  if (v.length > 2048) return "";
+  try {
+    const origin = window.location.origin;
+    if (v.startsWith("blob:")) return new URL(v).origin === origin ? v : "";
+    if (!v.startsWith("/") || v.startsWith("//") || /[\t\n\r\\]/.test(v)) return "";
+    return new URL(v, origin).origin === origin ? v : "";
+  } catch (_err) {
+    return "";
+  }
 }
 
 class MagicCardUtilsPanel extends LitElement {
@@ -1459,6 +1494,13 @@ class MagicCardUtilsPanel extends LitElement {
     }
   }
 
+  /** New and Import: opens the studio at its own list, which holds both actions, with no item picked. */
+  _startAnimationStudio(opener) {
+    this._selectedAnimation = null;
+    this._syncTabQuery("animations");
+    this._openAnimationStudio(opener);
+  }
+
   _closeStudio() {
     const opener = this._studioOpener;
     this._studioOpener = null;
@@ -1491,6 +1533,14 @@ class MagicCardUtilsPanel extends LitElement {
             <button type="button" class="icon-btn sm close-btn" aria-label=${tr("mcu-panel.panel.dismiss")} title=${tr("mcu-panel.panel.dismiss")} @click=${() => (this._animError = "")}>${glyph("close")}</button>
           </div>`
         : ""}
+      <div class="bar">
+        <button type="button" class="btn btn-primary" data-a="new" @click=${(e) => this._startAnimationStudio(e.currentTarget)}>
+          <ha-icon icon="mdi:plus"></ha-icon>${tr("mcu-panel.panel.new-animation")}
+        </button>
+        <button type="button" class="btn btn-secondary" data-a="import" @click=${(e) => this._startAnimationStudio(e.currentTarget)}>
+          <ha-icon icon="mdi:import"></ha-icon>${tr("mcu-panel.panel.import")}
+        </button>
+      </div>
       <div class="field">
         <div class="field-head"><label for="mcu-anim-search">${tr("mcu-panel.panel.search-animations")}</label></div>
         <div class="with-icon">
@@ -1737,10 +1787,17 @@ class MagicCardUtilsPanel extends LitElement {
     this._themeEditorOpen = true;
     this._themeEditorOpener = opener || null;
     if (this._themeEl) {
-      if (this._selectedTheme) this._themeEl.selectedName = this._selectedTheme;
+      this._themeEl.selectedName = this._selectedTheme || null;
     } else {
       this._mountThemeEditor();
     }
+  }
+
+  /** New and Import: opens the editor at its own start view, which holds both actions, with no theme picked. */
+  _startThemeEditor(opener) {
+    this._selectedTheme = null;
+    this._syncTabQuery("themes");
+    this._openThemeEditor(opener);
   }
 
   _closeThemeEditor() {
@@ -1764,6 +1821,14 @@ class MagicCardUtilsPanel extends LitElement {
             </div>
           </div>`
         : ""}
+      <div class="bar">
+        <button type="button" class="btn btn-primary" data-a="new" @click=${(e) => this._startThemeEditor(e.currentTarget)}>
+          <ha-icon icon="mdi:plus"></ha-icon>${tr("mcu-panel.panel.new-theme")}
+        </button>
+        <button type="button" class="btn btn-secondary" data-a="import" @click=${(e) => this._startThemeEditor(e.currentTarget)}>
+          <ha-icon icon="mdi:import"></ha-icon>${tr("mcu-panel.panel.import")}
+        </button>
+      </div>
       <div class="field">
         <div class="field-head"><label for="mcu-theme-search">${tr("mcu-panel.panel.search-themes")}</label></div>
         <div class="with-icon">
@@ -2870,10 +2935,10 @@ class MagicCardUtilsPanel extends LitElement {
         body: html`<div class="item-pic">
           <svg role="img" aria-label="${label}" viewBox="${parts.viewBox}" width="96" height="96" fill="currentColor">${parts.parts.map((p) =>
             p.kind === "path"
-              ? html`<path d="${p.d}"></path>`
+              ? svg`<path d="${p.d}"></path>`
               : p.kind === "circle"
-              ? html`<circle cx="${p.v[0]}" cy="${p.v[1]}" r="${p.v[2]}"></circle>`
-              : html`<rect x="${p.v[0]}" y="${p.v[1]}" width="${p.v[2]}" height="${p.v[3]}"></rect>`
+              ? svg`<circle cx="${p.v[0]}" cy="${p.v[1]}" r="${p.v[2]}"></circle>`
+              : svg`<rect x="${p.v[0]}" y="${p.v[1]}" width="${p.v[2]}" height="${p.v[3]}"></rect>`
           )}</svg>
           <small>${caption}</small>
         </div>`,
@@ -2910,7 +2975,7 @@ class MagicCardUtilsPanel extends LitElement {
 
   _gripPointerDown(e) {
     e.preventDefault();
-    const rect = this.shadowRoot.querySelector(".body").getBoundingClientRect();
+    const rect = this.shadowRoot.querySelector(".bp-grid").getBoundingClientRect();
     const rtl = this._isRtl();
     const move = (ev) => {
       const w = rtl ? ev.clientX - rect.left : rect.right - ev.clientX;
@@ -2931,6 +2996,10 @@ class MagicCardUtilsPanel extends LitElement {
       this.setAttribute("lang", locale());
       this.setAttribute("data-bp-mode", modeFor(this.hass));
     }
+    // The same measure drives the code and the CSS, so the sheet and the narrow layout apply together.
+    const layout = layoutFor(this._viewWidth);
+    this.setAttribute("data-layout", layout.mode);
+    this.setAttribute("data-narrow", layout.narrow ? "true" : "false");
   }
 
   render() {
@@ -2939,22 +3008,26 @@ class MagicCardUtilsPanel extends LitElement {
     }
 
     const covered = this._editorCoversPanel();
+    const behindSheet = this._sheetCoversPanel();
+    const activeTab = TABS.find(([t]) => t === this._tab) || TABS[0];
     return html`
-      <div class="header" ?inert=${covered}>
+      <div class="header" ?inert=${covered || behindSheet}>
         <ha-menu-button
           .hass=${this.hass}
           .narrow=${this.narrow}
         ></ha-menu-button>
-        <div class="title">${this.panel && this.panel.title}</div>
+        <h1 class="title">${activeTab[1]()}</h1>
       </div>
 
       ${this._editorOpen
         ? html`<div class="editor-host"></div>`
-        : html`<div class="tabs" ?inert=${covered} role="tablist" aria-label=${tr("mcu-panel.panel.magic-card-utils")} data-fade=${this._tabFade} @keydown=${this._onTabKeydown} @scroll=${this._onTabsScroll}>
+        : html`<div class="tabs" ?inert=${covered || behindSheet} role="tablist" aria-label=${tr("mcu-panel.panel.magic-card-utils")} data-fade=${this._tabFade} @keydown=${this._onTabKeydown} @scroll=${this._onTabsScroll}>
               ${TABS.map(
                 ([tab, label]) => html`<button
                   class="tab"
                   role="tab"
+                  id=${`mcu-tab-${tab}`}
+                  aria-controls="mcu-tabpanel"
                   data-tab=${tab}
                   aria-selected=${this._tab === tab ? "true" : "false"}
                   tabindex=${this._tab === tab ? "0" : "-1"}
@@ -3005,12 +3078,12 @@ class MagicCardUtilsPanel extends LitElement {
         if (sheetKey(e.key, { open: this._sheetOpen, sheet: layout.sheet }) === "close") {
           e.stopPropagation();
           this._closeSheet();
-        }
+        } else if (e.key === "Tab") this._holdFocusInSheet(e);
       },
     };
     const showInspector = !!model && (layout.docked || ctx.sheetOpen);
     return renderBody(ctx, {
-      main: this._renderTabBody(),
+      main: html`<div role="tabpanel" id="mcu-tabpanel" aria-labelledby=${`mcu-tab-${this._tab}`}>${this._renderTabBody()}</div>`,
       inspector: showInspector ? renderInspector(strings, ctx, model) : null,
       grip: renderGrip(strings, this._inspectorWidth, {
         pointerDown: (e) => this._gripPointerDown(e),
@@ -3022,7 +3095,7 @@ class MagicCardUtilsPanel extends LitElement {
       }),
       pill:
         ["templates", "library", "icons", "shapes", "images"].includes(this._tab) && !covered
-          ? renderDensityPill(strings, this._density, (dir) => (this._density = stepDensity(this._density, dir).pct))
+          ? renderDensityPill(strings, this._density, (dir) => (this._density = stepDensity(this._density, dir).pct), ctx.sheetOpen)
           : null,
     });
   }
@@ -3033,6 +3106,24 @@ class MagicCardUtilsPanel extends LitElement {
     return this._templates.filter((row) =>
       [row.name, row.description, row.card_type].some((v) => String(v || "").toLocaleLowerCase().includes(q))
     );
+  }
+
+  /** True while the full-screen details sheet is open; everything behind it is then out of the focus order. */
+  _sheetCoversPanel() {
+    return layoutFor(this._viewWidth).sheet && this._sheetOpen && !!this._inspectorModel();
+  }
+
+  /** Keeps Tab and Shift+Tab inside the open sheet: from its last control to its first, and back. */
+  _holdFocusInSheet(e) {
+    const sheet = this.shadowRoot && this.shadowRoot.querySelector(".inspector.is-sheet");
+    if (!sheet) return;
+    const list = [...sheet.querySelectorAll("button, input, select, textarea, a[href], [tabindex]")].filter(
+      (el) => !el.disabled && el.tabIndex >= 0 && !el.closest("[hidden]") && !el.closest("[inert]")
+    );
+    const target = tabWrapTarget(e.shiftKey, this.shadowRoot.activeElement, list);
+    if (!target) return;
+    e.preventDefault();
+    target.focus();
   }
 
   /** True while the Animations or Themes editor fills the screen; the header and tabs then sit behind it. */
