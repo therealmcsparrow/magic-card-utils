@@ -622,8 +622,8 @@
     }
   },
   "mcu-panel.panel.new-animation": {
-    "text": "New animation",
-    "note": "Button above the animation list: opens the animation studio at its list, where a new animation is made or a file is imported.",
+    "text": "Open animation studio",
+    "note": "Button above the animation list: opens the animation studio at its list, where animations are made, imported and edited.",
     "max": 24
   },
   "mcu-panel.panel.new-template": {
@@ -637,8 +637,8 @@
     "max": 30
   },
   "mcu-panel.panel.new-theme": {
-    "text": "New theme",
-    "note": "Button above the theme list: opens the theme editor at its start view, where a new theme is made or a file is imported.",
+    "text": "Open theme editor",
+    "note": "Button above the theme list: opens the theme editor at its list, where themes are made, imported and edited.",
     "max": 24
   },
   "mcu-panel.panel.no-animations-match-search": {

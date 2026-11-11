@@ -428,8 +428,8 @@
     "hash": "6a434cf4"
   },
   "mcu-panel.panel.new-animation": {
-    "text": "Nieuwe animatie",
-    "hash": "cd620440"
+    "text": "Animatiestudio openen",
+    "hash": "cb5ba04a"
   },
   "mcu-panel.panel.new-template": {
     "text": "Nieuw sjabloon",
@@ -440,8 +440,8 @@
     "hash": "0a05447d"
   },
   "mcu-panel.panel.new-theme": {
-    "text": "Nieuw thema",
-    "hash": "56ce19dd"
+    "text": "Thema-editor openen",
+    "hash": "38c4b2f1"
   },
   "mcu-panel.panel.no-animations-match-search": {
     "text": "Geen animaties komen overeen met je zoekopdracht.",
