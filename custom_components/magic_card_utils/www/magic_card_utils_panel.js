@@ -563,6 +563,18 @@ class MagicCardUtilsPanel extends LitElement {
       _animMessage: { type: String, state: true },
       _animError: { type: String, state: true },
       // themes tab
+      _animations: { type: Object, state: true },
+      _animLoad: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
+      _animFilter: { type: String, state: true },
+      _selectedAnimation: { type: String, state: true },
+      _studioOpen: { type: Boolean, state: true },
+      _themeFiles: { type: Array, state: true },
+      _themeListLoad: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
+      _themeFilter: { type: String, state: true },
+      _themeListError: { type: String, state: true },
+      _selectedTheme: { type: String, state: true },
+      _themeEditorOpen: { type: Boolean, state: true },
+      _themeDeleteAsk: { type: String, state: true },
       _themeStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _themeMessage: { type: String, state: true },
       _forumStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
@@ -625,6 +637,17 @@ class MagicCardUtilsPanel extends LitElement {
     this._themeStatus = "";
     this._themeMessage = "";
     this._themeEl = null;
+    this._themeFiles = [];
+    this._themeListLoad = "";
+    this._themeFilter = "";
+    this._themeListError = "";
+    this._themeDeleteAsk = "";
+    this._themeEditorOpen = !!this._selectedTheme || !!(_themeElCache && _lastTab === "themes");
+    this._themeEditorOpener = null;
+    this._animFilter = "";
+    this._animLoad = "";
+    this._studioOpen = !!this._selectedAnimation;
+    this._studioOpener = null;
     this._forumStatus = "";
     this._forumMessage = "";
     this._forumEl = null;
@@ -717,6 +740,7 @@ class MagicCardUtilsPanel extends LitElement {
   }
 
   _openStudio(row) {
+    if (this._tab === "animations") return this._openAnimationStudio(row);
     this._openEditTemplate(row);
     this._studioOnMount = true;
   }
@@ -841,7 +865,8 @@ class MagicCardUtilsPanel extends LitElement {
       }
       if (this._tab === "images" && this._imagesStatus === "ready") this._attachImagesView();
     }
-    if (this._tab === "themes" && this.hass && !this._themeEl && this._themeStatus === "") {
+    if (this._tab === "themes" && this.hass && this._themeListLoad === "") this._loadThemeFiles();
+    if (this._tab === "themes" && this.hass && this._themeEditorOpen && !this._themeEl && this._themeStatus === "") {
       this._mountThemeEditor();
     }
     if (this._tab === "themes" && this._themeStatus === "ready") this._attachThemeEditor();
@@ -849,7 +874,8 @@ class MagicCardUtilsPanel extends LitElement {
       this._mountForumShot();
     }
     if (this._tab === "forum-shot" && this._forumStatus === "ready") this._attachForumShot();
-    if (this._tab === "animations" && this.hass && !this._studioEl && this._animStatus === "") {
+    if (this._tab === "animations" && this.hass && this._animLoad === "") this._loadAnimations();
+    if (this._tab === "animations" && this.hass && this._studioOpen && !this._studioEl && this._animStatus === "") {
       this._mountAnimationStudio();
     }
     if (changedProps.has("_viewMode") || changedProps.has("_editConfig") || changedProps.has("_viewRow")) {
@@ -1333,33 +1359,164 @@ class MagicCardUtilsPanel extends LitElement {
     }
   }
 
+  /** Loads the animation library for the list and the inspector; the studio is only mounted when one is opened. */
+  async _loadAnimations() {
+    if (!this.hass || this._animLoad === "loading") return;
+    this._animLoad = "loading";
+    try {
+      await this._subscribeAnimations();
+      this._animLoad = "ready";
+    } catch (err) {
+      console.error("[magic_card_utils] animation library unavailable", err);
+      this._animLoad = "error";
+      this._animError = tr("mcu-panel.panel.the-animation-library-could-not-be");
+    }
+  }
+
+  _filteredAnimations() {
+    const q = (this._animFilter || "").trim().toLocaleLowerCase();
+    const all = Object.values(this._animations || {}).filter((d) => d && typeof d.id === "string");
+    const shown = q
+      ? all.filter((d) => [d.id, d.name, d.kind].some((v) => String(v || "").toLocaleLowerCase().includes(q)))
+      : all.slice();
+    return shown.sort((x, y) => String(x.name || x.id).localeCompare(String(y.name || y.id)));
+  }
+
+  /** Marks an animation for the inspector (and `?animation=`); below 1024 px that opens the sheet. */
+  _selectAnimation(id, opener) {
+    if (typeof id !== "string" || !ANIMATION_ID_RE.test(id) || !Object.prototype.hasOwnProperty.call(this._animations || {}, id)) return;
+    if (this._selectedAnimation == null) this._openGroups = new Set([...this._openGroups, "preview", "details"]);
+    this._selectedAnimation = id;
+    this._syncTabQuery("animations");
+    if (this._studioEl) this._studioEl.selectedId = id;
+    this._openInspector(opener);
+  }
+
+  /** The inspector content for the selected animation: a still preview note and its details. */
+  _animationInspectorModel() {
+    const id = this._selectedAnimation;
+    if (this._studioOpen || !id || !Object.prototype.hasOwnProperty.call(this._animations || {}, id)) return null;
+    const def = this._animations[id] || {};
+    const name = typeof def.name === "string" && def.name ? def.name : id;
+    const kind = typeof def.kind === "string" ? def.kind : "";
+    return {
+      name,
+      type: tr("mcu-panel.panel.animation"),
+      groups: [
+        {
+          id: "preview",
+          title: tr("mcu-panel.panel.preview"),
+          summary: kind,
+          body: html`<div class="item-pic"><p class="fld-help">${tr("mcu-panel.panel.open-the-animation-in-the-studio-to-play")}</p></div>`,
+        },
+        {
+          id: "details",
+          title: tr("mcu-panel.panel.details"),
+          summary: id,
+          fields: [
+            { kind: "field", label: tr("mcu-panel.panel.name"), value: name },
+            { kind: "field", label: tr("mcu-panel.panel.id"), value: id },
+            { kind: "field", label: tr("mcu-panel.panel.kind"), value: kind },
+          ],
+        },
+      ],
+      footer: html`<button type="button" class="btn btn-primary" data-a="studio" @click=${(e) => this._openStudio(e.currentTarget)}>${glyph("fullscreen", 18)}${tr("mcu-panel.panel.open-in-studio")}</button>`,
+    };
+  }
+
+  /** Shows the studio in place of the list, mounting it the first time. */
+  _openAnimationStudio(opener) {
+    this._studioOpen = true;
+    this._studioOpener = opener || null;
+    if (this._studioEl) {
+      this._studioEl.selectedId = this._selectedAnimation;
+      this._pushLibrary();
+    } else {
+      this._mountAnimationStudio();
+    }
+  }
+
+  _closeStudio() {
+    const opener = this._studioOpener;
+    this._studioOpener = null;
+    this._studioOpen = false;
+    this._refocus(opener, this._selectedAnimation ? `.tile[data-id="${this._selectedAnimation}"]` : ".tile");
+  }
+
+  /** Puts focus back on the control that opened a view; its node is new after the list re-renders, so fall back to `selector`. */
+  _refocus(opener, selector) {
+    this.updateComplete.then(() => {
+      const el = opener && opener.isConnected ? opener : this.shadowRoot && this.shadowRoot.querySelector(selector);
+      if (el && typeof el.focus === "function") el.focus();
+    });
+  }
+
   _renderAnimationsTab() {
+    if (this._studioOpen) return this._renderStudioView();
+    const shown = this._filteredAnimations();
+    const total = Object.keys(this._animations || {}).length;
+    return html`<div class="content">
+      ${this._animError
+        ? html`<div class="notice error" role="alert">
+            ${glyph("error", 20)}
+            <div class="body">
+              <p>${this._animError}</p>
+              ${this._animLoad === "error"
+                ? html`<div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => { this._animError = ""; this._animLoad = ""; }}>${tr("mcu-panel.panel.try-again")}</button></div>`
+                : ""}
+            </div>
+            <button type="button" class="icon-btn sm close-btn" aria-label=${tr("mcu-panel.panel.dismiss")} title=${tr("mcu-panel.panel.dismiss")} @click=${() => (this._animError = "")}>${glyph("close")}</button>
+          </div>`
+        : ""}
+      <div class="field">
+        <div class="field-head"><label for="mcu-anim-search">${tr("mcu-panel.panel.search-animations")}</label></div>
+        <div class="with-icon">
+          <ha-icon icon="mdi:magnify"></ha-icon>
+          <input id="mcu-anim-search" class="input" type="search" .value=${this._animFilter || ""}
+            @input=${(e) => (this._animFilter = e.target.value)} />
+        </div>
+      </div>
+      <div role="status" aria-live="polite" class="help">${tr("mcu-panel.panel.count-animations", { n: shown.length })}</div>
+      ${this._animLoad === "loading"
+        ? html`<div class="studio-status"><ha-circular-progress active></ha-circular-progress></div>`
+        : total === 0
+        ? html`<div class="empty"><strong>${tr("mcu-panel.panel.no-animations-saved-yet")}</strong></div>`
+        : shown.length
+        ? html`<div class="tiles" role="list">${shown.map(
+            (d) => html`<button type="button" class="tile" role="listitem" data-id="${d.id}" aria-current="${this._selectedAnimation === d.id ? "true" : "false"}"
+              @click=${(e) => this._selectAnimation(d.id, e.currentTarget)}><b title="${d.id}">${d.name || d.id}</b><small>${d.kind || ""}</small></button>`
+          )}</div>`
+        : html`<p class="empty">${tr("mcu-panel.panel.no-animations-match-search")}</p>`}
+    </div>`;
+  }
+
+  /** The studio in place of the list: a back button, then the card's studio in its own frame look. */
+  _renderStudioView() {
     if (this._animStatus === "ready") this.updateComplete.then(() => this._attachStudio());
     return html`
+      <div class="bar">
+        <button type="button" class="btn btn-secondary btn-sm studio-back" @click=${() => this._closeStudio()}>${glyph("back", 18)}${tr("mcu-panel.panel.back-to-the-list")}</button>
+      </div>
       ${this._animError
-        ? html`<div class="content">
-            <div class="notice error" role="alert">
-              ${glyph("error", 20)}
-              <div class="body"><p>${this._animError}</p></div>
-              <button type="button" class="icon-btn sm close-btn" aria-label=${tr("mcu-panel.panel.dismiss")} title=${tr("mcu-panel.panel.dismiss")} @click=${() => (this._animError = "")}>${glyph("close")}</button>
-            </div>
+        ? html`<div class="notice error" role="alert">
+            ${glyph("error", 20)}
+            <div class="body"><p>${this._animError}</p></div>
+            <button type="button" class="icon-btn sm close-btn" aria-label=${tr("mcu-panel.panel.dismiss")} title=${tr("mcu-panel.panel.dismiss")} @click=${() => (this._animError = "")}>${glyph("close")}</button>
           </div>`
         : ""}
       ${this._animStatus === "loading" || this._animStatus === ""
         ? html`<div class="studio-status"><ha-circular-progress active></ha-circular-progress></div>`
         : ""}
       ${this._animStatus === "error"
-        ? html`<div class="content">
-            <div class="notice error" role="alert">
-              ${glyph("error", 20)}
-              <div class="body">
-                <p>${this._animMessage}</p>
-                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._mountAnimationStudio()}>${tr("mcu-panel.panel.try-again")}</button></div>
-              </div>
+        ? html`<div class="notice error" role="alert">
+            ${glyph("error", 20)}
+            <div class="body">
+              <p>${this._animMessage}</p>
+              <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._mountAnimationStudio()}>${tr("mcu-panel.panel.try-again")}</button></div>
             </div>
           </div>`
         : ""}
-      <div class="studio-host" ?hidden=${this._animStatus !== "ready"}></div>
+      <div ?hidden=${this._animStatus !== "ready"} class="studio-host"></div>
     `;
   }
 
@@ -1452,23 +1609,187 @@ class MagicCardUtilsPanel extends LitElement {
     this._syncTabQuery("themes");
   }
 
+  /** The theme files for the list and the inspector (`themes_list`); the editor is only mounted when one is opened. */
+  async _loadThemeFiles() {
+    if (!this.hass) return;
+    if (this._themeListLoad !== "ready") this._themeListLoad = "loading";
+    try {
+      const res = await this.hass.callWS({ type: CMD_THEMES_LIST });
+      if (res && Array.isArray(res.files)) this._themeFiles = res.files.filter((f) => f && typeof f.name === "string");
+      this._themeListError = "";
+      this._themeListLoad = "ready";
+    } catch (err) {
+      console.error("[magic_card_utils] theme list unavailable", err);
+      this._themeListError = tr("mcu-panel.panel.the-theme-list-could-not-be-loaded");
+      this._themeListLoad = "error";
+    }
+  }
+
+  _filteredThemes() {
+    const q = (this._themeFilter || "").trim().toLocaleLowerCase();
+    const files = this._themeFiles || [];
+    return q ? files.filter((f) => [f.name, f.file].some((v) => String(v || "").toLocaleLowerCase().includes(q))) : files;
+  }
+
+  /** Marks a theme file for the inspector and `?theme=`; below 1024 px that opens the sheet. */
+  _selectTheme(name, opener) {
+    if (typeof name !== "string" || !THEME_NAME_RE.test(name) || !(this._themeFiles || []).some((f) => f.name === name)) return;
+    if (this._selectedTheme == null) this._openGroups = new Set([...this._openGroups, "theme"]);
+    this._selectedTheme = name;
+    this._themeDeleteAsk = "";
+    this._syncTabQuery("themes");
+    this._openInspector(opener);
+  }
+
+  /** The inspector content for the selected theme file: name, modes, variables and file, with Delete and Export when it is editable. */
+  _themeInspectorModel() {
+    const f = this._themeEditorOpen ? null : (this._themeFiles || []).find((x) => x.name === this._selectedTheme);
+    if (!f) return null;
+    const modes = f.has_modes ? tr("mcu-panel.panel.light-and-dark") : tr("mcu-panel.panel.one-mode");
+    const count = tr("mcu-panel.panel.n-variables", { n: f.var_count || 0 });
+    const row = (label, value) => html`<div class="fld"><div class="fld-head"><span class="fld-label">${label}</span></div><span class="fld-value">${value}</span></div>`;
+    const ask = this._themeDeleteAsk === f.name;
+    const open = html`<button type="button" class="btn btn-primary" data-a="studio" @click=${(e) => this._openThemeEditor(e.currentTarget)}>${glyph("fullscreen", 18)}${tr("mcu-panel.panel.open-in-studio")}</button>`;
+    let footer = open;
+    if (f.editable) {
+      footer = ask
+        ? html`<p class="fld-help" role="alert">${tr("mcu-panel.panel.delete-name-this-action-cannot-be-undone", { name: f.name })}</p>
+            <button type="button" class="btn btn-secondary" @click=${() => (this._themeDeleteAsk = "")}>${tr("mcu-panel.panel.cancel")}</button>
+            <button type="button" class="btn btn-danger" data-a="del" @click=${() => this._deleteTheme(f.name)}>${glyph("delete", 18)}${tr("mcu-panel.panel.delete")}</button>`
+        : html`${open}
+            <button type="button" class="btn btn-secondary" data-a="export" @click=${() => this._exportTheme(f.name)}>${tr("mcu-panel.panel.export")}</button>
+            <button type="button" class="btn btn-danger" data-a="del" @click=${() => (this._themeDeleteAsk = f.name)}>${glyph("delete", 18)}${tr("mcu-panel.panel.delete")}</button>`;
+    }
+    return {
+      name: f.name,
+      type: tr("mcu-panel.panel.theme"),
+      groups: [
+        {
+          id: "theme",
+          title: tr("mcu-panel.panel.theme"),
+          summary: modes,
+          fields: [{ kind: "field", label: tr("mcu-panel.panel.name"), value: f.name }],
+          body: html`${row(tr("mcu-panel.panel.modes"), modes)}${row(tr("mcu-panel.panel.variables"), count)}${row(tr("mcu-panel.panel.file"), `/config/${f.file}`)}${f.editable
+            ? ""
+            : html`<div class="notice info" role="note">${glyph("info", 20)}<div class="body"><p>${tr("mcu-panel.panel.this-theme-is-read-only-copy-it-to-edit")}</p></div></div>`}`,
+        },
+      ],
+      footer,
+    };
+  }
+
+  async _deleteTheme(name) {
+    try {
+      await this.hass.callWS({ type: CMD_THEMES_DELETE, name });
+      this._themeDeleteAsk = "";
+      if (this._selectedTheme === name) {
+        this._selectedTheme = null;
+        this._syncTabQuery("themes");
+      }
+      await this._loadThemeFiles();
+    } catch (err) {
+      console.error("[magic_card_utils] delete theme failed", err);
+      this._themeDeleteAsk = "";
+      this._themeListError = tr("mcu-panel.panel.the-theme-could-not-be-deleted");
+    }
+  }
+
+  async _exportTheme(name) {
+    try {
+      const res = await this.hass.callWS({ type: CMD_THEMES_GET, name });
+      const url = URL.createObjectURL(new Blob([JSON.stringify({ [name]: res.theme }, null, 2)], { type: "application/json" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${name}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("[magic_card_utils] export theme failed", err);
+      this._themeListError = tr("mcu-panel.panel.the-theme-could-not-be-exported");
+    }
+  }
+
+  /** Shows the theme editor in place of the list, mounting it the first time. */
+  _openThemeEditor(opener) {
+    this._themeEditorOpen = true;
+    this._themeEditorOpener = opener || null;
+    if (this._themeEl) {
+      if (this._selectedTheme) this._themeEl.selectedName = this._selectedTheme;
+    } else {
+      this._mountThemeEditor();
+    }
+  }
+
+  _closeThemeEditor() {
+    const opener = this._themeEditorOpener;
+    this._themeEditorOpener = null;
+    this._themeEditorOpen = false;
+    this._refocus(opener, this._selectedTheme ? `.row[data-id="${this._selectedTheme}"] button` : ".row button");
+    this._loadThemeFiles();
+  }
+
   _renderThemesTab() {
+    if (this._themeEditorOpen) return this._renderThemeEditorView();
+    const shown = this._filteredThemes();
+    return html`<div class="content">
+      ${this._themeListError
+        ? html`<div class="notice error" role="alert">
+            ${glyph("error", 20)}
+            <div class="body">
+              <p>${this._themeListError}</p>
+              <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => { this._themeListError = ""; this._loadThemeFiles(); }}>${tr("mcu-panel.panel.try-again")}</button></div>
+            </div>
+          </div>`
+        : ""}
+      <div class="field">
+        <div class="field-head"><label for="mcu-theme-search">${tr("mcu-panel.panel.search-themes")}</label></div>
+        <div class="with-icon">
+          <ha-icon icon="mdi:magnify"></ha-icon>
+          <input id="mcu-theme-search" class="input" type="search" .value=${this._themeFilter || ""}
+            @input=${(e) => (this._themeFilter = e.target.value)} />
+        </div>
+      </div>
+      <div role="status" aria-live="polite" class="help">${tr("mcu-panel.panel.count-themes", { n: shown.length })}</div>
+      ${this._themeListLoad === "loading" && !(this._themeFiles || []).length
+        ? html`<div class="studio-status"><ha-circular-progress active></ha-circular-progress></div>`
+        : !(this._themeFiles || []).length
+        ? html`<div class="empty"><strong>${tr("mcu-panel.panel.no-themes-saved-yet")}</strong></div>`
+        : shown.length
+        ? html`<div class="rows" role="list">${shown.map((t) => {
+            const sub = [
+              `/config/${t.file}`,
+              tr("mcu-panel.panel.n-variables", { n: t.var_count || 0 }),
+              t.has_modes ? tr("mcu-panel.panel.light-and-dark") : "",
+              t.editable ? "" : tr("mcu-panel.panel.read-only"),
+            ].filter(Boolean).join(" · ");
+            return html`<div class="row" role="listitem" data-id="${t.name}">
+              <button type="button" class="name" aria-current="${this._selectedTheme === t.name ? "true" : "false"}"
+                @click=${(e) => this._selectTheme(t.name, e.currentTarget)}><bdi>${t.name}</bdi><small>${sub}</small></button>
+            </div>`;
+          })}</div>`
+        : html`<p class="empty">${tr("mcu-panel.panel.no-themes-match-search")}</p>`}
+    </div>`;
+  }
+
+  /** The theme editor in place of the list: a back button, then the card's editor in its own frame look. */
+  _renderThemeEditorView() {
     return html`
+      <div class="bar">
+        <button type="button" class="btn btn-secondary btn-sm theme-back" @click=${() => this._closeThemeEditor()}>${glyph("back", 18)}${tr("mcu-panel.panel.back-to-the-list")}</button>
+      </div>
       ${this._themeStatus === "loading" || this._themeStatus === ""
         ? html`<div class="studio-status"><ha-circular-progress active></ha-circular-progress></div>`
         : ""}
       ${this._themeStatus === "error"
-        ? html`<div class="content">
-            <div class="notice error" role="alert">
-              ${glyph("error", 20)}
-              <div class="body">
-                <p>${this._themeMessage}</p>
-                <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryThemes()}>${tr("mcu-panel.panel.try-again")}</button></div>
-              </div>
+        ? html`<div class="notice error" role="alert">
+            ${glyph("error", 20)}
+            <div class="body">
+              <p>${this._themeMessage}</p>
+              <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => this._retryThemes()}>${tr("mcu-panel.panel.try-again")}</button></div>
             </div>
           </div>`
         : ""}
-      <div class="theme-host" ?hidden=${this._themeStatus !== "ready"}></div>
+      <div ?hidden=${this._themeStatus !== "ready"} class="theme-host"></div>
     `;
   }
 
@@ -2186,6 +2507,8 @@ class MagicCardUtilsPanel extends LitElement {
   /** The details of the selected item for the docked inspector, or null while the tab has none. */
   _inspectorModel() {
     if (this._tab === "templates") return this._templatesInspectorModel();
+    if (this._tab === "animations") return this._animationInspectorModel();
+    if (this._tab === "themes") return this._themeInspectorModel();
     return this._itemInspectorModel();
   }
 

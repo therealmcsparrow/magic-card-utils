@@ -589,7 +589,9 @@ export const draftingStyles = [
       min-height: 480px;
     }
     .studio-host[hidden],
-    .theme-host[hidden],
+    .theme-host[hidden] {
+      display: none;
+    }
     .forum-host[hidden] {
       display: none;
     }

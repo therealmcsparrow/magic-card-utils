@@ -7,6 +7,11 @@
       "name": "The value that replaces name in the text."
     }
   },
+  "mcu-panel.panel.animation": {
+    "text": "Animation",
+    "note": "Type shown under the name of the selected animation in the details pane.",
+    "max": 15
+  },
   "mcu-panel.panel.animations": {
     "text": "Animations",
     "note": "Label of the Animations tab in the panel tab bar.",
@@ -16,6 +21,11 @@
     "text": "Back",
     "note": "Button that closes the details sheet on a narrow screen and returns to the list.",
     "max": 10
+  },
+  "mcu-panel.panel.back-to-the-list": {
+    "text": "Back to the list",
+    "note": "Button above the animation studio or theme editor that closes it and returns to the list.",
+    "max": 25
   },
   "mcu-panel.panel.cancel": {
     "text": "Cancel",
@@ -72,6 +82,14 @@
     "note": "Detail line on a shape in the Shapes tab when the shape has no points of its own and is a corner shape.",
     "max": 20
   },
+  "mcu-panel.panel.count-animations": {
+    "text": "{n, plural, one {# animation} other {# animations}}",
+    "note": "Count above the animation list, updated as you search.",
+    "max": 30,
+    "vars": {
+      "n": "How many animations are shown."
+    }
+  },
   "mcu-panel.panel.count-groups": {
     "text": "{n, plural, one {# group} other {# groups}}",
     "note": "Count of the collapsible groups in the details panel.",
@@ -86,6 +104,14 @@
     "max": 30,
     "vars": {
       "n": "How many templates are shown."
+    }
+  },
+  "mcu-panel.panel.count-themes": {
+    "text": "{n, plural, one {# theme} other {# themes}}",
+    "note": "Count above the theme list, updated as you search.",
+    "max": 30,
+    "vars": {
+      "n": "How many themes are shown."
     }
   },
   "mcu-panel.panel.delete": {
@@ -216,6 +242,11 @@
     "note": "Heading of the right-hand pane of the template window while you edit the card.",
     "max": 10
   },
+  "mcu-panel.panel.export": {
+    "text": "Export",
+    "note": "Button in the theme details that downloads the theme as a file.",
+    "max": 15
+  },
   "mcu-panel.panel.export-all": {
     "text": "Export all",
     "note": "Button above the template list when no row is ticked: downloads every template as a file.",
@@ -233,6 +264,11 @@
     "text": "Failed to render preview.",
     "note": "Error in the template preview when the card could not be drawn and gave no message of its own.",
     "max": 45
+  },
+  "mcu-panel.panel.file": {
+    "text": "File",
+    "note": "Label of the field that shows where a theme file is stored.",
+    "max": 15
   },
   "mcu-panel.panel.forum-shot": {
     "text": "Forum shot",
@@ -301,6 +337,11 @@
     "note": "Notice in the Images tab when Magic Card is not installed.",
     "max": 65
   },
+  "mcu-panel.panel.kind": {
+    "text": "Kind",
+    "note": "Label of the field that tells how an animation is built (keyframes, path or particles).",
+    "max": 15
+  },
   "mcu-panel.panel.larger-rows": {
     "text": "Larger rows",
     "note": "Accessible name of the button that makes the list rows larger.",
@@ -310,6 +351,11 @@
     "text": "Library",
     "note": "Label of the Library tab in the panel tab bar.",
     "max": 15
+  },
+  "mcu-panel.panel.light-and-dark": {
+    "text": "Light and dark",
+    "note": "Summary of a theme that has a light and a dark mode.",
+    "max": 20
   },
   "mcu-panel.panel.loading-the-forum-shot": {
     "text": "Loading the forum shot",
@@ -348,6 +394,11 @@
       "version": "The value that replaces version in the text."
     }
   },
+  "mcu-panel.panel.modes": {
+    "text": "Modes",
+    "note": "Label of the field that tells whether a theme has light and dark modes.",
+    "max": 15
+  },
   "mcu-panel.panel.modified-only": {
     "text": "Modified only",
     "note": "Switch in the details panel that shows only the fields you changed.",
@@ -359,6 +410,14 @@
     "max": 30,
     "vars": {
       "n": "How many cards use the template."
+    }
+  },
+  "mcu-panel.panel.n-variables": {
+    "text": "{n, plural, one {# variable} other {# variables}}",
+    "note": "Number of variables in a theme, in its row and details.",
+    "max": 25,
+    "vars": {
+      "n": "How many variables the theme sets."
     }
   },
   "mcu-panel.panel.name": {
@@ -406,6 +465,16 @@
     "note": "Label of the name field in the duplicate window.",
     "max": 30
   },
+  "mcu-panel.panel.no-animations-match-search": {
+    "text": "No animations match your search.",
+    "note": "Message under the search box when no animation matches.",
+    "max": 50
+  },
+  "mcu-panel.panel.no-animations-saved-yet": {
+    "text": "No animations saved yet",
+    "note": "Message in place of the animation list when there are no animations.",
+    "max": 40
+  },
   "mcu-panel.panel.no-card-type-available-neither-the": {
     "text": "No card type available — neither the config nor the template carries a `type`.",
     "note": "Error in the template preview when the card has no type to draw. `type` is the config key and stays as written.",
@@ -436,10 +505,25 @@
     "note": "Empty state of the Templates tab when no template exists.",
     "max": 40
   },
+  "mcu-panel.panel.no-themes-match-search": {
+    "text": "No themes match your search.",
+    "note": "Message under the search box when no theme matches.",
+    "max": 50
+  },
+  "mcu-panel.panel.no-themes-saved-yet": {
+    "text": "No themes saved yet",
+    "note": "Message in place of the theme list when there are no theme files.",
+    "max": 40
+  },
   "mcu-panel.panel.nothing-selected": {
     "text": "Nothing selected",
     "note": "Title of the details panel while no item is picked.",
     "max": 30
+  },
+  "mcu-panel.panel.one-mode": {
+    "text": "One mode",
+    "note": "Summary of a theme that has a single mode.",
+    "max": 20
   },
   "mcu-panel.panel.only-administrators-can-create-or-change": {
     "text": "Only administrators can create or change images.",
@@ -463,6 +547,11 @@
     "vars": {
       "name": "The value that replaces name in the text."
     }
+  },
+  "mcu-panel.panel.open-the-animation-in-the-studio-to-play": {
+    "text": "Open this animation in the studio to see it play.",
+    "note": "Hint in the animation preview, which stays still.",
+    "max": 60
   },
   "mcu-panel.panel.path": {
     "text": "Path",
@@ -490,6 +579,11 @@
   "mcu-panel.panel.preview": {
     "text": "Preview",
     "note": "Heading of the right-hand pane of the template window while it only shows the card.",
+    "max": 15
+  },
+  "mcu-panel.panel.read-only": {
+    "text": "Read only",
+    "note": "Tag on a theme row that cannot be edited here.",
     "max": 15
   },
   "mcu-panel.panel.request-failed": {
@@ -527,9 +621,19 @@
     "note": "Label of the save button in the template editor while the save is running.",
     "max": 20
   },
+  "mcu-panel.panel.search-animations": {
+    "text": "Search animations",
+    "note": "Label of the search box above the animation list on the Animations tab.",
+    "max": 30
+  },
   "mcu-panel.panel.search-templates": {
     "text": "Search templates",
     "note": "Label of the search field above the templates table. It filters rows by name, description or card type.",
+    "max": 30
+  },
+  "mcu-panel.panel.search-themes": {
+    "text": "Search themes",
+    "note": "Label of the search box above the theme list on the Themes tab.",
     "max": 30
   },
   "mcu-panel.panel.select-name": {
@@ -645,6 +749,16 @@
     "note": "Error in the template editor when saving fails and the server gave no reason.",
     "max": 55
   },
+  "mcu-panel.panel.the-theme-could-not-be-deleted": {
+    "text": "The theme could not be deleted.",
+    "note": "Error above the theme list when deleting a theme fails.",
+    "max": 50
+  },
+  "mcu-panel.panel.the-theme-could-not-be-exported": {
+    "text": "The theme could not be exported.",
+    "note": "Error above the theme list when exporting a theme fails.",
+    "max": 50
+  },
   "mcu-panel.panel.the-theme-editor-could-not-be-loaded-it": {
     "text": "The theme editor could not be loaded. It ships with Magic Card as {file}: update Magic Card to {version} or newer.",
     "note": "Notice in the Themes tab when the theme editor file is missing. {file} is the name of that file, {version} the lowest Magic Card version that has it.",
@@ -653,6 +767,16 @@
       "file": "The value that replaces file in the text.",
       "version": "The value that replaces version in the text."
     }
+  },
+  "mcu-panel.panel.the-theme-list-could-not-be-loaded": {
+    "text": "The theme list could not be loaded.",
+    "note": "Error above the theme list when the list of theme files cannot be read.",
+    "max": 60
+  },
+  "mcu-panel.panel.theme": {
+    "text": "Theme",
+    "note": "Type shown under the name of the selected theme and heading of its details group.",
+    "max": 15
   },
   "mcu-panel.panel.themes": {
     "text": "Themes",
@@ -672,6 +796,11 @@
       "n": "The count the text is about."
     }
   },
+  "mcu-panel.panel.this-theme-is-read-only-copy-it-to-edit": {
+    "text": "This theme is read-only. Open it in the studio and save a copy to edit it.",
+    "note": "Note in the theme details for a theme file that cannot be changed from the panel.",
+    "max": 90
+  },
   "mcu-panel.panel.try-again": {
     "text": "Try again",
     "note": "Button under a load error in the Animations, Themes, Library, Shapes, Images and Icons tabs that tries the load again.",
@@ -684,6 +813,11 @@
     "vars": {
       "date": "The formatted date."
     }
+  },
+  "mcu-panel.panel.variables": {
+    "text": "Variables",
+    "note": "Label of the field that shows how many variables a theme sets.",
+    "max": 15
   },
   "mcu-panel.panel.view-box-w-h": {
     "text": "View box {w} × {h}",

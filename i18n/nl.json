@@ -3,6 +3,10 @@
     "text": "Er bestaat al een sjabloon met de naam ‘{name}’.",
     "hash": "bd93b912"
   },
+  "mcu-panel.panel.animation": {
+    "text": "Animatie",
+    "hash": "1dd10f24"
+  },
   "mcu-panel.panel.animations": {
     "text": "Animaties",
     "hash": "7f7c3306"
@@ -10,6 +14,10 @@
   "mcu-panel.panel.back": {
     "text": "Terug",
     "hash": "76900f1b"
+  },
+  "mcu-panel.panel.back-to-the-list": {
+    "text": "Terug naar de lijst",
+    "hash": "79b6c5ff"
   },
   "mcu-panel.panel.cancel": {
     "text": "Annuleren",
@@ -47,6 +55,10 @@
     "text": "Hoekvorm",
     "hash": "7833e955"
   },
+  "mcu-panel.panel.count-animations": {
+    "text": "{n, plural, one {# animatie} other {# animaties}}",
+    "hash": "626cefeb"
+  },
   "mcu-panel.panel.count-groups": {
     "text": "{n, plural, one {# groep} other {# groepen}}",
     "hash": "71e111f9"
@@ -54,6 +66,10 @@
   "mcu-panel.panel.count-templates": {
     "text": "{n, plural, one {# sjabloon} other {# sjablonen}}",
     "hash": "2343a9e7"
+  },
+  "mcu-panel.panel.count-themes": {
+    "text": "{n, plural, one {# thema} other {# thema’s}}",
+    "hash": "ded85d0d"
   },
   "mcu-panel.panel.delete": {
     "text": "Verwijderen",
@@ -143,6 +159,10 @@
     "text": "Editor",
     "hash": "936a161c"
   },
+  "mcu-panel.panel.export": {
+    "text": "Exporteren",
+    "hash": "36648955"
+  },
   "mcu-panel.panel.export-all": {
     "text": "Alles exporteren",
     "hash": "51427688"
@@ -154,6 +174,10 @@
   "mcu-panel.panel.failed-to-render-preview": {
     "text": "Het voorbeeld kon niet worden weergegeven.",
     "hash": "aeade066"
+  },
+  "mcu-panel.panel.file": {
+    "text": "Bestand",
+    "hash": "50009ce1"
   },
   "mcu-panel.panel.forum-shot": {
     "text": "Forumplaatje",
@@ -203,6 +227,10 @@
     "text": "Installeer Magic Card om hier afbeeldingen te tekenen.",
     "hash": "0fdc1e5b"
   },
+  "mcu-panel.panel.kind": {
+    "text": "Soort",
+    "hash": "f5387f9b"
+  },
   "mcu-panel.panel.larger-rows": {
     "text": "Grotere rijen",
     "hash": "5174d318"
@@ -210,6 +238,10 @@
   "mcu-panel.panel.library": {
     "text": "Bibliotheek",
     "hash": "dc20b3d5"
+  },
+  "mcu-panel.panel.light-and-dark": {
+    "text": "Licht en donker",
+    "hash": "59644334"
   },
   "mcu-panel.panel.loading-the-forum-shot": {
     "text": "Forumplaatje wordt geladen",
@@ -235,6 +267,10 @@
     "text": "Magic Card {version} is te oud voor Magic Card Utils (API-versie {min} of nieuwer nodig). Werk Magic Card bij.",
     "hash": "ecaa55e6"
   },
+  "mcu-panel.panel.modes": {
+    "text": "Modi",
+    "hash": "e9c29ff5"
+  },
   "mcu-panel.panel.modified-only": {
     "text": "Alleen gewijzigd",
     "hash": "d5f0ab19"
@@ -242,6 +278,10 @@
   "mcu-panel.panel.n-linked-cards": {
     "text": "{n, plural, one {# gekoppelde kaart} other {# gekoppelde kaarten}}",
     "hash": "72f415cb"
+  },
+  "mcu-panel.panel.n-variables": {
+    "text": "{n, plural, one {# variabele} other {# variabelen}}",
+    "hash": "f9d82f0c"
   },
   "mcu-panel.panel.name": {
     "text": "Naam",
@@ -271,6 +311,14 @@
     "text": "Naam van het nieuwe sjabloon",
     "hash": "0a05447d"
   },
+  "mcu-panel.panel.no-animations-match-search": {
+    "text": "Geen animaties komen overeen met je zoekopdracht.",
+    "hash": "bf38ebcb"
+  },
+  "mcu-panel.panel.no-animations-saved-yet": {
+    "text": "Nog geen animaties opgeslagen",
+    "hash": "d1388672"
+  },
   "mcu-panel.panel.no-card-type-available-neither-the": {
     "text": "Geen kaarttype beschikbaar: noch de configuratie noch het sjabloon bevat een `type`.",
     "hash": "4e67d440"
@@ -295,9 +343,21 @@
     "text": "Nog geen sjablonen opgeslagen.",
     "hash": "6d4c6b7c"
   },
+  "mcu-panel.panel.no-themes-match-search": {
+    "text": "Geen thema’s komen overeen met je zoekopdracht.",
+    "hash": "32c5f0cd"
+  },
+  "mcu-panel.panel.no-themes-saved-yet": {
+    "text": "Nog geen thema’s opgeslagen",
+    "hash": "fb75ab71"
+  },
   "mcu-panel.panel.nothing-selected": {
     "text": "Niets geselecteerd",
     "hash": "f8c10424"
+  },
+  "mcu-panel.panel.one-mode": {
+    "text": "Eén modus",
+    "hash": "687e12a9"
   },
   "mcu-panel.panel.only-administrators-can-create-or-change": {
     "text": "Alleen beheerders kunnen afbeeldingen maken of wijzigen.",
@@ -314,6 +374,10 @@
   "mcu-panel.panel.open-name-in-studio": {
     "text": "{name} openen in de studio",
     "hash": "16681a49"
+  },
+  "mcu-panel.panel.open-the-animation-in-the-studio-to-play": {
+    "text": "Open deze animatie in de studio om hem af te spelen.",
+    "hash": "15dd4940"
   },
   "mcu-panel.panel.path": {
     "text": "Pad",
@@ -334,6 +398,10 @@
   "mcu-panel.panel.preview": {
     "text": "Voorbeeld",
     "hash": "324b134f"
+  },
+  "mcu-panel.panel.read-only": {
+    "text": "Alleen lezen",
+    "hash": "8ac76735"
   },
   "mcu-panel.panel.request-failed": {
     "text": "Het verzoek is mislukt",
@@ -363,9 +431,17 @@
     "text": "Bezig met opslaan…",
     "hash": "23e39291"
   },
+  "mcu-panel.panel.search-animations": {
+    "text": "Zoek animaties",
+    "hash": "15159e54"
+  },
   "mcu-panel.panel.search-templates": {
     "text": "Sjablonen zoeken",
     "hash": "04b9835b"
+  },
+  "mcu-panel.panel.search-themes": {
+    "text": "Zoek thema’s",
+    "hash": "22da14c0"
   },
   "mcu-panel.panel.select-name": {
     "text": "{name} selecteren",
@@ -447,9 +523,25 @@
     "text": "Het sjabloon kon niet worden opgeslagen.",
     "hash": "d7c3ca43"
   },
+  "mcu-panel.panel.the-theme-could-not-be-deleted": {
+    "text": "Het thema kon niet worden verwijderd.",
+    "hash": "a2a30632"
+  },
+  "mcu-panel.panel.the-theme-could-not-be-exported": {
+    "text": "Het thema kon niet worden geëxporteerd.",
+    "hash": "db0b645c"
+  },
   "mcu-panel.panel.the-theme-editor-could-not-be-loaded-it": {
     "text": "De theme-editor kon niet worden geladen. Hij wordt met Magic Card meegeleverd als {file}: werk Magic Card bij naar {version} of nieuwer.",
     "hash": "beaf6a42"
+  },
+  "mcu-panel.panel.the-theme-list-could-not-be-loaded": {
+    "text": "De themalijst kon niet worden geladen.",
+    "hash": "16fecb1e"
+  },
+  "mcu-panel.panel.theme": {
+    "text": "Thema",
+    "hash": "efb52e71"
   },
   "mcu-panel.panel.themes": {
     "text": "Thema's",
@@ -463,6 +555,10 @@
     "text": "{n, plural, one {Dit sjabloon is nog gekoppeld aan # kaart en kan niet worden verwijderd. Verwijder eerst de koppelingen.} other {Dit sjabloon is nog gekoppeld aan # kaarten en kan niet worden verwijderd. Verwijder eerst de koppelingen.}}",
     "hash": "83def8f0"
   },
+  "mcu-panel.panel.this-theme-is-read-only-copy-it-to-edit": {
+    "text": "Dit thema is alleen-lezen. Open het in de studio en sla een kopie op om het te bewerken.",
+    "hash": "6db9fa47"
+  },
   "mcu-panel.panel.try-again": {
     "text": "Opnieuw proberen",
     "hash": "d8b8392e"
@@ -470,6 +566,10 @@
   "mcu-panel.panel.updated-date": {
     "text": "Bijgewerkt {date}",
     "hash": "328a4d4c"
+  },
+  "mcu-panel.panel.variables": {
+    "text": "Variabelen",
+    "hash": "02db55ba"
   },
   "mcu-panel.panel.view-box-w-h": {
     "text": "Weergavegebied {w} × {h}",
