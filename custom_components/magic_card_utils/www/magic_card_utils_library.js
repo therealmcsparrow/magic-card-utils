@@ -1,4 +1,4 @@
-// Magic Card Utils library provider (contract mcu-library 1.1.0). Loaded on every HA page.
+// Magic Card Utils library provider (contract mcu-library 1.3.0). Loaded on every HA page.
 // Registers window.customIcons.mcu (merge, never replace) and window.magicCardUtils.
 // Reads the saved library over HA's own websocket connection. Touches no DOM, except that it adds Google font
 // stylesheet links for the active theme when the Google Fonts switch is on.
@@ -156,6 +156,7 @@ try {
 
   // Google Fonts: the switch and the fonts of the active HA theme. Nothing is requested while the switch is off.
   const FONT_WEIGHTS = [300, 400, 500, 700];
+  const FONT_NAME = /^[A-Za-z0-9 ]{1,64}$/;
   const THEME_POLL_MS = 2000;
   let themeFonts = {};
   let lastTheme;
@@ -168,7 +169,7 @@ try {
   };
 
   const loadFont = (f) => {
-    if (!f || typeof f.name !== "string" || !f.name) return;
+    if (!f || typeof f.name !== "string" || !FONT_NAME.test(f.name)) return;
     if (document.head.querySelector('link[data-mc-font="' + CSS.escape(f.name) + '"]')) return;
     const link = document.createElement("link");
     link.rel = "stylesheet";
@@ -178,8 +179,10 @@ try {
   };
 
   const activeTheme = () => {
+    // HA's rule: the user's pick ("" is Backend-selected), else the default dark theme in dark mode, else the default
     const hass = document.querySelector("home-assistant")?.hass;
-    return hass ? hass.selectedTheme?.theme ?? hass.themes?.theme : undefined;
+    const t = hass && hass.themes;
+    return hass ? hass.selectedTheme?.theme || (t?.darkMode && t.default_dark_theme ? t.default_dark_theme : t?.theme) : undefined;
   };
 
   const applyTheme = () => {

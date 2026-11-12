@@ -99,3 +99,33 @@ test("a failed websocket call leaves googleFonts false, fires the event and does
   assert.equal(settingsEvents(p.events).length, 1);
   assert.equal(p.links.length, 0);
 });
+
+test("Backend-selected (an empty user pick) uses the default theme", async () => {
+  const p = await load({ google_fonts: true, theme_fonts: { T: [{ name: "Lato", weights: [400] }], U: [{ name: "Pacifico", weights: [400] }] } });
+  p.ha.hass.selectedTheme = { theme: "" };
+  p.ha.hass.themes.theme = "U";
+  p.listeners.settheme();
+  assert.deepEqual(p.links.map((l) => l.dataset.mcFont), ["Lato", "Pacifico"]);
+});
+
+test("dark mode uses the default dark theme when one is set", async () => {
+  const p = await load({
+    google_fonts: true,
+    theme_fonts: { T: [{ name: "Lato", weights: [400] }], D: [{ name: "Pacifico", weights: [400] }], P: [{ name: "Inter", weights: [400] }] },
+  });
+  Object.assign(p.ha.hass.themes, { darkMode: true, default_dark_theme: "D" });
+  p.listeners.settheme();
+  assert.deepEqual(p.links.map((l) => l.dataset.mcFont), ["Lato", "Pacifico"]);
+  // the user's own pick still wins
+  p.ha.hass.selectedTheme = { theme: "P" };
+  p.listeners.settheme();
+  assert.deepEqual(p.links.map((l) => l.dataset.mcFont), ["Lato", "Pacifico", "Inter"]);
+});
+
+test("a name outside letters, digits and spaces is never turned into a link", async () => {
+  const p = await load({
+    google_fonts: true,
+    theme_fonts: { T: [{ name: 'Lato" onload="x', weights: [400] }, { name: "A".repeat(65), weights: [400] }, { name: "Open Sans 2", weights: [400] }] },
+  });
+  assert.deepEqual(p.links.map((l) => l.dataset.mcFont), ["Open Sans 2"]);
+});
