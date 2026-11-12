@@ -22,7 +22,7 @@ With the switch on:
 
 With the switch off, the Google tab is hidden. A card that names a Google font shows the fallback font at the end of its stack, and the card editor shows a short note under that font field.
 
-This needs Magic Card 2026.11.04-beta.1 or newer.
+This needs Magic Card 2026.11.04 or newer.
 
 ## Existing cards
 

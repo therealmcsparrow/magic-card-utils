@@ -42,9 +42,9 @@ panel needs no other Magic Card file to load.
 | Field | Value |
 | --- | --- |
 | File | `mc-ui-kit.js` |
-| Magic Card version | `2026.11.04-beta.1` (`MC_UI_KIT_VERSION`) |
-| Magic Card commit | `a668113` (tag `v2026.11.04-beta.1`), exported from a clean `git archive` of that commit |
-| SHA-256 | `9f09a5d4a22e1c24477218d71eb5610d52808755a9f2bef2616f15bb5cdd3824` |
+| Magic Card version | `2026.11.04` (`MC_UI_KIT_VERSION`) |
+| Magic Card commit | `e74f6f2` (tag `v2026.11.04`), exported from a clean `git archive` of that commit |
+| SHA-256 | `27b560b52419b91b2da022da87581972c41903b45ae837a0d0dc165741b18880` |
 | Icons | `@mdi/js` 7.4.47, Apache-2.0 (https://github.com/Templarian/MaterialDesign-JS), licence text in `LICENSE-mdi.txt` |
 | Imports | `lit-core.min.js` (`css`, `html`) |
 
