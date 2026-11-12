@@ -1,6 +1,8 @@
 // Magic Card Utils library provider (contract mcu-library 1.1.0). Loaded on every HA page.
 // Registers window.customIcons.mcu (merge, never replace) and window.magicCardUtils.
-// Touches no DOM. Reads the saved library over HA's own websocket connection.
+// Reads the saved library over HA's own websocket connection. Touches no DOM, except that it adds Google font
+// stylesheet links for the active theme when the Google Fonts switch is on.
+// Publishes window.magicCardUtils.settings ({ googleFonts }) and the mcu-settings event once the switch is known.
 try {
   const PREFIX = "mcu";
   const CMD = "magic_card_utils/";
@@ -152,6 +154,68 @@ try {
     })();
   };
 
+  // Google Fonts: the switch and the fonts of the active HA theme. Nothing is requested while the switch is off.
+  const FONT_WEIGHTS = [300, 400, 500, 700];
+  const THEME_POLL_MS = 2000;
+  let themeFonts = {};
+  let lastTheme;
+  let themePoll = 0;
+
+  const fontUrl = (f) => {
+    const weights = (f.weights || []).filter((w) => FONT_WEIGHTS.includes(w));
+    return "https://fonts.googleapis.com/css2?family=" + encodeURIComponent(f.name).replace(/%20/g, "+") +
+      (weights.length ? ":wght@" + weights.join(";") : "") + "&display=swap";
+  };
+
+  const loadFont = (f) => {
+    if (!f || typeof f.name !== "string" || !f.name) return;
+    if (document.head.querySelector('link[data-mc-font="' + f.name + '"]')) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = fontUrl(f);
+    link.dataset.mcFont = f.name;
+    document.head.appendChild(link);
+  };
+
+  const activeTheme = () => {
+    const hass = document.querySelector("home-assistant")?.hass;
+    return hass ? hass.selectedTheme?.theme ?? hass.themes?.theme : undefined;
+  };
+
+  const applyTheme = () => {
+    try {
+      const theme = activeTheme();
+      if (theme === lastTheme) return;
+      lastTheme = theme;
+      const list = theme !== undefined ? themeFonts[theme] : undefined;
+      if (Array.isArray(list)) list.forEach(loadFont);
+    } catch (e) { /* ignore */ }
+  };
+
+  const publishSettings = (googleFonts) => {
+    window.magicCardUtils.settings = { googleFonts };
+    try {
+      window.dispatchEvent(new CustomEvent("mcu-settings", { detail: { googleFonts } }));
+    } catch (e) { /* ignore */ }
+    if (!googleFonts) return;
+    try {
+      applyTheme();
+      window.addEventListener("settheme", applyTheme);
+      themePoll = setInterval(applyTheme, THEME_POLL_MS);
+      if (themePoll && typeof themePoll.unref === "function") themePoll.unref();
+    } catch (e) { /* ignore */ }
+  };
+
+  const loadSettings = async () => {
+    let googleFonts = false;
+    try {
+      const r = await send({ type: CMD + "get_settings" });
+      googleFonts = !!r && r.google_fonts === true;
+      if (googleFonts) themeFonts = r.theme_fonts && typeof r.theme_fonts === "object" ? r.theme_fonts : {};
+    } catch (e) { /* the switch counts as off */ }
+    publishSettings(googleFonts);
+  };
+
   // Synchronous registration. Merge into an existing object, never replace it.
   window.customIcons = window.customIcons || {};
   window.customIcons[PREFIX] = { getIcon, getIconList };
@@ -165,6 +229,7 @@ try {
   };
   getConn();
   announce("icons", []);
+  loadSettings();
 } catch (e) {
   try { console.warn("magic_card_utils library provider failed", e); } catch (e2) { /* ignore */ }
 }
