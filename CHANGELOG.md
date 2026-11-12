@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2026.11.02] - 2026-11-12
+
+This stable release holds everything from the 2026.11.2 pre-releases, which are listed below, plus the changes in this section. Use it with Magic Card 2026.11.03, so you no longer need a Magic Card pre-release. If you stayed on 2026.11.01, these are the main changes:
+
+- **Animated library images.** A library image can carry an animation made in Magic Card's image animator.
+- **Bigger images.** Each image can be up to 1 MiB, and the library has no image count limit.
+- **New panel look.** A header, a one-row tab bar, ruled lists and a right-hand inspector on every tab, in Home Assistant's light or dark mode.
+- **Same studios.** Every studio opened from the panel has the same look and top bar, and the animation studio fills the whole window.
+
+### Changed
+- The animation studio fills the whole window, with its library, instead of sitting inside the panel. Close in its top bar returns to the Animations tab.
+- Every studio opened from the panel puts its top bar in the same order: Close, the studio's name, the name field, the actions, Save, the panel buttons and Help. The icon editor now has the same look as the image editor.
+
+### Fixed
+- The tab bar no longer cuts off the last tab at 900 px wide.
+
 ## [2026.11.2-beta.2] - 2026-11-11
 
 This is a pre-release. It works with the matching Magic Card release, 2026.11.03-beta.2. To install it, choose **Include pre-releases** in the Marketplace, or turn on **Show beta versions** in HACS.
