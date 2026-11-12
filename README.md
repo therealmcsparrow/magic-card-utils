@@ -23,7 +23,7 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 - **Icon and shape library:** draw icons and shapes without a card, in the Library, Icons and Shapes tabs. Saved icons appear in Home Assistant's icon picker after a reload, and Magic Card draws them in full colour. Home Assistant's own cards show them as one-colour silhouettes.
 - **Image library:** draw images in Magic Card's image editor, keep them in the Images tab and show them in image modules and background layers. Saved images are included in Home Assistant backups, and every user can see them. See [Images](documentation/panel/images.md) and the [Images section](#images) below.
 - **Forum shot:** turn one of your Magic Cards into a picture to post in a forum, in light, dark or both. The picture is made in your browser. For a card with web fonts, your browser asks the font sites shown on the tab for them. See [Forum shot](documentation/panel/forum-shot.md).
-- **Google Fonts:** an optional switch that gives every Magic Card font picker the full Google Fonts catalogue. Off by default. See [Google Fonts](documentation/google-fonts/README.md).
+- **Google Fonts:** an optional switch that gives every Magic Card font picker the full Google Fonts catalogue. Off by default. Turn it on under Settings → Devices & services → Magic Card Utils → Configure → **Load Google Fonts**, then reload the page. See [Google Fonts](documentation/google-fonts/README.md).
 - **Theme presets:** keep your own theme presets in the shared library, and import or export them as files.
 - **Import and export:** move icons, shapes, animations and theme presets between Home Assistant installations. Imports are size-limited and checked before anything is saved. See [Library](documentation/panel/library.md).
 - **Theme editor:** create and edit Home Assistant themes in a Themes tab, with a live preview and a Try on dashboard button. Saves write the theme file to `/config/themes`.
@@ -42,7 +42,7 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 - Magic Card **2026.10.11-beta.2** or newer for template cards that non-admin users can see.
 - Magic Card **2026.11.04-beta.1** or newer for the Images tab and for library images on cards.
 
-Magic Card 2026.11.01 meets all of these.
+Magic Card 2026.11.04-beta.1 meets all of these.
 
 ## Check a genuine release
 

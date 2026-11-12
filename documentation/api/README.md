@@ -4,6 +4,7 @@ Magic Card Utils is driven entirely through Home Assistant's WebSocket API. Magi
 
 - [Calling a command](#calling-a-command)
 - [Who can call what](#who-can-call-what)
+- [Settings](#settings)
 - [Errors](#errors)
 - [Pages](#pages)
 
@@ -35,6 +36,7 @@ unsubscribe(); // when your element disconnects
 | `themes_list`, `themes_get`, `themes_save`, `themes_delete` | Admin users |
 | `icons_list`, `icons_get`, `shapes_list`, `images_list`, `images_get`, `theme_presets_list`, `subscribe_library` | Any signed-in user |
 | `icons_save`, `icons_delete`, `shapes_save`, `shapes_delete`, `images_save`, `images_delete`, `theme_presets_save`, `theme_presets_delete` | Admin users |
+| `get_settings` | Any signed-in user |
 
 A non-admin user calling an admin command gets Home Assistant's `unauthorized` error.
 
@@ -72,6 +74,31 @@ Limits:
 A dashboard loads the shape list only when a card on it uses a library shape. A dashboard with no such card sends only the `subscribe_library` subscription.
 
 The names come from the command constants in `custom_components/magic_card_utils/library_contract.py`.
+
+## Settings
+
+`magic_card_utils/get_settings` takes no fields and returns the Google Fonts switch and, while it is on, the Google fonts that each loaded Home Assistant theme names:
+
+```js
+const settings = await hass.callWS({ type: "magic_card_utils/get_settings" });
+// switch off: { google_fonts: false, theme_fonts: {} }
+// switch on:  { google_fonts: true, theme_fonts: { "My theme": [{ name: "Lato", weights: [100, 300, 400, 700, 900] }] } }
+```
+
+-   `google_fonts` is `true` only when the **Load Google Fonts** switch is on (Settings → Devices & services → Magic Card Utils → Configure).
+-   `theme_fonts` maps a theme name to the catalogue families its font variables name, light and dark modes together. A theme without Google fonts is left out, and so is Roboto, which Home Assistant ships.
+
+The script that Magic Card Utils adds to every Home Assistant page calls this command once and shares the answer in the browser, so a card does not need to call it:
+
+-   `window.magicCardUtils.settings` is `{ googleFonts: true }` or `{ googleFonts: false }`. It is missing until the answer arrives, and a failed call counts as off.
+-   The script then fires a `mcu-settings` event on `window` with the same object in `detail`.
+
+```js
+const googleFontsOn = () => window.magicCardUtils?.settings?.googleFonts === true;
+window.addEventListener("mcu-settings", (e) => console.log(e.detail.googleFonts));
+```
+
+A change to the switch reaches the browser after a page reload.
 
 ## Errors
 

@@ -4,12 +4,7 @@ All notable changes to Magic Card Utils are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use calendar versioning (`YYYY.MM.NN`).
 
-## [Unreleased]
-
-### Changed
-- The integration manifest names its category (Helpers), as the Home Assistant marketplace asks. The integration no longer ships a `strings.json`; Home Assistant reads `translations/en.json`.
-
-## [2026.11.3-beta.1]
+## [2026.11.3-beta.1] - 2026-11-12
 
 This is a pre-release. It works with the matching Magic Card release, 2026.11.04-beta.1. To install it, choose **Include pre-releases** in the Marketplace, or turn on **Show beta versions** in HACS.
 
@@ -19,6 +14,10 @@ This is a pre-release. It works with the matching Magic Card release, 2026.11.04
 ### Changed
 - Breaking for existing cards: a Magic Card that names a Google font shows a fallback font until this switch is on. Magic Card Utils is now needed for Google fonts.
 - Privacy: with the switch on, the browser of everyone who views a dashboard requests fonts from Google. With it off, Magic Card Utils makes no request to Google. See [Google Fonts](documentation/google-fonts/README.md).
+- The integration manifest names its category (Helpers), as the Home Assistant marketplace asks. The integration no longer ships a `strings.json`; Home Assistant reads `translations/en.json`.
+
+### Fixed
+- Disabling or removing the integration no longer ends in an unload error while the side panel is on.
 
 ## [2026.11.02] - 2026-11-12
 
@@ -346,7 +345,8 @@ First stable release.
 - Templates side panel with YAML view and preview, plus rename, duplicate and delete actions.
 - Config flow with an option to show or hide the side panel.
 
-[Unreleased]: https://github.com/therealmcsparrow/magic-card-utils/compare/2026.10.12-beta.1...HEAD
+[Unreleased]: https://github.com/therealmcsparrow/magic-card-utils/compare/2026.11.3-beta.1...HEAD
+[2026.11.3-beta.1]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.11.3-beta.1
 [2026.10.12-beta.1]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.12-beta.1
 [2026.10.11-beta.2]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.11-beta.2
 [2026.10.09]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.09
