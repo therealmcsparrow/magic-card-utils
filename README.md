@@ -40,7 +40,7 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 - Magic Card **2026.10.06** or newer for the Themes tab.
 - Magic Card **2026.10.11-beta.1** or newer for the Library, Icons and Shapes tabs and for icons in Home Assistant's icon picker.
 - Magic Card **2026.10.11-beta.2** or newer for template cards that non-admin users can see.
-- Magic Card **2026.10.12-beta.8** or newer for the Images tab and for library images on cards.
+- Magic Card **2026.11.04-beta.1** or newer for the Images tab and for library images on cards.
 
 Magic Card 2026.11.01 meets all of these.
 
@@ -108,7 +108,7 @@ Library images are drawings you make in Magic Card's image editor and save to th
 - Uploaded or pasted SVG stays untrusted. Any animation inside it is removed on import, apart from the path morphs that the image editor writes itself.
 - Every user who can log in to Home Assistant can see and use the images. Only administrators can create, change, rename, delete or import them.
 - The Images tab lists the images. Each row has Duplicate, Rename and Delete, and Export all images saves every image to a file on your device.
-- The Images tab needs Magic Card **2026.10.12-beta.8** or newer. Images over 256 KiB and animated images need the Magic Card release that matches this version. An older card still works, but it shows the large images as missing and the animated ones without motion.
+- The Images tab needs Magic Card **2026.11.04-beta.1** or newer. Images over 256 KiB and animated images need the Magic Card release that matches this version. An older card still works, but it shows the large images as missing and the animated ones without motion.
 
 A drawing can show the layout of your home, so check what goes into it. For what is stored, who can read it and what an export file holds, see the [Magic Card privacy page for images](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/images/privacy.md). The [Images tab page](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/images.md) covers the tab in detail.
 
