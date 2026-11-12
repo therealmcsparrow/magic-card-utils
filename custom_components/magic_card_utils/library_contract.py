@@ -128,7 +128,9 @@ preset-transfer 1.0.0 r2 context 'mcu-panel'):
 - Accessibility: tablist pattern as today, real buttons >= 24 x 24 CSS px, focus return, 200 % zoom.
 
 Frontend provider (www/magic_card_utils_library.js, rules from spike S1 on HA core 2026.10.2):
-- ESM, whole body in try/catch, no DOM writes, no innerHTML, <= PROVIDER_MAX_BYTES unminified.
+- ESM, whole body in try/catch, no innerHTML, <= PROVIDER_MAX_BYTES unminified. The only DOM write is a
+  Google Fonts <link rel="stylesheet" data-mc-font> in document.head, and only while the google_fonts
+  option is on; document is otherwise read only to find <home-assistant> for the active theme.
 - At load, synchronously: window.customIcons = window.customIcons || {}; then add
   customIcons[ICON_PREFIX] = {getIcon, getIconList}. Never replace window.customIcons. Set
   window.magicCardUtils at once too ({apiVersion, ready, shapes: {get, ids}}).
@@ -164,7 +166,7 @@ STORAGE_KEY_THEME_PRESETS = "magic_card_utils.theme_presets"
 SIGNAL_LIBRARY_UPDATED = "magic_card_utils_library_updated"
 
 PROVIDER_URL = "/magic_card_utils_static/magic_card_utils_library.js"
-PROVIDER_MAX_BYTES = 6 * 1024
+PROVIDER_MAX_BYTES = 10 * 1024
 CONNECTION_POLL_MS = 50
 CONNECTION_WAIT_MS = 30_000
 ICON_PREFIX = "mcu"

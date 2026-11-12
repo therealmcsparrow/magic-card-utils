@@ -16,6 +16,7 @@ const load = async (reply) => {
   let release;
   const gate = new Promise((r) => (release = r));
   const ha = { hass: { themes: { theme: "T" } } };
+  globalThis.CSS = { escape: (s) => s.replace(/["\\]/g, "\\$&") };
   globalThis.document = {
     head: {
       querySelector: (sel) => links.find((l) => sel === `link[data-mc-font="${l.dataset.mcFont}"]`) || null,

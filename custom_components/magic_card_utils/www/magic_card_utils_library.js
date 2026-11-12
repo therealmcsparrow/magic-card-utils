@@ -169,7 +169,7 @@ try {
 
   const loadFont = (f) => {
     if (!f || typeof f.name !== "string" || !f.name) return;
-    if (document.head.querySelector('link[data-mc-font="' + f.name + '"]')) return;
+    if (document.head.querySelector('link[data-mc-font="' + CSS.escape(f.name) + '"]')) return;
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = fontUrl(f);
