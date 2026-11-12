@@ -172,7 +172,7 @@ ICON_PREFIX = "mcu"
 # (r4) Panel side, mirrored as constants in www/magic_card_utils_panel.js (the panel is plain JS).
 PANEL_TABS = ("templates", "library", "animations", "themes", "icons", "shapes", "images")
 # magic-card svg-editor SVG_EDITOR_MCU_MIN_REVISION: the element revision that has host "mcu".
-EDITORS_MIN_CONTRACT_REVISION = 10
+EDITORS_MIN_CONTRACT_REVISION = 5
 
 CMD_ICONS_LIST = "magic_card_utils/icons_list"
 CMD_ICONS_GET = "magic_card_utils/icons_get"

@@ -144,14 +144,14 @@ const CMD_PRESETS_DELETE = "magic_card_utils/theme_presets_delete";
 const SVG_EDITOR_TAG = "mc-svg-editor";
 const SHAPE_STUDIO_TAG = "mc-shape-studio";
 const LIBRARY_VIEW_TAG = "mc-library-view";
-const EDITORS_MIN_CONTRACT_REVISION = 10; // svg-editor SVG_EDITOR_MCU_MIN_REVISION
+const EDITORS_MIN_CONTRACT_REVISION = 5; // svg-editor SVG_EDITOR_MCU_MIN_REVISION
 // The one gate for the editors: the oldest Magic Card (window.MagicCard.version) that ships them in the panel.
 // Minimum Magic Card for the editors (CEO 2026-10-19). See _compareCalVer for how versions are ordered.
 const MIN_MAGIC_CARD_FOR_EDITORS = "2026.10.11-beta.1";
 const CMD_ICONS_LIST = "magic_card_utils/icons_list";
 const CMD_SHAPES_LIST = "magic_card_utils/shapes_list";
 // Library images (mcu-library 1.1.0, library_images_contract.py): the oldest Magic Card that opens image sources.
-const IMAGES_MIN_CONTRACT_REVISION = 10; // svg-editor SVG_EDITOR_CONTRACT_REVISION with image sources
+const IMAGES_MIN_CONTRACT_REVISION = 8; // svg-editor SVG_EDITOR_CONTRACT_REVISION that keeps image text in a Google font
 const MIN_MAGIC_CARD_FOR_IMAGES = "2026.10.12-beta.8";
 const LIBRARY_ID_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 const FOCUS_KEY_RE = /^[A-Za-z0-9_.:-]{1,96}$/;

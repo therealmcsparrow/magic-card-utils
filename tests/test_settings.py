@@ -74,5 +74,5 @@ async def test_theme_fonts_when_on(hass, entry, hass_ws_client, hass_read_only_a
 
 
 def test_contract_minimums() -> None:
-    assert library_images_contract.IMAGES_MIN_CONTRACT_REVISION == 10
-    assert library_contract.EDITORS_MIN_CONTRACT_REVISION == 10
+    assert library_images_contract.IMAGES_MIN_CONTRACT_REVISION == 8
+    assert library_contract.EDITORS_MIN_CONTRACT_REVISION == 5

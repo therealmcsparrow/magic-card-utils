@@ -6,8 +6,8 @@ field is optional for the caller, and no command or error changes. TypeScript mi
 and rules): magic-card src/contracts/mcu-library-images.ts. The morph rule mirrors magic-card
 src/contracts/svg-safety.ts 1.4.0 and the animation record mirrors src/contracts/image-animation.ts 1.1.3.
 Card-side use (reference format, rendering, sanitiser lists): magic-card src/contracts/svg-image.ts.
-1.3.0 raises IMAGES_MIN_CONTRACT_REVISION and EDITORS_MIN_CONTRACT_REVISION to 10: from that card revision,
-image text may name a Google font as "Name", <generic>.
+1.3.0 raises IMAGES_MIN_CONTRACT_REVISION to 8: from that card revision, image text may name a Google font as
+"Name", <generic>, and the editor keeps it on save.
 
 Storage (kept apart from icons and shapes because one image can be 1 MiB and the count has no cap):
 - Index: Store(hass, STORAGE_VERSION, STORAGE_KEY_IMAGES) -> {"images": {id: ImageMeta}}. Loaded at
@@ -227,8 +227,9 @@ IMAGE_MAX_NODES = 10_000
 MAX_IMAGE_BINDINGS = 64
 MAX_BINDING_RULES = 16
 
-# magic-card svg-editor contract revision that opens image sources; panel constant of the same name.
-IMAGES_MIN_CONTRACT_REVISION = 10
+# magic-card svg-editor contract revision that opens image sources and keeps Google font text; panel constant
+# of the same name.
+IMAGES_MIN_CONTRACT_REVISION = 8
 
 IMAGE_ELEMENTS = frozenset(
     {
