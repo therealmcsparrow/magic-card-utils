@@ -38,6 +38,13 @@ def _load_catalogue() -> dict[str, Any]:
     return _catalogue
 
 
+async def async_load_catalogue(hass: HomeAssistant) -> dict[str, Any]:
+    """The catalogue, read from disk once in the executor (never on the event loop)."""
+    if _catalogue is not None:
+        return _catalogue
+    return await hass.async_add_executor_job(_load_catalogue)
+
+
 def google_fonts_enabled(hass: HomeAssistant) -> bool:
     """True when the switch is on in the options of the integration's config entry."""
     for entry in hass.config_entries.async_entries(DOMAIN):
@@ -67,8 +74,15 @@ def _font_values(node: Any, out: list[str]) -> None:
             out.append(value)
 
 
+# Home Assistant ships Roboto, so a theme naming it never needs Google.
+_SKIPPED = frozenset({"roboto"})
+
+
 def theme_google_fonts(hass: HomeAssistant) -> dict[str, list[dict[str, Any]]]:
-    """Google families used by each loaded theme: {theme: [{"name", "weights"}]}, light and dark merged."""
+    """Google families used by each loaded theme: {theme: [{"name", "weights"}]}, light and dark merged.
+
+    Reads the catalogue loaded by async_load_catalogue.
+    """
     themes = hass.data.get("frontend_themes")
     if not isinstance(themes, dict):
         return {}
@@ -81,7 +95,7 @@ def theme_google_fonts(hass: HomeAssistant) -> dict[str, list[dict[str, Any]]]:
         for value in values:
             for token in value.split(","):
                 resolved = _resolve_family(token)
-                if resolved and resolved not in names:
+                if resolved and resolved.lower() not in _SKIPPED and resolved not in names:
                     names.append(resolved)
         if names:
             result[str(theme_name)] = [{"name": n, "weights": list(families[n])} for n in names]
@@ -93,6 +107,8 @@ def theme_google_fonts(hass: HomeAssistant) -> dict[str, list[dict[str, Any]]]:
 async def ws_get_settings(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict) -> None:
     """Readable by every signed-in user."""
     enabled = google_fonts_enabled(hass)
+    if enabled:
+        await async_load_catalogue(hass)
     connection.send_result(
         msg["id"],
         {"google_fonts": enabled, "theme_fonts": theme_google_fonts(hass) if enabled else {}},

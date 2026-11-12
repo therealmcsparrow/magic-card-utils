@@ -46,14 +46,14 @@ class MagicCardUtilsOptionsFlow(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(data=user_input)
 
+        # The entry by id, not self.config_entry: Home Assistant before 2024.11 has no such property.
+        entry = self.hass.config_entries.async_get_entry(self.handler)
+        current = entry.options.get(CONF_GOOGLE_FONTS, False) if entry else False
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(
-                        CONF_GOOGLE_FONTS,
-                        default=self.config_entry.options.get(CONF_GOOGLE_FONTS, False),
-                    ): cv.boolean,
+                    vol.Optional(CONF_GOOGLE_FONTS, default=current): cv.boolean,
                 }
             ),
         )

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.components import panel_custom, websocket_api
+from homeassistant.components import frontend, panel_custom, websocket_api
 from homeassistant.components.frontend import add_extra_js_url
 from homeassistant.components.http import StaticPathConfig
 
@@ -57,17 +57,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         websocket_api.async_register_command(hass, ws_get_settings)
         hass.data[flag] = True
 
-    entry.async_on_unload(entry.add_update_listener(_async_options_updated))
-
     if entry.data.get("show_side_panel", True):
         await async_register_panel(hass)
 
     return True
-
-
-async def _async_options_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload so a changed option takes effect."""
-    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_register_panel(hass: HomeAssistant) -> None:
@@ -92,7 +85,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     # Unregister the panel
     if entry.data.get("show_side_panel", True):
-        await panel_custom.async_remove_panel(hass, PANEL_URL)
+        frontend.async_remove_panel(hass, PANEL_URL)
 
     # Pop data
     hass.data.pop(DOMAIN, None)
