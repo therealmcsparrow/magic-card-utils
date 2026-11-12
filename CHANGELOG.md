@@ -4,6 +4,13 @@ All notable changes to Magic Card Utils are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use calendar versioning (`YYYY.MM.NN`).
 
+## [2026.11.04] - 2026-11-13
+
+It works with Magic Card 2026.11.04, the same as 2026.11.03.
+
+### Security
+- The check that rejects control characters in theme values is written so code scanning reads it correctly (GitHub code scanning alert 1). Which characters it allows is unchanged: tab and newline pass, other control characters are refused.
+
 ## [2026.11.03] - 2026-11-12
 
 It works with the matching Magic Card release, 2026.11.04.
@@ -345,7 +352,8 @@ First stable release.
 - Templates side panel with YAML view and preview, plus rename, duplicate and delete actions.
 - Config flow with an option to show or hide the side panel.
 
-[Unreleased]: https://github.com/therealmcsparrow/magic-card-utils/compare/2026.11.03...HEAD
+[Unreleased]: https://github.com/therealmcsparrow/magic-card-utils/compare/2026.11.04...HEAD
+[2026.11.04]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.11.04
 [2026.11.03]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.11.03
 [2026.10.12-beta.1]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.12-beta.1
 [2026.10.11-beta.2]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.11-beta.2

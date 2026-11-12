@@ -46,7 +46,8 @@ _LOGGER = logging.getLogger(__name__)
 MAX_ERRORS = 50
 MTIME_TOLERANCE = 0.001
 
-_BAD_CHARS_RE = re.compile("[\x00-\x08\x0b-\x1f\x7f\ud800-\udfff]")
+# Raw string so the class holds escapes, not literal control bytes. Tab and newline are allowed.
+_BAD_CHARS_RE = re.compile(r"[\x00-\x08\x0b-\x1f\x7f\ud800-\udfff]")
 
 
 class ThemeFileError(Exception):
