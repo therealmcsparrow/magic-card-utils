@@ -1,6 +1,6 @@
 """Saved full drawings ("library images") for Magic Card: storage, validation and WebSocket API.
 
-Implements the images part of mcu-library 1.2.1, see library_images_contract.py. An index Store holds
+Implements the images part of mcu-library 1.3.0, see library_images_contract.py. An index Store holds
 the small metadata of every image; each body (svg, bindings, animation, thumb, meta) is its own JSON file
 in a folder under .storage, so one 1 MiB drawing never has to be loaded with the others. Magic Card
 sanitises every image again before it renders it; the checks here are defence in depth and size/shape

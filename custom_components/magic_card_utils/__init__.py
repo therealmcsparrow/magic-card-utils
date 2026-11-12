@@ -4,7 +4,7 @@ from pathlib import Path
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.components import panel_custom
+from homeassistant.components import panel_custom, websocket_api
 from homeassistant.components.frontend import add_extra_js_url
 from homeassistant.components.http import StaticPathConfig
 
@@ -13,6 +13,7 @@ from .animations import async_setup_animations
 from .images import async_setup_images
 from .library import async_setup_library
 from .library_contract import PROVIDER_URL
+from .settings import ws_get_settings
 from .themes import async_setup_themes
 from .websocket import async_register_websocket
 
@@ -51,10 +52,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         add_extra_js_url(hass, f"{PROVIDER_URL}?v={version}")
         hass.data[f"{DOMAIN}_provider_registered"] = True
 
+    flag = f"{DOMAIN}_settings_ws_registered"
+    if not hass.data.get(flag, False):
+        websocket_api.async_register_command(hass, ws_get_settings)
+        hass.data[flag] = True
+
+    entry.async_on_unload(entry.add_update_listener(_async_options_updated))
+
     if entry.data.get("show_side_panel", True):
         await async_register_panel(hass)
 
     return True
+
+
+async def _async_options_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Reload so a changed option takes effect."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_register_panel(hass: HomeAssistant) -> None:

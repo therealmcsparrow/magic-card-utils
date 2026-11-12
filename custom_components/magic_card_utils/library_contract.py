@@ -1,4 +1,4 @@
-"""Contract: mcu-library 1.2.1. Saved icons, shapes and theme presets for Magic Card; the images part is library_images_contract.py, implemented in images.py.
+"""Contract: mcu-library 1.3.0. Saved icons, shapes and theme presets for Magic Card; the images part is library_images_contract.py, implemented in images.py.
 
 TypeScript mirror (same version, field names and rules): magic-card
 src/contracts/mcu-library.ts. Decision records: magic-card docs/adr/0018, 0020, 0022 and 0027.
@@ -153,7 +153,7 @@ from __future__ import annotations
 import re
 from typing import Literal, NotRequired, TypedDict
 
-MCU_LIBRARY_CONTRACT_VERSION = "1.2.1"
+MCU_LIBRARY_CONTRACT_VERSION = "1.3.0"
 MCU_LIBRARY_CONTRACT_REVISION = 4
 PROVIDER_API_VERSION = 1
 
@@ -172,7 +172,7 @@ ICON_PREFIX = "mcu"
 # (r4) Panel side, mirrored as constants in www/magic_card_utils_panel.js (the panel is plain JS).
 PANEL_TABS = ("templates", "library", "animations", "themes", "icons", "shapes", "images")
 # magic-card svg-editor SVG_EDITOR_MCU_MIN_REVISION: the element revision that has host "mcu".
-EDITORS_MIN_CONTRACT_REVISION = 5
+EDITORS_MIN_CONTRACT_REVISION = 10
 
 CMD_ICONS_LIST = "magic_card_utils/icons_list"
 CMD_ICONS_GET = "magic_card_utils/icons_get"

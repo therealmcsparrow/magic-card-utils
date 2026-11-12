@@ -1,6 +1,6 @@
-"""Contract: mcu-library 1.2.1, images part. Saved full drawings ("library images") for Magic Card.
+"""Contract: mcu-library 1.3.0, images part. Saved full drawings ("library images") for Magic Card.
 
-mcu-library 1.2.1 = library_contract.py (icons, shapes, theme presets, provider, panel) plus this module;
+mcu-library 1.3.0 = library_contract.py (icons, shapes, theme presets, provider, panel) plus this module;
 MCU_LIBRARY_CONTRACT_VERSION in library_contract.py names the same version. Additive over 1.1.0: every new
 field is optional for the caller, and no command or error changes. TypeScript mirror (same version, names
 and rules): magic-card src/contracts/mcu-library-images.ts. The morph rule mirrors magic-card
@@ -195,7 +195,7 @@ from __future__ import annotations
 import re
 from typing import Literal, NotRequired, TypedDict
 
-MCU_LIBRARY_IMAGES_CONTRACT_VERSION = "1.2.1"
+MCU_LIBRARY_IMAGES_CONTRACT_VERSION = "1.3.0"
 
 STORAGE_KEY_IMAGES = "magic_card_utils.images"
 IMAGE_DIR = ".storage/magic_card_utils_images"
@@ -226,7 +226,7 @@ MAX_IMAGE_BINDINGS = 64
 MAX_BINDING_RULES = 16
 
 # magic-card svg-editor contract revision that opens image sources; panel constant of the same name.
-IMAGES_MIN_CONTRACT_REVISION = 6
+IMAGES_MIN_CONTRACT_REVISION = 10
 
 IMAGE_ELEMENTS = frozenset(
     {

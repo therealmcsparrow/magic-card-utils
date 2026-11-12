@@ -12,5 +12,18 @@
     "abort": {
       "single_instance_allowed": "Magic Card Utils is already configured."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Magic Card Utils options",
+        "data": {
+          "google_fonts": "Load Google Fonts"
+        },
+        "data_description": {
+          "google_fonts": "Load fonts from Google Fonts in Magic Card editors and cards."
+        }
+      }
+    }
   }
 }

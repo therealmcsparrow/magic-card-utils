@@ -12,5 +12,18 @@
     "abort": {
       "single_instance_allowed": "Magic Card Utils is al geconfigureerd."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Magic Card Utils-opties",
+        "data": {
+          "google_fonts": "Google Fonts laden"
+        },
+        "data_description": {
+          "google_fonts": "Laad lettertypen van Google Fonts in de editors en kaarten van Magic Card."
+        }
+      }
+    }
   }
 }
