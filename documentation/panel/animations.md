@@ -9,7 +9,7 @@ The studio itself is part of Magic Card. How to use it is documented in the [Mag
 - [Saving and deleting](#saving-and-deleting)
 - [Open one animation directly](#open-one-animation-directly)
 
-The list of animations stays inside the tab. Opening an animation fills the whole screen, like the icon, shape and image editors. Going back to the library returns to the tab.
+The tab lists your animations. The animation studio, with its own library and editor, fills the whole window, like the icon, shape and image editors. **Close** in its top bar returns to the tab.
 
 ## Requirements
 

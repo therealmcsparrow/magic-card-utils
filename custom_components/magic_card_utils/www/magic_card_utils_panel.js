@@ -1291,6 +1291,7 @@ class MagicCardUtilsPanel extends LitElement {
     el.addEventListener("mc-anim-duplicate", (e) => this._onStudioSave(e));
     el.addEventListener("mc-anim-delete", (e) => this._onStudioDelete(e));
     el.addEventListener("mc-anim-select", (e) => this._onStudioSelect(e));
+    el.addEventListener("mc-anim-close", () => this._closeStudio());
     this._studioEl = el;
     this._animStatus = "ready";
     await this.updateComplete;
@@ -1384,6 +1385,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (e.detail) e.detail.result = result;
     result.catch((err) => {
       console.error("[magic_card_utils] save animation failed", err);
+      if (this._studioOpen) return;
       this._animError = this._wsErrorMessage(err, tr("mcu-panel.panel.the-animation-could-not-be-saved"));
     });
   }
@@ -1400,6 +1402,7 @@ class MagicCardUtilsPanel extends LitElement {
     if (e.detail) e.detail.result = result;
     result.catch((err) => {
       console.error("[magic_card_utils] delete animation failed", err);
+      if (this._studioOpen) return;
       this._animError = this._wsErrorMessage(err, tr("mcu-panel.panel.the-animation-could-not-be-deleted"));
     });
   }
@@ -1565,7 +1568,7 @@ class MagicCardUtilsPanel extends LitElement {
   _renderStudioView() {
     if (this._animStatus === "ready") this.updateComplete.then(() => this._attachStudio());
     return html`
-      <div class="bar">
+      <div class="bar" ?hidden=${this._animStatus === "ready"}>
         <button type="button" class="btn btn-secondary btn-sm studio-back" @click=${() => this._closeStudio()}>${glyph("back", 18)}${tr("mcu-panel.panel.back-to-the-list")}</button>
       </div>
       ${this._animError
@@ -3140,7 +3143,7 @@ class MagicCardUtilsPanel extends LitElement {
 
   /** True while the Animations or Themes editor fills the screen; the header and tabs then sit behind it. */
   _editorCoversPanel() {
-    const el = this._tab === "animations" ? this._studioEl : this._tab === "themes" ? this._themeEl : null;
+    const el = this._tab === "animations" ? (this._studioOpen ? this._studioEl : null) : this._tab === "themes" ? this._themeEl : null;
     return !!el && el.hasAttribute("editing");
   }
 
