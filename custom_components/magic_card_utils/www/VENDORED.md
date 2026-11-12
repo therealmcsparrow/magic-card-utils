@@ -100,7 +100,7 @@ two SHA-256 rows. A new or changed panel message needs its entry in `i18n/en-GB.
 `i18n/nl.json` first.
 
 The config flow does not use these files. Home Assistant reads `translations/en.json`, `en-GB.json` and
-`nl.json` in the integration folder (`strings.json` is only for core integrations).
+`nl.json` in the integration folder. Custom integrations ship no `strings.json`.
 
 # Vendored: panel fonts (Space Grotesk, JetBrains Mono)
 

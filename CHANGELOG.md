@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- The integration manifest names its category (Helpers), as the Home Assistant marketplace asks. The integration no longer ships a `strings.json`; Home Assistant reads `translations/en.json`.
+
 ## [2026.11.02] - 2026-11-12
 
 This stable release holds everything from the 2026.11.2 pre-releases, which are listed below, plus the changes in this section. Use it with Magic Card 2026.11.03, so you no longer need a Magic Card pre-release. If you stayed on 2026.11.01, these are the main changes:
