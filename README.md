@@ -23,6 +23,7 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 - **Icon and shape library:** draw icons and shapes without a card, in the Library, Icons and Shapes tabs. Saved icons appear in Home Assistant's icon picker after a reload, and Magic Card draws them in full colour. Home Assistant's own cards show them as one-colour silhouettes.
 - **Image library:** draw images in Magic Card's image editor, keep them in the Images tab and show them in image modules and background layers. Saved images are included in Home Assistant backups, and every user can see them. See [Images](documentation/panel/images.md) and the [Images section](#images) below.
 - **Forum shot:** turn one of your Magic Cards into a picture to post in a forum, in light, dark or both. The picture is made in your browser. For a card with web fonts, your browser asks the font sites shown on the tab for them. See [Forum shot](documentation/panel/forum-shot.md).
+- **Google Fonts:** an optional switch that gives every Magic Card font picker the full Google Fonts catalogue. Off by default. Turn it on under Settings → Devices & services → Magic Card Utils → Configure → **Load Google Fonts**, then reload the page. See [Google Fonts](documentation/google-fonts/README.md).
 - **Theme presets:** keep your own theme presets in the shared library, and import or export them as files.
 - **Import and export:** move icons, shapes, animations and theme presets between Home Assistant installations. Imports are size-limited and checked before anything is saved. See [Library](documentation/panel/library.md).
 - **Theme editor:** create and edit Home Assistant themes in a Themes tab, with a live preview and a Try on dashboard button. Saves write the theme file to `/config/themes`.
@@ -39,9 +40,9 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 - Magic Card **2026.10.06** or newer for the Themes tab.
 - Magic Card **2026.10.11-beta.1** or newer for the Library, Icons and Shapes tabs and for icons in Home Assistant's icon picker.
 - Magic Card **2026.10.11-beta.2** or newer for template cards that non-admin users can see.
-- Magic Card **2026.10.12-beta.8** or newer for the Images tab and for library images on cards.
+- Magic Card **2026.11.04-beta.1** or newer for the Images tab and for library images on cards.
 
-Magic Card 2026.11.01 meets all of these.
+Magic Card 2026.11.04-beta.1 meets all of these.
 
 ## Check a genuine release
 
@@ -107,7 +108,7 @@ Library images are drawings you make in Magic Card's image editor and save to th
 - Uploaded or pasted SVG stays untrusted. Any animation inside it is removed on import, apart from the path morphs that the image editor writes itself.
 - Every user who can log in to Home Assistant can see and use the images. Only administrators can create, change, rename, delete or import them.
 - The Images tab lists the images. Each row has Duplicate, Rename and Delete, and Export all images saves every image to a file on your device.
-- The Images tab needs Magic Card **2026.10.12-beta.8** or newer. Images over 256 KiB and animated images need the Magic Card release that matches this version. An older card still works, but it shows the large images as missing and the animated ones without motion.
+- The Images tab needs Magic Card **2026.11.04-beta.1** or newer. Images over 256 KiB and animated images need the Magic Card release that matches this version. An older card still works, but it shows the large images as missing and the animated ones without motion.
 
 A drawing can show the layout of your home, so check what goes into it. For what is stored, who can read it and what an export file holds, see the [Magic Card privacy page for images](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/images/privacy.md). The [Images tab page](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/images.md) covers the tab in detail.
 
@@ -122,6 +123,7 @@ The [documentation](https://github.com/therealmcsparrow/magic-card-utils/tree/ma
 | [Forum shot](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/forum-shot.md) | The card table, locked cards, fonts, the three looks, the privacy warning and what the area sends |
 | [Library](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/library.md) | Icons, shapes, animations and theme presets, the Icons and Shapes tabs, import and export, and the icon picker |
 | [Languages](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/languages.md) | English (UK), English (US) and Dutch, and what follows your profile language |
+| [Google Fonts](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/google-fonts/README.md) | The Load Google Fonts switch, the font pickers, theme fonts, image text and privacy |
 | [Concepts](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/concepts/README.md) | Templates and linking, linked-card counting, the animation library and where the data is stored |
 | [WebSocket API](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/api/README.md) | Every command, payload, event and error code, for other custom cards |
 | [Magic Card compatibility](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/compatibility/README.md) | Which Magic Card version each tab needs, and the version check |
@@ -131,7 +133,9 @@ The [changelog](https://github.com/therealmcsparrow/magic-card-utils/blob/main/C
 
 ## Privacy
 
-Magic Card Utils has no telemetry and makes no requests to other websites. What you save stays in your own Home Assistant, in `config/.storage/` and, for themes, in `config/themes`. Nothing is sent to the author. A file you import can point to another website; the import window tells you before you confirm. See [Importing a theme file](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/library.md#importing-a-theme-file).
+Magic Card Utils has no telemetry and sends nothing to the author. Its only request to another website is the optional Google Fonts one described below, and it is off by default. What you save stays in your own Home Assistant, in `config/.storage/` and, for themes, in `config/themes`. A file you import can point to another website; the import window tells you before you confirm. See [Importing a theme file](https://github.com/therealmcsparrow/magic-card-utils/blob/main/documentation/panel/library.md#importing-a-theme-file).
+
+Google Fonts are off by default. You turn them on with the **Load Google Fonts** switch under Settings → Devices & services → Magic Card Utils → Configure. It covers the whole Home Assistant install, and a change applies when the page is reloaded. When it is on, the browser of everyone who views a dashboard requests font files from Google (`fonts.googleapis.com` and `fonts.gstatic.com`). Google receives the viewer's IP address, browser details and the page address, and logs the request; see [Google's privacy policy](https://policies.google.com/privacy). This includes fonts named by your active Home Assistant theme, which Magic Card Utils then loads on every Home Assistant page. When the switch is off, Magic Card Utils makes no request to Google. The switch does not cover an `@import url(https://fonts.googleapis.com/...)` that a card author typed into a card's custom css. That is an address the author chose, and the browser requests it either way.
 
 ## Support
 

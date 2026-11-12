@@ -1,9 +1,11 @@
 """Config flow for Magic Card Utils."""
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
 
 from .const import DOMAIN
+from .settings import CONF_GOOGLE_FONTS
 
 
 @config_entries.HANDLERS.register(DOMAIN)
@@ -11,6 +13,12 @@ class MagicCardUtilsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Magic Card Utils."""
 
     VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        """Return the options flow."""
+        return MagicCardUtilsOptionsFlow()
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
@@ -25,6 +33,27 @@ class MagicCardUtilsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema(
                 {
                     vol.Optional("show_side_panel", default=True): cv.boolean,
+                }
+            ),
+        )
+
+
+class MagicCardUtilsOptionsFlow(config_entries.OptionsFlow):
+    """Options for Magic Card Utils."""
+
+    async def async_step_init(self, user_input=None):
+        """Manage the options."""
+        if user_input is not None:
+            return self.async_create_entry(data=user_input)
+
+        # The entry by id, not self.config_entry: Home Assistant before 2024.11 has no such property.
+        entry = self.hass.config_entries.async_get_entry(self.handler)
+        current = entry.options.get(CONF_GOOGLE_FONTS, False) if entry else False
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(CONF_GOOGLE_FONTS, default=current): cv.boolean,
                 }
             ),
         )

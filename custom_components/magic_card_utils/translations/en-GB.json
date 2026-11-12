@@ -12,5 +12,18 @@
     "abort": {
       "single_instance_allowed": "Magic Card Utils is already configured."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Magic Card Utils options",
+        "data": {
+          "google_fonts": "Load Google Fonts"
+        },
+        "data_description": {
+          "google_fonts": "When on, the browser of everyone who views a dashboard requests fonts from Google, which sees their IP address. Applies to the whole install after a page reload."
+        }
+      }
+    }
   }
 }

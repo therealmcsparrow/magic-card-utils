@@ -6,7 +6,7 @@ Images are stored in Home Assistant, not in your dashboard YAML. Export all keep
 
 ## Requirements
 
-- Magic Card 2026.10.12-beta.8 or newer. The Images tab says "Install Magic Card to draw images here." when Magic Card is missing, and "Drawing images here needs Magic Card 2026.10.12-beta.8 or newer. Update Magic Card." when it is too old.
+- Magic Card 2026.11.04-beta.1 or newer. The Images tab says "Install Magic Card to draw images here." when Magic Card is missing, and "Drawing images here needs Magic Card 2026.11.04-beta.1 or newer. Update Magic Card." when it is too old.
 - Magic Card Utils is installed the same way as Magic Card.
 
 ## Who can do what

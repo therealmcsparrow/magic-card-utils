@@ -8,6 +8,7 @@ This folder documents the Magic Card Utils integration: installing it, the sideb
 | --- | --- |
 | [Getting started](getting-started/README.md) | Requirements, installing through the Marketplace, HACS or by hand, setting up the integration, updating and removing it |
 | [Panel](panel/README.md) | The Magic Card Templates sidebar panel: the Templates tab with its table, template view, editor and studio, the Animations tab, and the Themes tab |
+| [Google Fonts](google-fonts/README.md) | The Load Google Fonts switch, what it changes in Magic Card's font pickers, theme fonts and image text, and privacy |
 | [Concepts](concepts/README.md) | What a template is, how cards link to one, how linked cards are counted, the animation library, and where the data is stored |
 
 ## Security

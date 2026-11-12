@@ -1,4 +1,4 @@
-"""Contract: mcu-library 1.2.1. Saved icons, shapes and theme presets for Magic Card; the images part is library_images_contract.py, implemented in images.py.
+"""Contract: mcu-library 1.3.0. Saved icons, shapes and theme presets for Magic Card; the images part is library_images_contract.py, implemented in images.py.
 
 TypeScript mirror (same version, field names and rules): magic-card
 src/contracts/mcu-library.ts. Decision records: magic-card docs/adr/0018, 0020, 0022 and 0027.
@@ -128,7 +128,9 @@ preset-transfer 1.0.0 r2 context 'mcu-panel'):
 - Accessibility: tablist pattern as today, real buttons >= 24 x 24 CSS px, focus return, 200 % zoom.
 
 Frontend provider (www/magic_card_utils_library.js, rules from spike S1 on HA core 2026.10.2):
-- ESM, whole body in try/catch, no DOM writes, no innerHTML, <= PROVIDER_MAX_BYTES unminified.
+- ESM, whole body in try/catch, no innerHTML, <= PROVIDER_MAX_BYTES unminified. The only DOM write is a
+  Google Fonts <link rel="stylesheet" data-mc-font> in document.head, and only while the google_fonts
+  option is on; document is otherwise read only to find <home-assistant> for the active theme.
 - At load, synchronously: window.customIcons = window.customIcons || {}; then add
   customIcons[ICON_PREFIX] = {getIcon, getIconList}. Never replace window.customIcons. Set
   window.magicCardUtils at once too ({apiVersion, ready, shapes: {get, ids}}).
@@ -153,7 +155,7 @@ from __future__ import annotations
 import re
 from typing import Literal, NotRequired, TypedDict
 
-MCU_LIBRARY_CONTRACT_VERSION = "1.2.1"
+MCU_LIBRARY_CONTRACT_VERSION = "1.3.0"
 MCU_LIBRARY_CONTRACT_REVISION = 4
 PROVIDER_API_VERSION = 1
 
@@ -164,7 +166,7 @@ STORAGE_KEY_THEME_PRESETS = "magic_card_utils.theme_presets"
 SIGNAL_LIBRARY_UPDATED = "magic_card_utils_library_updated"
 
 PROVIDER_URL = "/magic_card_utils_static/magic_card_utils_library.js"
-PROVIDER_MAX_BYTES = 6 * 1024
+PROVIDER_MAX_BYTES = 10 * 1024
 CONNECTION_POLL_MS = 50
 CONNECTION_WAIT_MS = 30_000
 ICON_PREFIX = "mcu"

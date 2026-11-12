@@ -17,9 +17,11 @@ In scope:
 -   **The library and the WebSocket commands.** Storage of icons, shapes, animations, theme presets and templates, the commands that read and change them, and the admin check on every command that changes data. See [WebSocket API](documentation/api/README.md).
 -   **The provider script.** `magic_card_utils_library.js` is added to every Home Assistant page so that Magic Card can read the library. A way to make it run other code, break a page or leak library data to a user who should not see it is in scope.
 -   **Theme files.** Reading and writing in `/config/themes`.
+-   **Google Fonts switch.** A request to `fonts.googleapis.com` or `fonts.gstatic.com` from Magic Card or Magic Card Utils while the Google Fonts switch is off, other than an address that the card author typed.
 
 Out of scope:
 
+-   A request to Google Fonts that you turned on with the **Load Google Fonts** switch in Magic Card Utils, or that you wrote yourself as an `@import` in a card's custom css. Google receives the viewer's IP address in both cases; see [Privacy](README.md#privacy).
 -   A request that you confirmed with **Import anyway**. A theme kept with an outside address or with `card-mod-` lines does what the warning says.
 -   Faults in Home Assistant, card-mod, other custom cards, or a website a theme points to.
 -   Content that an administrator saved on purpose, such as a template with the configuration they chose.

@@ -39,6 +39,8 @@ Change what the reason points to in the card, save it, then reopen the tab. For 
 
 Google fonts and font addresses in a card are allowed. A usable card that uses them shows the line "Fonts from" followed by the sites involved, so you can see who your browser will ask before you choose Download. Fonts that sit on a site the tab does not show are not fetched.
 
+A Google font that a card names in its font settings is fetched, and listed under "Fonts from", only while the **Load Google Fonts** switch is on. With the switch off, the picture uses the fallback font. See [Google Fonts](../google-fonts/README.md).
+
 If a font cannot be loaded, Download stops with "A font could not be loaded, so no picture was made. Check your connection and try again." No picture is saved when a font fails, so you never get a picture with the wrong font.
 
 An image that comes from an entity, such as a picture attribute that points to another server, is not fetched. The card draws its placeholder in its place, and a note under the preview says: "A picture from outside Home Assistant was replaced by a placeholder, so no other server was contacted. Your card may look different on your dashboard."
