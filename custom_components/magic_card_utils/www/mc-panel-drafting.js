@@ -375,7 +375,7 @@ export const draftingStyles = [
     .tab {
       flex: none;
       height: 42px;
-      padding: 0 14px;
+      padding: 0 12px;
       position: relative;
       background: none;
       border: 0;
