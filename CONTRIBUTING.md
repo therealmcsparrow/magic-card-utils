@@ -26,7 +26,21 @@ The integration needs Home Assistant 2024.7 or newer. The Animations and Themes 
 1.  The maintainer runs the test suite before merging; it is kept outside the repository, so describe in your pull request how you tested your change.
 2.  Check your change in a real Home Assistant. A disposable Home Assistant container is enough. Copy `custom_components/magic_card_utils` into its configuration folder, restart Home Assistant, then open Settings, System, Logs and look for errors from `magic_card_utils`.
 
-CI runs hassfest and HACS validation on every push and pull request, and once a week. Check the result on your pull request before you ask for a review.
+## Checks on GitHub
+
+The Validate workflow runs on every push and pull request, once a week, and when the maintainer starts it by hand. Check the result on your pull request before you ask for a review. It runs:
+
+-   **Hassfest**, Home Assistant's check of the integration: the manifest, the config flow and the translations.
+-   **HACS**, the HACS action with the `integration` category. The Home Assistant Marketplace needs both Hassfest and HACS to pass before it lists the integration.
+-   **Pinned actions**, which fails when a workflow uses an action that is not pinned to a full commit id.
+-   **Panel i18n**, which checks that the panel translation files match the Magic Card commit in `.magic-card-ref`.
+
+Keep these rules in mind when you change the integration folder:
+
+-   `manifest.json` names its category, `helpers`. The marketplace accepts one to three categories from Home Assistant's [integration categories](https://contributors.home-assistant.io/core/integrations/categories/); an unknown one fails the HACS check.
+-   The `version` in `manifest.json` matches the release tag.
+-   The setup screen's text lives in `translations/en.json`, which must be complete, with `en-GB.json` and `nl.json` next to it. Custom integrations do not use `strings.json`, so do not add one.
+-   The icons and logos the marketplace shows are in `brand/` inside the integration folder.
 
 ## Screenshots
 
