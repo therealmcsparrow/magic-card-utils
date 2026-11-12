@@ -9,6 +9,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - The integration manifest names its category (Helpers), as the Home Assistant marketplace asks. The integration no longer ships a `strings.json`; Home Assistant reads `translations/en.json`.
 
+## [2026.11.3-beta.1]
+
+This is a pre-release. It works with the matching Magic Card release, 2026.11.04-beta.1. To install it, choose **Include pre-releases** in the Marketplace, or turn on **Show beta versions** in HACS.
+
+### Added
+- A **Load Google Fonts** switch under Settings → Devices & services → Magic Card Utils → Configure. It is off by default, covers the whole Home Assistant install and applies after a page reload. With it on, every Magic Card font picker shows the full Google Fonts catalogue in a Google tab, and fonts that your Home Assistant theme names load on every Home Assistant page.
+
+### Changed
+- Breaking for existing cards: a Magic Card that names a Google font shows a fallback font until this switch is on. Magic Card Utils is now needed for Google fonts.
+- Privacy: with the switch on, the browser of everyone who views a dashboard requests fonts from Google. With it off, Magic Card Utils makes no request to Google. See [Google Fonts](documentation/google-fonts/README.md).
+
 ## [2026.11.02] - 2026-11-12
 
 This stable release holds everything from the 2026.11.2 pre-releases, which are listed below, plus the changes in this section. Use it with Magic Card 2026.11.03, so you no longer need a Magic Card pre-release. If you stayed on 2026.11.01, these are the main changes:
