@@ -21,7 +21,7 @@
           "google_fonts": "Google Fonts laden"
         },
         "data_description": {
-          "google_fonts": "Laad lettertypen van Google Fonts in de editors en kaarten van Magic Card."
+          "google_fonts": "Als dit aan staat, vraagt de browser van iedereen die een dashboard bekijkt lettertypen op bij Google, dat hun IP-adres ziet. Geldt voor de hele installatie na het herladen van de pagina."
         }
       }
     }

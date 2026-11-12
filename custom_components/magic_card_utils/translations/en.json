@@ -21,7 +21,7 @@
           "google_fonts": "Load Google Fonts"
         },
         "data_description": {
-          "google_fonts": "Load fonts from Google Fonts in Magic Card editors and cards."
+          "google_fonts": "When on, the browser of everyone who views a dashboard requests fonts from Google, which sees their IP address. Applies to the whole install after a page reload."
         }
       }
     }
