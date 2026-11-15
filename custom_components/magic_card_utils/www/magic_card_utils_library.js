@@ -2,7 +2,7 @@
 // Registers window.customIcons.mcu (merge, never replace) and window.magicCardUtils.
 // Reads the saved library over HA's own websocket connection. Touches no DOM, except that it adds Google font
 // stylesheet links for the active theme when the Google Fonts switch is on.
-// Publishes window.magicCardUtils.settings ({ googleFonts }) and the mcu-settings event once the switch is known.
+// Publishes window.magicCardUtils.settings ({ googleFonts, lookGallery }) and the mcu-settings event once the switch is known.
 try {
   const PREFIX = "mcu";
   const CMD = "magic_card_utils/";
@@ -195,10 +195,10 @@ try {
     } catch (e) { /* ignore */ }
   };
 
-  const publishSettings = (googleFonts) => {
-    window.magicCardUtils.settings = { googleFonts };
+  const publishSettings = (googleFonts, lookGallery) => {
+    window.magicCardUtils.settings = { googleFonts, lookGallery };
     try {
-      window.dispatchEvent(new CustomEvent("mcu-settings", { detail: { googleFonts } }));
+      window.dispatchEvent(new CustomEvent("mcu-settings", { detail: { googleFonts, lookGallery } }));
     } catch (e) { /* ignore */ }
     if (!googleFonts) return;
     try {
@@ -211,12 +211,14 @@ try {
 
   const loadSettings = async () => {
     let googleFonts = false;
+    let lookGallery = false;
     try {
       const r = await send({ type: CMD + "get_settings" });
       googleFonts = !!r && r.google_fonts === true;
+      lookGallery = !!r && r.look_gallery === true;
       if (googleFonts) themeFonts = r.theme_fonts && typeof r.theme_fonts === "object" ? r.theme_fonts : {};
     } catch (e) { /* the switch counts as off */ }
-    publishSettings(googleFonts);
+    publishSettings(googleFonts, lookGallery);
   };
 
   // Synchronous registration. Merge into an existing object, never replace it.
