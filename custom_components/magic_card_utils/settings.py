@@ -15,6 +15,7 @@ from homeassistant.core import HomeAssistant
 from .const import DOMAIN
 
 CONF_GOOGLE_FONTS = "google_fonts"
+CONF_LOOK_GALLERY = "look_gallery"
 CMD_GET_SETTINGS = f"{DOMAIN}/get_settings"
 
 _CATALOGUE_PATH = Path(__file__).parent / "google_fonts.json"
@@ -49,6 +50,14 @@ def google_fonts_enabled(hass: HomeAssistant) -> bool:
     """True when the switch is on in the options of the integration's config entry."""
     for entry in hass.config_entries.async_entries(DOMAIN):
         if entry.options.get(CONF_GOOGLE_FONTS, False) is True:
+            return True
+    return False
+
+
+def look_gallery_enabled(hass: HomeAssistant) -> bool:
+    """True when the look gallery switch is on in the options of the integration's config entry."""
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.options.get(CONF_LOOK_GALLERY, False) is True:
             return True
     return False
 
@@ -111,5 +120,9 @@ async def ws_get_settings(hass: HomeAssistant, connection: websocket_api.ActiveC
         await async_load_catalogue(hass)
     connection.send_result(
         msg["id"],
-        {"google_fonts": enabled, "theme_fonts": theme_google_fonts(hass) if enabled else {}},
+        {
+            "google_fonts": enabled,
+            "look_gallery": look_gallery_enabled(hass),
+            "theme_fonts": theme_google_fonts(hass) if enabled else {},
+        },
     )

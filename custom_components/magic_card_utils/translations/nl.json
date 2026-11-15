@@ -18,12 +18,27 @@
       "init": {
         "title": "Magic Card Utils-opties",
         "data": {
-          "google_fonts": "Google Fonts laden"
+          "google_fonts": "Google Fonts laden",
+          "look_gallery": "Lookgalerij"
         },
         "data_description": {
-          "google_fonts": "Als dit aan staat, vraagt de browser van iedereen die een dashboard bekijkt lettertypen op bij Google, dat hun IP-adres ziet. Geldt voor de hele installatie na het herladen van de pagina."
+          "google_fonts": "Als dit aan staat, vraagt de browser van iedereen die een dashboard bekijkt lettertypen op bij Google, dat hun IP-adres ziet. Geldt voor de hele installatie na het herladen van de pagina.",
+          "look_gallery": "Laat de kaarteditor looks laden van therealmcsparrow.github.io. Aanzetten zet ook Google Fonts laden aan; uitzetten laat Google Fonts laden zoals het is. Standaard uit. Na een wijziging moet je opnieuw laden."
         }
+      },
+      "gallery_info": {
+        "title": "De lookgalerij aanzetten?",
+        "submit": "Doorgaan",
+        "description": "De lookgalerij is een verzameling looks die anderen hebben gedeeld. Je kunt ze bekijken en er een op je eigen kaart toepassen. Een look verandert alleen hoe een kaart eruitziet, nooit wat hij doet.\n\nJe browser neemt contact op met deze websites, en die zien je internetadres (IP-adres):\n- `therealmcsparrow.github.io` (van GitHub). Alleen de kaarteditor doet dit, en alleen terwijl de galerij open is. Zo laadt hij de lijst met looks en hun voorbeeldafbeeldingen.\n- `fonts.googleapis.com` en `fonts.gstatic.com` (van Google). Google Fonts laden gaat samen met de galerij aan. Elke browser die een kaart toont met een look die een Google-lettertype gebruikt, neemt dan contact op met deze websites.\n\nDeze websites zien ook de gewone gegevens die een browser meestuurt, zoals type en taal. Zij gaan daarmee om volgens hun eigen privacybeleid. Magic Card stuurt verder niets: geen entiteitsnamen, geen kaartinstellingen, geen Home Assistant-gegevens. Er wordt niets geteld of gevolgd.\n\nEr verandert niets totdat je op het volgende scherm bevestigt."
+      },
+      "gallery_confirm": {
+        "title": "De lookgalerij aanzetten voor iedereen?",
+        "submit": "Aanzetten",
+        "description": "Deze schakelaar geldt voor iedereen die deze Home Assistant gebruikt. Bevestigen zet ook **Google Fonts laden** aan. Laad na het aanzetten elk geopend dashboard opnieuw. In een browser ververs je de pagina. In de Home Assistant-app op een iPad of iPhone trek je het scherm omlaag om te verversen, of sluit je de app en open je hem opnieuw.\n\nJe kunt de galerij altijd weer uitzetten met dezelfde schakelaar. Dan stoppen de verzoeken naar `therealmcsparrow.github.io`. Google Fonts laden gaat daarbij niet uit, dus Google Fonts blijven laden voor kaarten die ze gebruiken. Wil je ook die verzoeken stoppen, zet dan Google Fonts laden ook uit; kaarten tonen dan een standaardlettertype in plaats van een Google-lettertype. Kaarten met een look houden hun stijlinstellingen in beide gevallen."
       }
+    },
+    "error": {
+      "gallery_needs_fonts": "De lookgalerij heeft Google Fonts laden nodig. Zet Google Fonts laden ook aan, of zet de lookgalerij uit."
     }
   }
 }
