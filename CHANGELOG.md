@@ -4,6 +4,14 @@ All notable changes to Magic Card Utils are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use calendar versioning (`YYYY.MM.NN`).
 
+## Unreleased
+
+### Added
+- A **Look gallery** switch under Settings → Devices & services → Magic Card Utils → Configure. It is off by default, covers the whole Home Assistant install and applies after a page reload. Turning it on shows two screens that name the websites your browser will contact, and confirming also turns on **Load Google Fonts**. Turning it off leaves **Load Google Fonts** as it is. If **Load Google Fonts** is off while the gallery is on, the options form asks you to fix one of them. See [Look gallery](documentation/look-gallery.md).
+
+### Changed
+- Privacy: with the gallery on, the card editor requests the list of looks and preview images from `therealmcsparrow.github.io` (GitHub), and **Load Google Fonts** is on with it. With the gallery off, Magic Card sends no request to the gallery host.
+
 ## [2026.11.04] - 2026-11-13
 
 It works with Magic Card 2026.11.04, the same as 2026.11.03.
