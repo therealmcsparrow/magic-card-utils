@@ -51,30 +51,29 @@ class MagicCardUtilsOptionsFlow(config_entries.OptionsFlow):
         options = entry.options if entry else {}
         fonts_now = options.get(CONF_GOOGLE_FONTS, False) is True
         gallery_now = options.get(CONF_LOOK_GALLERY, False) is True
-        errors: dict[str, str] = {}
         if user_input is not None:
             fonts = user_input.get(CONF_GOOGLE_FONTS, False) is True
             gallery = user_input.get(CONF_LOOK_GALLERY, False) is True
-            if gallery and not fonts:
-                errors[CONF_LOOK_GALLERY] = "gallery_needs_fonts"
-                fonts_now, gallery_now = fonts, gallery
-            else:
-                data = {CONF_GOOGLE_FONTS: fonts, CONF_LOOK_GALLERY: gallery}
-                if gallery and not gallery_now:
-                    self._pending = data
-                    return await self.async_step_gallery_info()
-                return self.async_create_entry(data=data)
+            data = {CONF_GOOGLE_FONTS: fonts, CONF_LOOK_GALLERY: gallery}
+            if gallery and not gallery_now:
+                self._pending = data
+                return await self.async_step_gallery_info()
+            return self.async_create_entry(data=data)
 
+        # The advisory is informational: the same form, with a description that suggests Load Google Fonts.
         return self.async_show_form(
-            step_id="init",
+            step_id="init_advice" if gallery_now and not fonts_now else "init",
             data_schema=vol.Schema(
                 {
                     vol.Optional(CONF_GOOGLE_FONTS, default=fonts_now): cv.boolean,
                     vol.Optional(CONF_LOOK_GALLERY, default=gallery_now): cv.boolean,
                 }
             ),
-            errors=errors,
         )
+
+    async def async_step_init_advice(self, user_input=None):
+        """The options form while the gallery is on and Load Google Fonts is off."""
+        return await self.async_step_init(user_input)
 
     async def async_step_gallery_info(self, user_input=None):
         """Names the hosts the browser contacts. Stores nothing."""
@@ -83,7 +82,15 @@ class MagicCardUtilsOptionsFlow(config_entries.OptionsFlow):
         return self.async_show_form(step_id="gallery_info", data_schema=vol.Schema({}))
 
     async def async_step_gallery_confirm(self, user_input=None):
-        """The step that stores both switches."""
+        """The step that stores the switches as chosen. It never changes Load Google Fonts."""
         if user_input is not None and self._pending is not None:
             return self.async_create_entry(data=self._pending)
-        return self.async_show_form(step_id="gallery_confirm", data_schema=vol.Schema({}))
+        fonts_off = self._pending is not None and not self._pending[CONF_GOOGLE_FONTS]
+        return self.async_show_form(
+            step_id="gallery_confirm_advice" if fonts_off else "gallery_confirm",
+            data_schema=vol.Schema({}),
+        )
+
+    async def async_step_gallery_confirm_advice(self, user_input=None):
+        """The confirm step while Load Google Fonts is off."""
+        return await self.async_step_gallery_confirm(user_input)

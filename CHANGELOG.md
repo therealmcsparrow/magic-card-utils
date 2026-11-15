@@ -7,10 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## Unreleased
 
 ### Added
-- A **Look gallery** switch under Settings → Devices & services → Magic Card Utils → Configure. It is off by default, covers the whole Home Assistant install and applies after a page reload. Turning it on shows two screens that name the websites your browser will contact, and confirming also turns on **Load Google Fonts**. Turning it off leaves **Load Google Fonts** as it is. If **Load Google Fonts** is off while the gallery is on, the options form asks you to fix one of them. See [Look gallery](documentation/look-gallery.md).
+- A **Look gallery** switch under Settings → Devices & services → Magic Card Utils → Configure. It is off by default, covers the whole Home Assistant install and applies after a page reload. Turning it on shows two screens that name the websites your browser will contact, and confirming turns on the gallery only. Turning the gallery on does not change **Load Google Fonts**; Utils suggests turning it on. Turning the gallery off stops requests to the gallery host only; Google Fonts requests stop only with **Load Google Fonts** off. While the gallery is on and **Load Google Fonts** is off, the options form and the confirm screen suggest turning fonts on and block nothing. See [Look gallery](documentation/look-gallery.md).
 
 ### Changed
-- Privacy: with the gallery on, the card editor requests the list of looks and preview images from `therealmcsparrow.github.io` (GitHub), and **Load Google Fonts** is on with it. With the gallery off, Magic Card sends no request to the gallery host.
+- Privacy: with the gallery on, the card editor requests the list of looks and preview images from `therealmcsparrow.github.io` (GitHub), and the gallery does not turn on **Load Google Fonts**. While that switch is on, browsers that show a card with a look that uses a Google font also contact Google. With the gallery off, Magic Card sends no request to the gallery host.
 
 ## [2026.11.04] - 2026-11-13
 

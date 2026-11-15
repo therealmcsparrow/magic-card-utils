@@ -23,22 +23,36 @@
         },
         "data_description": {
           "google_fonts": "When on, the browser of everyone who views a dashboard requests fonts from Google, which sees their IP address. Applies to the whole install after a page reload.",
-          "look_gallery": "Lets the card editor load looks from therealmcsparrow.github.io. Turning it on also turns on Load Google Fonts; turning it off leaves Load Google Fonts as it is. Off by default. Changing it needs a reload."
+          "look_gallery": "Lets the card editor load looks from therealmcsparrow.github.io. It does not change Load Google Fonts. Off by default. Changing it needs a reload."
         }
+      },
+      "init_advice": {
+        "title": "Magic Card Utils options",
+        "data": {
+          "google_fonts": "Load Google Fonts",
+          "look_gallery": "Look gallery"
+        },
+        "data_description": {
+          "google_fonts": "When on, the browser of everyone who views a dashboard requests fonts from Google, which sees their IP address. Applies to the whole install after a page reload.",
+          "look_gallery": "Lets the card editor load looks from therealmcsparrow.github.io. It does not change Load Google Fonts. Off by default. Changing it needs a reload."
+        },
+        "description": "Many looks use Google fonts. Turn on Load Google Fonts to see them as designed; your browser then contacts fonts.googleapis.com and fonts.gstatic.com (Google). Without it, cards show a standard font."
       },
       "gallery_info": {
         "title": "Turn on the look gallery?",
         "submit": "Continue",
-        "description": "The look gallery is a collection of looks that other people shared. You can browse them and apply one to your own card. A look changes only how a card looks, never what it does.\n\nYour browser will contact these websites, and they will see your internet address (IP address):\n- `therealmcsparrow.github.io` (run by GitHub). Only the card editor contacts it, and only while the gallery is open. It loads the list of looks and their preview images.\n- `fonts.googleapis.com` and `fonts.gstatic.com` (run by Google). Load Google Fonts is turned on together with the gallery. Any browser that shows a card with a look that uses a Google font then contacts these websites.\n\nThese websites also see the usual details a browser sends, such as its type and language. They handle that under their own privacy policies. Magic Card sends nothing else: no entity names, no card settings, no Home Assistant details. It does not count or track anything.\n\nNothing changes until you confirm on the next screen."
+        "description": "The look gallery is a collection of looks that other people shared. You can browse them and apply one to your own card. A look changes only how a card looks, never what it does.\n\nYour browser will contact this website, and it will see your internet address (IP address):\n- `therealmcsparrow.github.io` (run by GitHub). Only the card editor contacts it, and only while the gallery is open. It loads the list of looks and their preview images.\n\nMany looks use Google fonts. If **Load Google Fonts** is on, any browser that shows a card with such a look also contacts `fonts.googleapis.com` and `fonts.gstatic.com` (run by Google), which see the internet address too. Load Google Fonts is a separate switch. The gallery does not turn it on and does not need it.\n\nThese websites also see the usual details a browser sends, such as its type and language. They handle that under their own privacy policies. Magic Card sends nothing else: no entity names, no card settings, no Home Assistant details. It does not count or track anything.\n\nNothing changes until you confirm on the next screen."
       },
       "gallery_confirm": {
         "title": "Turn on the look gallery for everyone?",
         "submit": "Turn on",
-        "description": "This switch applies to everyone who uses this Home Assistant. Confirming also turns on **Load Google Fonts**. After you turn it on, reload each open dashboard so it takes effect. In a browser, refresh the page. In the Home Assistant app on an iPad or iPhone, pull down to refresh or close and reopen the app.\n\nYou can turn the gallery off at any time with the same switch. That stops the requests to `therealmcsparrow.github.io`. It does not turn off Load Google Fonts, so Google Fonts keep loading for cards that use them. To stop those requests too, turn off Load Google Fonts as well; cards then show a standard font instead of a Google font. Cards that already use a look keep their style settings either way."
+        "description": "This switch applies to everyone who uses this Home Assistant. Confirming turns on the look gallery only. It does not change **Load Google Fonts**. After you turn it on, reload each open dashboard so it takes effect. In a browser, refresh the page. In the Home Assistant app on an iPad or iPhone, pull down to refresh or close and reopen the app.\n\nYou can turn the gallery off at any time with the same switch. That stops the requests to `therealmcsparrow.github.io`. Requests to Google Fonts depend only on Load Google Fonts; to stop those, turn that switch off. Cards that already use a look keep their style settings either way."
+      },
+      "gallery_confirm_advice": {
+        "title": "Turn on the look gallery for everyone?",
+        "submit": "Turn on",
+        "description": "This switch applies to everyone who uses this Home Assistant. Confirming turns on the look gallery only. It does not change **Load Google Fonts**. After you turn it on, reload each open dashboard so it takes effect. In a browser, refresh the page. In the Home Assistant app on an iPad or iPhone, pull down to refresh or close and reopen the app.\n\nYou can turn the gallery off at any time with the same switch. That stops the requests to `therealmcsparrow.github.io`. Requests to Google Fonts depend only on Load Google Fonts; to stop those, turn that switch off. Cards that already use a look keep their style settings either way.\n\nMany looks use Google fonts. Turn on Load Google Fonts to see them as designed; your browser then contacts fonts.googleapis.com and fonts.gstatic.com (Google). Without it, cards show a standard font."
       }
-    },
-    "error": {
-      "gallery_needs_fonts": "The look gallery needs Load Google Fonts. Turn on Load Google Fonts too, or turn the look gallery off."
     }
   }
 }
