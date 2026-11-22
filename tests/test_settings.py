@@ -62,6 +62,7 @@ async def test_options_flow_default_false_and_saves_true(hass: HomeAssistant, en
 async def test_non_admin_default_is_off(hass, entry, hass_ws_client, hass_read_only_access_token) -> None:
     hass.data["frontend_themes"] = THEMES
     result = await get_settings(hass, hass_ws_client, hass_read_only_access_token)
+    result.pop("version", None)
     assert result == {"google_fonts": False, "look_gallery": False, "theme_fonts": {}}
 
 

@@ -54,9 +54,9 @@ const settingsEvents = (events) => events.filter((e) => e.type === "mcu-settings
 test("switch off: settings say false, the event fires and no link is added", async () => {
   const p = await load({ google_fonts: false, theme_fonts: { T: [{ name: "Lato", weights: [400] }] } });
   assert.equal(p.before, undefined);
-  assert.deepEqual(p.mcu.settings, { googleFonts: false });
+  assert.deepEqual(p.mcu.settings, { googleFonts: false, lookGallery: false });
   assert.equal(settingsEvents(p.events).length, 1);
-  assert.deepEqual(settingsEvents(p.events)[0].detail, { googleFonts: false });
+  assert.deepEqual(settingsEvents(p.events)[0].detail, { googleFonts: false, lookGallery: false });
   assert.equal(p.links.length, 0);
   assert.equal(p.listeners.settheme, undefined);
   assert.ok(p.mcu.shapes && p.mcu.ready, "the other members stay");
@@ -71,7 +71,7 @@ test("switch on: the active theme's font gets one link; a theme change adds only
     },
   });
   assert.equal(p.before, undefined);
-  assert.deepEqual(p.mcu.settings, { googleFonts: true });
+  assert.deepEqual(p.mcu.settings, { googleFonts: true, lookGallery: false });
   assert.equal(p.links.length, 1);
   assert.equal(p.links[0].href, "https://fonts.googleapis.com/css2?family=Lato:wght@300;400&display=swap");
   assert.equal(p.links[0].rel, "stylesheet");
@@ -95,7 +95,7 @@ test("only names from the reply are used; a theme without fonts adds nothing", a
 
 test("a failed websocket call leaves googleFonts false, fires the event and does not throw", async () => {
   const p = await load(new Error("boom"));
-  assert.deepEqual(p.mcu.settings, { googleFonts: false });
+  assert.deepEqual(p.mcu.settings, { googleFonts: false, lookGallery: false });
   assert.equal(settingsEvents(p.events).length, 1);
   assert.equal(p.links.length, 0);
 });
