@@ -723,6 +723,10 @@
     "text": "Thema",
     "hash": "efb52e71"
   },
+  "mcu-panel.panel.theme-files-off": {
+    "text": "Themabestanden opslaan staat uit, dus elk thema is alleen-lezen. Een beheerder kan Themabestanden aanzetten via Instellingen > Apparaten & diensten > Magic Card Utils > Configureren.",
+    "hash": "ad2877f6"
+  },
   "mcu-panel.panel.themes": {
     "text": "Thema's",
     "hash": "43ae3265"

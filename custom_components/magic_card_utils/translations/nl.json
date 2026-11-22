@@ -19,22 +19,26 @@
         "title": "Magic Card Utils-opties",
         "data": {
           "google_fonts": "Google Fonts laden",
-          "look_gallery": "Lookgalerij"
+          "look_gallery": "Lookgalerij",
+          "theme_files": "Themabestanden"
         },
         "data_description": {
           "google_fonts": "Als dit aan staat, vraagt de browser van iedereen die een dashboard bekijkt lettertypen op bij Google, dat hun IP-adres ziet. Geldt voor de hele installatie na het herladen van de pagina.",
-          "look_gallery": "Laat de kaarteditor looks laden van therealmcsparrow.github.io. Verandert Google Fonts laden niet. Standaard uit. Na een wijziging moet je opnieuw laden."
+          "look_gallery": "Laat de kaarteditor looks laden van therealmcsparrow.github.io. Verandert Google Fonts laden niet. Standaard uit. Na een wijziging moet je opnieuw laden.",
+          "theme_files": "Laat de thema-editor themabestanden in /config/themes maken, wijzigen en verwijderen. Hij wijzigt of verwijdert alleen bestanden die hij zelf schreef; andere themabestanden blijven alleen-lezen en kun je onder een nieuwe naam kopiëren. Standaard uit."
         }
       },
       "init_advice": {
         "title": "Magic Card Utils-opties",
         "data": {
           "google_fonts": "Google Fonts laden",
-          "look_gallery": "Lookgalerij"
+          "look_gallery": "Lookgalerij",
+          "theme_files": "Themabestanden"
         },
         "data_description": {
           "google_fonts": "Als dit aan staat, vraagt de browser van iedereen die een dashboard bekijkt lettertypen op bij Google, dat hun IP-adres ziet. Geldt voor de hele installatie na het herladen van de pagina.",
-          "look_gallery": "Laat de kaarteditor looks laden van therealmcsparrow.github.io. Verandert Google Fonts laden niet. Standaard uit. Na een wijziging moet je opnieuw laden."
+          "look_gallery": "Laat de kaarteditor looks laden van therealmcsparrow.github.io. Verandert Google Fonts laden niet. Standaard uit. Na een wijziging moet je opnieuw laden.",
+          "theme_files": "Laat de thema-editor themabestanden in /config/themes maken, wijzigen en verwijderen. Hij wijzigt of verwijdert alleen bestanden die hij zelf schreef; andere themabestanden blijven alleen-lezen en kun je onder een nieuwe naam kopiëren. Standaard uit."
         },
         "description": "Veel looks gebruiken Google-lettertypen. Zet Google Fonts laden aan om ze zoals bedoeld te zien; je browser neemt dan contact op met fonts.googleapis.com en fonts.gstatic.com (Google). Zonder tonen kaarten een standaardlettertype."
       },
@@ -52,6 +56,11 @@
         "title": "De lookgalerij aanzetten voor iedereen?",
         "submit": "Aanzetten",
         "description": "Deze schakelaar geldt voor iedereen die deze Home Assistant gebruikt. Bevestigen zet alleen de lookgalerij aan. **Google Fonts laden** verandert niet. Laad na het aanzetten elk geopend dashboard opnieuw. In een browser ververs je de pagina. In de Home Assistant-app op een iPad of iPhone trek je het scherm omlaag om te verversen, of sluit je de app en open je hem opnieuw.\n\nJe kunt de galerij altijd weer uitzetten met dezelfde schakelaar. Dan stoppen de verzoeken naar `therealmcsparrow.github.io`. Verzoeken naar Google Fonts hangen alleen af van Google Fonts laden; zet die schakelaar uit om ze te stoppen. Kaarten met een look houden hun stijlinstellingen in beide gevallen.\n\nVeel looks gebruiken Google-lettertypen. Zet Google Fonts laden aan om ze zoals bedoeld te zien; je browser neemt dan contact op met fonts.googleapis.com en fonts.gstatic.com (Google). Zonder tonen kaarten een standaardlettertype."
+      },
+      "theme_files_confirm": {
+        "title": "Mag de thema-editor in /config/themes schrijven?",
+        "submit": "Aanzetten",
+        "description": "Met **Themabestanden** aan kunnen beheerders met de thema-editor van Magic Card themabestanden in `/config/themes` maken, wijzigen en verwijderen.\n\nWat de editor doet:\n- Hij wijzigt of verwijdert alleen bestanden die hij zelf schreef. Die beginnen met de regel `# Written by the Magic Card theme editor.`\n- Themabestanden die je zelf schreef, of die uit HACS of een ander hulpmiddel komen, blijven alleen-lezen. Om er een te wijzigen maakt de editor een kopie onder een nieuwe naam; het origineel blijft onaangeroerd.\n- Hij schrijft alleen in `/config/themes`, nooit in `configuration.yaml`.\n- Na opslaan of verwijderen laadt hij de thema's opnieuw, zodat elk dashboard de wijziging ziet.\n\n**Disclaimer.** Je zet dit aan op eigen risico. De editor herschrijft zijn eigen bestanden helemaal: commentaar en opmaak die je er zelf in zet, blijven niet bewaard, en een verwijderd bestand kan Magic Card niet terugzetten. Een kapot thema kan dashboards slecht leesbaar maken. Maak een back-up van je configuratie (Instellingen > Systeem > Back-ups) voordat je erop vertrouwt. Magic Card Utils wordt geleverd zoals het is, zonder garantie, onder zijn licentie.\n\nJe kunt Themabestanden op elk moment met dezelfde schakelaar uitzetten. Al geschreven bestanden blijven staan en de editor is dan weer alleen-lezen."
       }
     }
   }

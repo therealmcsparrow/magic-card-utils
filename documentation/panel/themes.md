@@ -22,7 +22,7 @@ Open one theme directly with `?theme=<name>` on the panel URL, for example `/mag
 
 ## Files
 
-The Themes tab reads and writes only files in `/config/themes`. It never writes `configuration.yaml`. Files it cannot safely rewrite, for example files in a subfolder or files that use YAML aliases, are listed as read only with a reason. See [Files and limits](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/themes/files.md) in the Magic Card docs.
+The Themes tab reads and writes only files in `/config/themes`. It never writes `configuration.yaml`. Saving and deleting are off until an administrator turns on **Theme files** under Settings > Devices & services > Magic Card Utils > Configure; until then every theme is read only and the tab says so. Even with it on, the editor changes or deletes only files it wrote itself, which start with `# Written by the Magic Card theme editor.`. Any other file is read only: copy it and save it under a new name. Files it cannot safely rewrite, for example files in a subfolder or files that use YAML aliases, are listed as read only with a reason. See [Files and limits](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/themes/files.md) in the Magic Card docs.
 
 ## Importing a theme file
 

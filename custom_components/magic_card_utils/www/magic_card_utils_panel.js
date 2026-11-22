@@ -605,6 +605,7 @@ class MagicCardUtilsPanel extends LitElement {
       _selectedAnimation: { type: String, state: true },
       _studioOpen: { type: Boolean, state: true },
       _themeFiles: { type: Array, state: true },
+      _themeWrites: { type: Boolean, state: true },
       _themeListLoad: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _themeFilter: { type: String, state: true },
       _themeListError: { type: String, state: true },
@@ -685,6 +686,8 @@ class MagicCardUtilsPanel extends LitElement {
     this._themeMessage = "";
     this._themeEl = null;
     this._themeFiles = [];
+    // themes_list writes_enabled (theme-files 1.1.0); an older Magic Card Utils leaves it out, which counts as on.
+    this._themeWrites = true;
     this._themeListLoad = "";
     this._themeFilter = "";
     this._themeListError = "";
@@ -1690,6 +1693,7 @@ class MagicCardUtilsPanel extends LitElement {
     try {
       const res = await this.hass.callWS({ type: CMD_THEMES_LIST });
       if (res && Array.isArray(res.files)) this._themeFiles = res.files.filter((f) => f && typeof f.name === "string");
+      this._themeWrites = !(res && res.writes_enabled === false);
       this._themeListError = "";
       this._themeListLoad = "ready";
     } catch (err) {
@@ -1745,7 +1749,7 @@ class MagicCardUtilsPanel extends LitElement {
           fields: [{ kind: "field", label: tr("mcu-panel.panel.name"), value: f.name }],
           body: html`${row(tr("mcu-panel.panel.modes"), modes)}${row(tr("mcu-panel.panel.variables"), count)}${row(tr("mcu-panel.panel.file"), `/config/${f.file}`)}${f.editable
             ? ""
-            : html`<div class="notice info" role="note">${glyph("info", 20)}<div class="body"><p>${tr("mcu-panel.panel.this-theme-is-read-only-copy-it-to-edit")}</p></div></div>`}`,
+            : html`<div class="notice info" role="note">${glyph("info", 20)}<div class="body"><p>${f.reason === "writes_off" ? tr("mcu-panel.panel.theme-files-off") : tr("mcu-panel.panel.this-theme-is-read-only-copy-it-to-edit")}</p></div></div>`}`,
         },
       ],
       footer,
@@ -1821,6 +1825,9 @@ class MagicCardUtilsPanel extends LitElement {
               <div class="actions"><button type="button" class="btn btn-secondary btn-sm" @click=${() => { this._themeListError = ""; this._loadThemeFiles(); }}>${tr("mcu-panel.panel.try-again")}</button></div>
             </div>
           </div>`
+        : ""}
+      ${this._themeWrites === false
+        ? html`<div class="notice info" role="note" data-a="theme-files-off">${glyph("info", 20)}<div class="body"><p>${tr("mcu-panel.panel.theme-files-off")}</p></div></div>`
         : ""}
       <div class="bar">
         <button type="button" class="btn btn-primary" data-a="new" @click=${(e) => this._startThemeEditor(e.currentTarget)}>

@@ -1,4 +1,4 @@
-"""Contract: theme-files 1.0.0 (Architect-owned).
+"""Contract: theme-files 1.1.0 (Architect-owned).
 
 WebSocket commands for the theme editor (Magic Card Utils panel "Themes" tab, element from
 magic-card's dist/magic-card-theme-editor.js; TypeScript mirror: magic-card
@@ -10,21 +10,28 @@ runs in the executor. Nothing outside ``hass.config.path(THEMES_DIR)`` is ever w
 and configuration.yaml is only read.
 
 Commands (``type``: request -> result):
-- magic_card_utils/themes_list  {} -> {include, files, loaded}
+- magic_card_utils/themes_list  {} -> {include, files, loaded, writes_enabled}
 - magic_card_utils/themes_get   {name} -> {name, file, editable, reason?, mtime, theme}
 - magic_card_utils/themes_save  {name, theme, overwrite?=False, base_mtime?} -> {name, file, mtime, loaded}
 - magic_card_utils/themes_delete {name} -> {}
 
-Save order: name rule -> theme validation -> include state must be "ok" (else themes_not_included)
+Writes switch (1.1.0): saving and deleting work only while the "Theme files" option of the config entry
+is on (settings.theme_files_enabled, off by default). While it is off, themes_save and themes_delete
+answer theme_files_off before anything else is checked, themes_list reports writes_enabled False,
+and every entry is read-only with reason "writes_off".
+
+Save order: writes switch -> name rule -> theme validation -> include state must be "ok" (else themes_not_included)
 -> existing file: overwrite required (else name_taken), must be editable (else not_editable),
 base_mtime must match when given (else conflict) -> name loaded by HA from another file
 (else name_taken) -> atomic write -> frontend.reload_themes (blocking) -> loaded = name in HA themes.
 
-Delete: editable file only (else not_editable / not_found) -> unlink -> frontend.reload_themes.
+Delete: writes switch -> editable file only (else not_editable / not_found) -> unlink -> frontend.reload_themes.
 
 Editable file: THEMES_DIR/<name>.yaml at the top level (not a subfolder, not a symlink), size <=
-MAX_FILE_BYTES, parses with yaml.safe_load (HA tags like !secret make it read-only), and holds
-exactly one top-level key equal to the file stem whose value is a mapping. Every other *.yaml file
+MAX_FILE_BYTES, parses with yaml.safe_load (HA tags like !secret make it read-only), holds
+exactly one top-level key equal to the file stem whose value is a mapping, and (1.1.0) starts with
+WRITTEN_HEADER, so the editor only ever changes or deletes files it wrote itself. Any other theme file
+is read-only (reason "not_own"); the editor copies it to a new file under a new name instead. Every other *.yaml file
 under THEMES_DIR is listed read-only with a ReadOnlyReason; themes_get still returns its theme when
 it parsed.
 
@@ -38,7 +45,7 @@ from __future__ import annotations
 import re
 from typing import Literal, NotRequired, TypedDict
 
-THEME_FILES_CONTRACT_VERSION = "1.0.0"
+THEME_FILES_CONTRACT_VERSION = "1.1.0"
 
 THEMES_DIR = "themes"
 
@@ -81,6 +88,8 @@ ReadOnlyReason = Literal[
     "parse_error",
     "too_large",
     "symlink",
+    "not_own",  # 1.1.0: the file does not start with WRITTEN_HEADER (not written by this editor)
+    "writes_off",  # 1.1.0: the Theme files option is off
 ]
 
 ERR_INVALID_FORMAT = "invalid_format"  # with error["errors"] = [{path, message}]
@@ -92,6 +101,7 @@ ERR_THEMES_NOT_INCLUDED = "themes_not_included"
 ERR_TOO_LARGE = "too_large"
 ERR_SAVE_FAILED = "save_failed"
 ERR_READ_FAILED = "read_failed"
+ERR_THEME_FILES_OFF = "theme_files_off"  # 1.1.0: the Theme files option is off
 # Non-admin callers get HA's own "unauthorized" from require_admin.
 
 
@@ -115,6 +125,7 @@ class ThemeListResult(TypedDict):
     include: IncludeStatus
     files: list[ThemeFileEntry]
     loaded: list[str]
+    writes_enabled: bool  # 1.1.0
 
 
 class ThemeGetResult(TypedDict):

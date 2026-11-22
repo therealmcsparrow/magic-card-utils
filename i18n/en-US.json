@@ -723,6 +723,10 @@
     "text": "Theme",
     "hash": "efb52e71"
   },
+  "mcu-panel.panel.theme-files-off": {
+    "text": "Saving theme files is off, so every theme is read-only. An administrator can turn on Theme files in Settings > Devices & services > Magic Card Utils > Configure.",
+    "hash": "ad2877f6"
+  },
   "mcu-panel.panel.themes": {
     "text": "Themes",
     "hash": "43ae3265"

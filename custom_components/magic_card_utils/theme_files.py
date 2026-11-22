@@ -2,8 +2,9 @@
 
 Plain functions on a config directory, no Home Assistant state, so they are unit-testable with a
 temp folder. Everything here is blocking: call it from the executor. Nothing outside
-``<config>/themes`` is written or deleted, and files that are symlinks are never read, written or
-removed.
+``<config>/themes`` is written or deleted, files that are symlinks are never read, written or
+removed, and an existing file is only replaced or deleted when it starts with WRITTEN_HEADER (a
+file the editor wrote itself).
 """
 
 from __future__ import annotations
@@ -210,6 +211,15 @@ def _jsonable(value: Any) -> Any:
     return str(value)
 
 
+def is_own_text(text: str) -> bool:
+    """True when the file text starts with WRITTEN_HEADER: a file this editor wrote itself.
+
+    A byte order mark and Windows line endings (an editor on another machine) do not count against it.
+    """
+    first = text.lstrip("\ufeff").split("\n", 1)[0].rstrip("\r")
+    return first == WRITTEN_HEADER.rstrip("\n")
+
+
 def _count_vars(theme: dict) -> int:
     count = sum(1 for k in theme if k != MODES_KEY)
     modes = theme.get(MODES_KEY)
@@ -247,7 +257,8 @@ def _inspect(config_dir: Path, path: Path, base: Path) -> dict[str, Any]:
     try:
         if path.stat().st_size > MAX_FILE_BYTES:
             return result("too_large")
-        data = yaml.load(path.read_text(encoding="utf-8"), Loader=_NoAliasLoader)  # noqa: S506 - SafeLoader subclass
+        text = path.read_text(encoding="utf-8")
+        data = yaml.load(text, Loader=_NoAliasLoader)  # noqa: S506 - SafeLoader subclass
     except yaml.constructor.ConstructorError as err:
         if "could not determine a constructor for the tag" in (err.problem or ""):
             return result("yaml_tags")
@@ -283,6 +294,8 @@ def _inspect(config_dir: Path, path: Path, base: Path) -> dict[str, Any]:
         return result("name_mismatch")
     if validate_name(stem):
         return result("invalid_name")
+    if not is_own_text(text):
+        return result("not_own")
     return result(None)
 
 

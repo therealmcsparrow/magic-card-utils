@@ -1,6 +1,6 @@
-"""WebSocket commands of the theme editor (contract theme-files 1.0.0, themes_contract.py).
+"""WebSocket commands of the theme editor (contract theme-files 1.1.0, themes_contract.py).
 
-All four commands are admin only. File work (theme_files.py, include_scan.py) is blocking and runs in
+All four commands are admin only. Save and delete also need the Theme files option (off by default). File work (theme_files.py, include_scan.py) is blocking and runs in
 the executor. After a write or delete, HA's ``frontend.reload_themes`` service is called so the
 change is live; ``loaded`` in the save result says whether HA now knows the theme.
 """
@@ -18,6 +18,7 @@ from homeassistant.core import HomeAssistant
 
 from . import theme_files as tf
 from .include_scan import include_status
+from .settings import theme_files_enabled
 from .themes_contract import (
     CMD_DELETE,
     CMD_GET,
@@ -27,6 +28,7 @@ from .themes_contract import (
     ERR_NAME_TAKEN,
     ERR_READ_FAILED,
     ERR_SAVE_FAILED,
+    ERR_THEME_FILES_OFF,
     ERR_THEMES_NOT_INCLUDED,
 )
 
@@ -58,6 +60,24 @@ def _send_error(connection: websocket_api.ActiveConnection, msg_id: int, err: tf
     connection.send_message(payload)
 
 
+THEME_FILES_OFF_MESSAGE = (
+    "Saving theme files is off. An administrator can turn on Theme files in Settings > Devices & services "
+    "> Magic Card Utils > Configure."
+)
+
+
+def _writes_off_error() -> tf.ThemeFileError:
+    return tf.ThemeFileError(ERR_THEME_FILES_OFF, THEME_FILES_OFF_MESSAGE)
+
+
+def _lock(item: dict[str, Any]) -> dict[str, Any]:
+    """The list entry (or get result) as read-only because the Theme files option is off."""
+    if item.get("editable"):
+        item["editable"] = False
+        item["reason"] = "writes_off"
+    return item
+
+
 def _is_number(value: Any) -> Any:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise vol.Invalid("expected a number")
@@ -75,13 +95,14 @@ async def async_setup_themes(hass: HomeAssistant) -> None:
 # ---------------------------------------------------------------- list
 
 
-def _list_job(config_dir: str, loaded: list[str]) -> dict[str, Any]:
+def _list_job(config_dir: str, loaded: list[str], writes: bool) -> dict[str, Any]:
     files = tf.scan_themes(config_dir)["files"]
     file_theme_loaded = any(entry["name"] in loaded for entry in files)
     return {
         "include": include_status(config_dir, file_theme_loaded),
-        "files": files,
+        "files": files if writes else [_lock(item) for item in files],
         "loaded": loaded,
+        "writes_enabled": writes,
     }
 
 
@@ -94,7 +115,7 @@ async def ws_themes_list(
     """Theme files, include state and the names HA has loaded."""
     try:
         result = await hass.async_add_executor_job(
-            _list_job, hass.config.config_dir, loaded_theme_names(hass)
+            _list_job, hass.config.config_dir, loaded_theme_names(hass), theme_files_enabled(hass)
         )
     except Exception:  # noqa: BLE001 - log details, answer generically
         _LOGGER.exception("Listing theme files failed")
@@ -124,7 +145,7 @@ async def ws_themes_get(
         _LOGGER.exception("Reading theme %r failed", msg["name"])
         connection.send_error(msg["id"], ERR_READ_FAILED, "The theme file could not be read")
         return
-    connection.send_result(msg["id"], result)
+    connection.send_result(msg["id"], result if theme_files_enabled(hass) else _lock(result))
 
 
 # ---------------------------------------------------------------- save
@@ -171,6 +192,9 @@ async def ws_themes_save(
 ) -> None:
     """Validate, write themes/<name>.yaml, reload HA themes."""
     name = msg["name"]
+    if not theme_files_enabled(hass):
+        _send_error(connection, msg["id"], _writes_off_error())
+        return
     try:
         saved = await hass.async_add_executor_job(
             _save_job,
@@ -206,6 +230,9 @@ async def ws_themes_delete(
 ) -> None:
     """Delete an editable theme file and reload HA themes."""
     name = msg["name"]
+    if not theme_files_enabled(hass):
+        _send_error(connection, msg["id"], _writes_off_error())
+        return
     try:
         await hass.async_add_executor_job(tf.delete_theme, hass.config.config_dir, name)
     except tf.ThemeFileError as err:

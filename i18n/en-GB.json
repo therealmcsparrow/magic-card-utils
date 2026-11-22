@@ -1014,6 +1014,11 @@
     "note": "Type shown under the name of the selected theme and heading of its details group.",
     "max": 15
   },
+  "mcu-panel.panel.theme-files-off": {
+    "text": "Saving theme files is off, so every theme is read-only. An administrator can turn on Theme files in Settings > Devices & services > Magic Card Utils > Configure.",
+    "note": "Notice in the Themes tab and the theme details while the Theme files option of Magic Card Utils is off. Use the option's own name and the Settings path as Home Assistant shows them.",
+    "max": 220
+  },
   "mcu-panel.panel.themes": {
     "text": "Themes",
     "note": "Label of the Themes tab in the panel tab bar.",
