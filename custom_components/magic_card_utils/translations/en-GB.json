@@ -20,12 +20,12 @@
         "data": {
           "google_fonts": "Load Google Fonts",
           "look_gallery": "Look gallery",
-          "theme_files": "Theme files"
+          "theme_files": "Allow themes to be saved in the themes folder"
         },
         "data_description": {
           "google_fonts": "When on, the browser of everyone who views a dashboard requests fonts from Google, which sees their IP address. Applies to the whole install after a page reload.",
           "look_gallery": "Lets the card editor load looks from therealmcsparrow.github.io. It does not change Load Google Fonts. Off by default. Changing it needs a reload.",
-          "theme_files": "Lets the theme editor create, change and delete theme files in /config/themes. It only changes or deletes files it wrote itself; other theme files stay read-only and can be copied under a new name. Off by default."
+          "theme_files": "The theme editor always keeps its themes in Magic Card Utils. With this on, it can also save them to /config/themes, where Home Assistant loads them, and remove the files it wrote there. Theme files Magic Card did not write are never changed, replaced or deleted. Off by default."
         }
       },
       "init_advice": {
@@ -33,12 +33,12 @@
         "data": {
           "google_fonts": "Load Google Fonts",
           "look_gallery": "Look gallery",
-          "theme_files": "Theme files"
+          "theme_files": "Allow themes to be saved in the themes folder"
         },
         "data_description": {
           "google_fonts": "When on, the browser of everyone who views a dashboard requests fonts from Google, which sees their IP address. Applies to the whole install after a page reload.",
           "look_gallery": "Lets the card editor load looks from therealmcsparrow.github.io. It does not change Load Google Fonts. Off by default. Changing it needs a reload.",
-          "theme_files": "Lets the theme editor create, change and delete theme files in /config/themes. It only changes or deletes files it wrote itself; other theme files stay read-only and can be copied under a new name. Off by default."
+          "theme_files": "The theme editor always keeps its themes in Magic Card Utils. With this on, it can also save them to /config/themes, where Home Assistant loads them, and remove the files it wrote there. Theme files Magic Card did not write are never changed, replaced or deleted. Off by default."
         },
         "description": "Many looks use Google fonts. Turn on Load Google Fonts to see them as designed; your browser then contacts fonts.googleapis.com and fonts.gstatic.com (Google). Without it, cards show a standard font."
       },
@@ -58,9 +58,9 @@
         "description": "This switch applies to everyone who uses this Home Assistant. Confirming turns on the look gallery only. It does not change **Load Google Fonts**. After you turn it on, reload each open dashboard so it takes effect. In a browser, refresh the page. In the Home Assistant app on an iPad or iPhone, pull down to refresh or close and reopen the app.\n\nYou can turn the gallery off at any time with the same switch. That stops the requests to `therealmcsparrow.github.io`. Requests to Google Fonts depend only on Load Google Fonts; to stop those, turn that switch off. Cards that already use a look keep their style settings either way.\n\nMany looks use Google fonts. Turn on Load Google Fonts to see them as designed; your browser then contacts fonts.googleapis.com and fonts.gstatic.com (Google). Without it, cards show a standard font."
       },
       "theme_files_confirm": {
-        "title": "Let the theme editor write to /config/themes?",
-        "submit": "Turn on",
-        "description": "With **Theme files** on, administrators can use the Magic Card theme editor to create, change and delete theme files in `/config/themes`.\n\nWhat the editor does:\n- It only changes or deletes files it wrote itself. Those files start with the line `# Written by the Magic Card theme editor.`\n- Theme files you wrote by hand, or that came from HACS or another tool, stay read-only. To change one, the editor makes a copy under a new name; the original is never touched.\n- It writes only inside `/config/themes`, never `configuration.yaml`.\n- After a save or delete it reloads the themes, so every dashboard sees the change.\n\n**Disclaimer.** You turn this on at your own risk. The editor rewrites its own files completely: comments and layout you add to them by hand are not kept, and a deleted file cannot be restored by Magic Card. A broken theme can make dashboards hard to read. Make a backup of your configuration (Settings > System > Backups) before you rely on it. Magic Card Utils is provided as is, without warranty, under its licence.\n\nYou can turn Theme files off at any time with the same switch. The files already written stay where they are, and the editor becomes read-only again."
+        "title": "Allow themes to be saved in the themes folder?",
+        "submit": "Allow",
+        "description": "The Magic Card theme editor always keeps its themes in Magic Card Utils. Home Assistant only applies a theme once it is in `/config/themes`. With **Allow themes to be saved in the themes folder** on, administrators can also save a theme there and remove files the editor wrote.\n\nWhat the editor does:\n- Every theme is saved in Magic Card Utils first. Saving to the themes folder is a separate step you choose each time.\n- It only replaces or deletes files it wrote itself. Those files start with the line `# Written by the Magic Card theme editor.`\n- Theme files you wrote by hand, or that came from HACS or another tool, are never changed, replaced or deleted. To edit one, the editor imports a copy under a new name.\n- It writes only inside `/config/themes`, never `configuration.yaml`.\n- After it writes or removes a file it reloads the themes, so every dashboard sees the change.\n\n**Disclaimer.** You turn this on at your own risk. The editor rewrites its own files completely: comments and layout you add to them by hand are not kept, and a file it removes cannot be restored by Magic Card. A broken theme can make dashboards hard to read. Make a backup of your configuration (Settings > System > Backups) before you rely on it. Magic Card Utils is provided as is, without warranty, under its licence.\n\nYou can turn this off at any time with the same switch. Files already in the themes folder stay where they are, and your themes stay in Magic Card Utils."
       }
     }
   }

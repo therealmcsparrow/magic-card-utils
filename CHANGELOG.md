@@ -8,11 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - `magic_card_utils/get_settings` now reports the installed Utils `version`, and `window.magicCardUtils.settings.version` holds it, so the Magic Card editor can show which Utils is installed. Existing fields are unchanged.
-- A **Theme files** switch under Settings > Devices & services > Magic Card Utils > Configure. It is off by default. Turning it on shows a disclaimer, and nothing is stored until you confirm. While it is off, the theme editor cannot save or delete files in `/config/themes`; themes can still be viewed and their YAML copied. Contract theme-files 1.1.0 adds `writes_enabled` to `themes_list`, the read-only reasons `not_own` and `writes_off`, and the error `theme_files_off`.
+- Magic Card Utils now keeps the themes the editor saves in its own storage (`.storage/magic_card_utils.themes`). Saving a theme always stores it there; saving it to `/config/themes`, where Home Assistant applies it, is a separate choice.
+- An **Allow themes to be saved in the themes folder** switch under Settings > Devices & services > Magic Card Utils > Configure. It is off by default. Turning it on shows a disclaimer, and nothing is stored until you confirm. While it is off, themes are still saved, edited and deleted in Magic Card Utils, but nothing is written to or deleted from `/config/themes`.
+- The Themes tab shows where each theme stands in the themes folder, and Delete asks each time whether to remove the theme's file too.
 
 ### Changed
-- Breaking: the theme editor now changes and deletes only theme files it wrote itself, which start with `# Written by the Magic Card theme editor.`. Hand-written files and files from other tools are read only; copy one and save it under a new name to edit it. Files the editor saved before this version already carry the header.
-- Breaking: saving and deleting theme files needs the new **Theme files** switch, which is off after updating. Turn it on to keep saving themes.
+- Breaking: the theme editor now changes, replaces and deletes only theme files it wrote itself, which start with `# Written by the Magic Card theme editor.`. Hand-written files and files from other tools are read only; copy one and save it under a new name to edit it. Files the editor saved before this version already carry the header, and saving one imports it under the same name.
+- Breaking: contract theme-files 2.0.0. `themes_save` stores the theme and writes `/config/themes` only with `publish: true`; `themes_delete` removes the stored theme, and the file only with `file: true`, and returns `{stored, file}`. `themes_list` and `themes_get` add `stored` and `folder`, and `themes_list` adds `writes_enabled` and `storage`. New error `theme_files_off`, new read-only reason `not_own`.
+- Breaking: saving to the themes folder needs the new switch, which is off after updating. Turn it on to keep publishing themes.
 
 ## [2026.11.5-beta.1] - 2026-11-15
 

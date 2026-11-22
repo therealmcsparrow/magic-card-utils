@@ -1,4 +1,4 @@
-"""Theme file I/O, validation and YAML (theme-files 1.0.0).
+"""Theme file I/O, validation and YAML (theme-files 2.0.0).
 
 Plain functions on a config directory, no Home Assistant state, so they are unit-testable with a
 temp folder. Everything here is blocking: call it from the executor. Nothing outside
@@ -220,7 +220,7 @@ def is_own_text(text: str) -> bool:
     return first == WRITTEN_HEADER.rstrip("\n")
 
 
-def _count_vars(theme: dict) -> int:
+def count_vars(theme: dict) -> int:
     count = sum(1 for k in theme if k != MODES_KEY)
     modes = theme.get(MODES_KEY)
     if isinstance(modes, dict):
@@ -284,7 +284,7 @@ def _inspect(config_dir: Path, path: Path, base: Path) -> dict[str, Any]:
         theme = {}
         return result("parse_error")
     entry["has_modes"] = MODES_KEY in theme
-    entry["var_count"] = _count_vars(theme)
+    entry["var_count"] = count_vars(theme)
 
     if path.parent != base:
         return result("subfolder")
@@ -318,6 +318,19 @@ def scan_themes(config_dir: str | Path) -> dict[str, Any]:
     """``{files: [ThemeFileEntry], truncated}`` for every *.yaml under the themes folder."""
     records, truncated = _walk(config_dir)
     return {"files": [r["entry"] for r in records], "truncated": truncated}
+
+
+def scan_records(config_dir: str | Path) -> list[dict[str, Any]]:
+    """Every *.yaml under the themes folder as ``{entry, theme}`` (the parsed theme, {} when unreadable)."""
+    return _walk(config_dir)[0]
+
+
+def folder_record(config_dir: str | Path, name: str) -> dict[str, Any] | None:
+    """``{entry, theme}`` for ``themes/<name>.yaml`` at the top level, or None when there is no such file."""
+    path = theme_path(config_dir, name)
+    if not os.path.lexists(path):
+        return None
+    return _inspect(Path(config_dir), path, themes_dir(config_dir))
 
 
 def read_theme(config_dir: str | Path, name: str) -> dict[str, Any]:

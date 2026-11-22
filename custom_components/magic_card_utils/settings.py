@@ -65,7 +65,7 @@ def look_gallery_enabled(hass: HomeAssistant) -> bool:
 
 
 def theme_files_enabled(hass: HomeAssistant) -> bool:
-    """True when the Theme files switch is on: the theme editor may write and delete its own files."""
+    """True when "Allow themes to be saved in the themes folder" is on: the theme editor may write and delete its own files there."""
     for entry in hass.config_entries.async_entries(DOMAIN):
         if entry.options.get(CONF_THEME_FILES, False) is True:
             return True

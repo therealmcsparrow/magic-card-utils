@@ -41,7 +41,7 @@ class MagicCardUtilsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class MagicCardUtilsOptionsFlow(config_entries.OptionsFlow):
     """Options for Magic Card Utils.
 
-    Turning the look gallery on takes an information step and a confirm step. Turning Theme files on
+    Turning the look gallery on takes an information step and a confirm step. Turning "Allow themes to be saved in the themes folder" on
     takes a disclaimer step. Nothing is stored until the last step is confirmed.
     """
 
@@ -80,7 +80,7 @@ class MagicCardUtilsOptionsFlow(config_entries.OptionsFlow):
         )
 
     async def _async_finish(self):
-        """Store the switches, after the Theme files disclaimer when that switch was just turned on."""
+        """Store the switches, after the themes-folder disclaimer when that switch was just turned on."""
         if self._ask_theme_files:
             return await self.async_step_theme_files_confirm()
         return self.async_create_entry(data=self._pending)

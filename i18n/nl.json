@@ -3,6 +3,10 @@
     "text": "Er bestaat al een sjabloon met de naam ‘{name}’.",
     "hash": "bd93b912"
   },
+  "mcu-panel.panel.also-remove-file": {
+    "text": "Ook {file} uit de themamap verwijderen",
+    "hash": "775ab119"
+  },
   "mcu-panel.panel.animation": {
     "text": "Animatie",
     "hash": "1dd10f24"
@@ -127,6 +131,10 @@
     "text": "Verwijderen is mislukt",
     "hash": "8727e2ba"
   },
+  "mcu-panel.panel.delete-file-question": {
+    "text": "{file} verwijderen? Home Assistant past dit thema dan niet meer toe. Dit kan niet ongedaan worden gemaakt.",
+    "hash": "f33f0168"
+  },
   "mcu-panel.panel.delete-name": {
     "text": "{name} verwijderen",
     "hash": "3cf8146e"
@@ -246,10 +254,6 @@
   "mcu-panel.panel.failed-to-render-preview": {
     "text": "Het voorbeeld kon niet worden weergegeven.",
     "hash": "aeade066"
-  },
-  "mcu-panel.panel.file": {
-    "text": "Bestand",
-    "hash": "50009ce1"
   },
   "mcu-panel.panel.font-host-contact": {
     "text": "Om de lettertypen te tekenen vraagt je browser ze op bij {hosts}. Elk verzoek laat die sites je IP-adres zien, het tijdstip, de lettertypen die je opvraagt en het adres van je Home Assistant (een DuckDNS-naam, een Nabu Casa-adres of een adres op je lokale netwerk), plus het type en de taal van je browser. Je kaarten en instellingen worden niet verstuurd.",
@@ -724,12 +728,36 @@
     "hash": "efb52e71"
   },
   "mcu-panel.panel.theme-files-off": {
-    "text": "Themabestanden opslaan staat uit, dus elk thema is alleen-lezen. Een beheerder kan Themabestanden aanzetten via Instellingen > Apparaten & diensten > Magic Card Utils > Configureren.",
-    "hash": "ad2877f6"
+    "text": "Thema's worden opgeslagen in Magic Card Utils. Home Assistant past een thema pas toe als het in de themamap staat, en opslaan daar staat uit. Een beheerder kan Thema's in de themamap laten opslaan aanzetten via Instellingen > Apparaten & diensten > Magic Card Utils > Configureren.",
+    "hash": "44d5449c"
+  },
+  "mcu-panel.panel.theme-folder-current": {
+    "text": "In de themamap",
+    "hash": "c7223d1a"
+  },
+  "mcu-panel.panel.theme-folder-foreign": {
+    "text": "Een ander bestand in de themamap gebruikt deze naam",
+    "hash": "93340bea"
+  },
+  "mcu-panel.panel.theme-folder-none": {
+    "text": "Niet in de themamap",
+    "hash": "b018f160"
+  },
+  "mcu-panel.panel.theme-folder-only": {
+    "text": "Alleen in de themamap",
+    "hash": "1301009b"
+  },
+  "mcu-panel.panel.theme-folder-outdated": {
+    "text": "Kopie in de themamap is ouder",
+    "hash": "75196545"
   },
   "mcu-panel.panel.themes": {
     "text": "Thema's",
     "hash": "43ae3265"
+  },
+  "mcu-panel.panel.themes-folder": {
+    "text": "Themamap",
+    "hash": "fbbbad6c"
   },
   "mcu-panel.panel.this-magic-card-utils-version-doesn-t": {
     "text": "Deze versie van Magic Card Utils past niet bij de theme-editor in Magic Card. Werk beide bij naar de nieuwste versie.",

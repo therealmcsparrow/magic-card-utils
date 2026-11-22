@@ -7,6 +7,14 @@
       "name": "The value that replaces name in the text."
     }
   },
+  "mcu-panel.panel.also-remove-file": {
+    "text": "Also remove {file} from the themes folder",
+    "note": "Checkbox in the delete question of a theme. {file} is the path of the theme file, like /config/themes/ocean.yaml.",
+    "max": 90,
+    "vars": {
+      "file": "The path of the theme file."
+    }
+  },
   "mcu-panel.panel.animation": {
     "text": "Animation",
     "note": "Type shown under the name of the selected animation in the details pane.",
@@ -187,6 +195,14 @@
     "note": "Error in the delete window when the template could not be deleted and the server gave no reason.",
     "max": 25
   },
+  "mcu-panel.panel.delete-file-question": {
+    "text": "Delete {file}? Home Assistant no longer applies this theme. This action cannot be undone.",
+    "note": "Question when deleting a theme that is only a file in /config/themes. {file} is its path.",
+    "max": 120,
+    "vars": {
+      "file": "The path of the theme file."
+    }
+  },
   "mcu-panel.panel.delete-name": {
     "text": "Delete {name}",
     "note": "Screen reader label of the delete button on a template row. {name} is the template name.",
@@ -357,11 +373,6 @@
     "text": "Failed to render preview.",
     "note": "Error in the template preview when the card could not be drawn and gave no message of its own.",
     "max": 45
-  },
-  "mcu-panel.panel.file": {
-    "text": "File",
-    "note": "Label of the field that shows where a theme file is stored.",
-    "max": 15
   },
   "mcu-panel.panel.font-host-contact": {
     "text": "To draw the fonts, your browser asks {hosts} for them. Each request shows those sites your IP address, the time, the fonts you ask for and the address of your Home Assistant (a DuckDNS name, a Nabu Casa address or a local network address), plus your browser's type and language. Your cards and settings are not sent.",
@@ -1015,14 +1026,44 @@
     "max": 15
   },
   "mcu-panel.panel.theme-files-off": {
-    "text": "Saving theme files is off, so every theme is read-only. An administrator can turn on Theme files in Settings > Devices & services > Magic Card Utils > Configure.",
-    "note": "Notice in the Themes tab and the theme details while the Theme files option of Magic Card Utils is off. Use the option's own name and the Settings path as Home Assistant shows them.",
-    "max": 220
+    "text": "Themes are saved in Magic Card Utils. Home Assistant applies a theme only once it is in the themes folder, and saving there is off. An administrator can turn on Allow themes to be saved in the themes folder in Settings > Devices & services > Magic Card Utils > Configure.",
+    "note": "Notice in the Themes tab while the option that lets the theme editor save to /config/themes is off. Use the option's own name and the Settings path as Home Assistant shows them.",
+    "max": 300
+  },
+  "mcu-panel.panel.theme-folder-current": {
+    "text": "In the themes folder",
+    "note": "Status of a theme whose file in /config/themes matches the saved theme.",
+    "max": 40
+  },
+  "mcu-panel.panel.theme-folder-foreign": {
+    "text": "Another file in the themes folder uses this name",
+    "note": "Status of a saved theme whose name is taken by a theme file Magic Card did not write, so it cannot be saved to the themes folder.",
+    "max": 60
+  },
+  "mcu-panel.panel.theme-folder-none": {
+    "text": "Not in the themes folder",
+    "note": "Status of a theme saved in Magic Card Utils that has no file in /config/themes yet, so Home Assistant does not apply it.",
+    "max": 40
+  },
+  "mcu-panel.panel.theme-folder-only": {
+    "text": "Only in the themes folder",
+    "note": "Status of a theme file Magic Card wrote that is not saved in Magic Card Utils yet. Saving it in the editor imports it.",
+    "max": 40
+  },
+  "mcu-panel.panel.theme-folder-outdated": {
+    "text": "Themes folder copy is older",
+    "note": "Status of a theme changed since it was last saved to /config/themes.",
+    "max": 40
   },
   "mcu-panel.panel.themes": {
     "text": "Themes",
     "note": "Label of the Themes tab in the panel tab bar.",
     "max": 10
+  },
+  "mcu-panel.panel.themes-folder": {
+    "text": "Themes folder",
+    "note": "Label of the row in the theme details that says whether the theme is in /config/themes.",
+    "max": 25
   },
   "mcu-panel.panel.this-magic-card-utils-version-doesn-t": {
     "text": "This Magic Card Utils version doesn't match the theme editor in Magic Card. Update both to their latest versions.",
