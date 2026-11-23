@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2026.11.05] - 2026-11-23
+
+It needs Magic Card 2026.11.05 or newer. Install this release first, then update Magic Card. It also includes the changes listed under 2026.11.5-beta.1.
+
 ### Added
 - `magic_card_utils/get_settings` now reports the installed Utils `version`, and `window.magicCardUtils.settings.version` holds it, so the Magic Card editor can show which Utils is installed. Existing fields are unchanged.
 - Magic Card Utils now keeps the themes the editor saves in its own storage (`.storage/magic_card_utils.themes`). Saving a theme always stores it there; saving it to `/config/themes`, where Home Assistant applies it, is a separate choice.
@@ -376,7 +380,8 @@ First stable release.
 - Templates side panel with YAML view and preview, plus rename, duplicate and delete actions.
 - Config flow with an option to show or hide the side panel.
 
-[Unreleased]: https://github.com/therealmcsparrow/magic-card-utils/compare/2026.11.04...HEAD
+[Unreleased]: https://github.com/therealmcsparrow/magic-card-utils/compare/2026.11.05...HEAD
+[2026.11.05]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.11.05
 [2026.11.04]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.11.04
 [2026.11.03]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.11.03
 [2026.10.12-beta.1]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.10.12-beta.1
