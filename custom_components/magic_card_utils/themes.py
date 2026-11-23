@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import json
 import logging
 import time
 from typing import Any
@@ -39,6 +40,7 @@ from .themes_contract import (
     ERR_THEME_FILES_OFF,
     ERR_THEMES_NOT_INCLUDED,
     ERR_TOO_LARGE,
+    MAX_STORE_BYTES,
     MAX_STORED_THEMES,
     MODES_KEY,
     STORAGE_KEY_THEMES,
@@ -56,6 +58,26 @@ THEME_FILES_OFF_MESSAGE = (
     "Saving to the themes folder is off. An administrator can turn on \"Allow themes to be saved in the "
     "themes folder\" in Settings > Devices & services > Magic Card Utils > Configure."
 )
+
+
+def _fit_file_limit(themes: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """Entries whose theme file would pass the per-file size limit (blocking; run in the executor)."""
+    kept: dict[str, dict[str, Any]] = {}
+    for name, entry in themes.items():
+        try:
+            tf.dump_theme(name, entry["theme"])
+        except tf.ThemeFileError:
+            _LOGGER.warning("Dropping stored theme %r: it is over the size limit", name)
+            continue
+        kept[name] = entry
+    return kept
+
+
+def _store_too_big(current: dict[str, dict[str, Any]], name: Any, theme: Any) -> bool:
+    """True when ``current`` with ``theme`` under ``name`` would pass MAX_STORE_BYTES serialised
+    (blocking; run in the executor). The theme is already validated, so it serialises."""
+    themes = {**current, name: {"theme": theme, "updated": 0.0}}
+    return len(json.dumps({"themes": themes}, ensure_ascii=False).encode("utf-8")) > MAX_STORE_BYTES
 
 
 class ThemeStore:
@@ -86,7 +108,7 @@ class ThemeStore:
                 if len(themes) >= MAX_STORED_THEMES:
                     break
                 themes[name] = {"theme": theme, "updated": float(updated)}
-        self.themes = themes
+        self.themes = await self.store.hass.async_add_executor_job(_fit_file_limit, themes)
 
     async def async_put(self, name: str, theme: dict) -> float:
         """Store ``theme`` under ``name``; returns its new ``updated`` (always later than the last one)."""
@@ -290,10 +312,15 @@ def _save_job(
     writes: bool,
     loaded: list[str],
     stored_updated: float | None,
+    stored: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
     """Contract save order up to and including the file write; the store is saved by the caller."""
     tf.validate_save_request(name, theme)
     tf.dump_theme(name, theme)  # the size limit holds for stored themes too
+    if _store_too_big(stored, name, theme):  # before any file is written
+        raise tf.ThemeFileError(
+            ERR_TOO_LARGE, f"Magic Card Utils keeps at most {MAX_STORE_BYTES // (1024 * 1024)} MB of themes."
+        )
     record = tf.folder_record(config_dir, name)
     own_file = record is not None and record["entry"]["editable"]
     is_stored = stored_updated is not None
@@ -371,6 +398,7 @@ async def ws_themes_save(
                 theme_files_enabled(hass),
                 loaded_theme_names(hass),
                 item["updated"] if item else None,
+                store.themes,
             )
         except tf.ThemeFileError as err:
             _send_error(connection, msg["id"], err)

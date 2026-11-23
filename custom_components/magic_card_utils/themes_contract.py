@@ -72,6 +72,7 @@ THEMES_DIR = "themes"
 STORAGE_KEY_THEMES = "magic_card_utils.themes"
 STORAGE_VERSION = 1
 MAX_STORED_THEMES = 500
+MAX_STORE_BYTES = 16 * 1024 * 1024  # serialised size of all stored themes together
 
 CMD_LIST = "magic_card_utils/themes_list"
 CMD_GET = "magic_card_utils/themes_get"
