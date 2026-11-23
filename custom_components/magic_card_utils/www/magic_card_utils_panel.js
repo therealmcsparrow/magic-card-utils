@@ -120,7 +120,7 @@ const MIN_MAGIC_CARD_API = 1;
 const STUDIO_FILE = "magic-card-animation-studio.js";
 const STUDIO_TAG = "magic-card-animation-studio";
 const ANIMATION_ID_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
-// Theme editor (contract theme-editor 1.0.0 in Magic Card, theme-files 1.0.0 in themes_contract.py).
+// Theme editor (contract theme-editor in Magic Card, theme-files 2.0.0 in themes_contract.py).
 const THEME_EDITOR_FILE = "magic-card-theme-editor.js";
 const THEME_EDITOR_TAG = "magic-card-theme-editor";
 const THEME_NAME_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
@@ -282,10 +282,13 @@ function _createThemeBackend(getHass) {
       const msg = { type: CMD_THEMES_SAVE, name: req.name, theme: req.theme };
       if (req.overwrite) msg.overwrite = true;
       if (req.base_mtime !== undefined && req.base_mtime !== null) msg.base_mtime = req.base_mtime;
+      if (req.publish) msg.publish = true;
       return call(msg);
     },
-    remove: async (name) => {
-      await call({ type: CMD_THEMES_DELETE, name });
+    remove: async (name, opts) => {
+      const msg = { type: CMD_THEMES_DELETE, name };
+      if (opts && opts.file) msg.file = true;
+      await call(msg);
     },
     presets: _createPresetBackend(call),
   };
@@ -605,12 +608,14 @@ class MagicCardUtilsPanel extends LitElement {
       _selectedAnimation: { type: String, state: true },
       _studioOpen: { type: Boolean, state: true },
       _themeFiles: { type: Array, state: true },
+      _themeWrites: { type: Boolean, state: true },
       _themeListLoad: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _themeFilter: { type: String, state: true },
       _themeListError: { type: String, state: true },
       _selectedTheme: { type: String, state: true },
       _themeEditorOpen: { type: Boolean, state: true },
       _themeDeleteAsk: { type: String, state: true },
+      _themeDeleteFile: { type: Boolean, state: true },
       _themeStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
       _themeMessage: { type: String, state: true },
       _forumStatus: { type: String, state: true }, // '' | 'loading' | 'ready' | 'error'
@@ -685,6 +690,8 @@ class MagicCardUtilsPanel extends LitElement {
     this._themeMessage = "";
     this._themeEl = null;
     this._themeFiles = [];
+    // themes_list writes_enabled (theme-files 1.1.0); an older Magic Card Utils leaves it out, which counts as on.
+    this._themeWrites = true;
     this._themeListLoad = "";
     this._themeFilter = "";
     this._themeListError = "";
@@ -1690,6 +1697,7 @@ class MagicCardUtilsPanel extends LitElement {
     try {
       const res = await this.hass.callWS({ type: CMD_THEMES_LIST });
       if (res && Array.isArray(res.files)) this._themeFiles = res.files.filter((f) => f && typeof f.name === "string");
+      this._themeWrites = !(res && res.writes_enabled === false);
       this._themeListError = "";
       this._themeListLoad = "ready";
     } catch (err) {
@@ -1711,11 +1719,27 @@ class MagicCardUtilsPanel extends LitElement {
     if (this._selectedTheme == null) this._openGroups = new Set([...this._openGroups, "theme"]);
     this._selectedTheme = name;
     this._themeDeleteAsk = "";
+    this._themeDeleteFile = false;
     this._syncTabQuery("themes");
     this._openInspector(opener);
   }
 
-  /** The inspector content for the selected theme file: name, modes, variables and file, with Delete and Export when it is editable. */
+  /** Where a theme stands in /config/themes, as a short label (theme-files 2.0.0 `stored` + `folder`). */
+  _themeFolderLabel(f) {
+    if (!f.stored) return f.editable ? tr("mcu-panel.panel.theme-folder-only") : tr("mcu-panel.panel.read-only");
+    switch (f.folder) {
+      case "current": return tr("mcu-panel.panel.theme-folder-current");
+      case "outdated": return tr("mcu-panel.panel.theme-folder-outdated");
+      case "foreign": return tr("mcu-panel.panel.theme-folder-foreign");
+      default: return tr("mcu-panel.panel.theme-folder-none");
+    }
+  }
+
+  /**
+   * The inspector content for the selected theme: name, modes, variables and where it is, with Delete and Export.
+   * Saved themes can always be deleted; with saving to the themes folder on, a checkbox also removes the file
+   * Magic Card wrote. A theme that is only a file Magic Card wrote is deleted as a file, and only with that option on.
+   */
   _themeInspectorModel() {
     const f = this._themeEditorOpen ? null : (this._themeFiles || []).find((x) => x.name === this._selectedTheme);
     if (!f) return null;
@@ -1723,17 +1747,30 @@ class MagicCardUtilsPanel extends LitElement {
     const count = tr("mcu-panel.panel.n-variables", { n: f.var_count || 0 });
     const row = (label, value) => html`<div class="fld"><div class="fld-head"><span class="fld-label">${label}</span></div><span class="fld-value">${value}</span></div>`;
     const ask = this._themeDeleteAsk === f.name;
+    const path = `/config/${f.file}`;
+    const writes = this._themeWrites !== false;
+    const canDelete = f.editable && (f.stored || writes);
+    const fileBox = f.stored && writes && (f.folder === "current" || f.folder === "outdated");
     const open = html`<button type="button" class="btn btn-primary" data-a="studio" @click=${(e) => this._openThemeEditor(e.currentTarget)}>${glyph("fullscreen", 18)}${tr("mcu-panel.panel.open-in-studio")}</button>`;
-    let footer = open;
-    if (f.editable) {
+    const exportBtn = html`<button type="button" class="btn btn-secondary" data-a="export" @click=${() => this._exportTheme(f.name)}>${tr("mcu-panel.panel.export")}</button>`;
+    let footer = f.editable ? html`${open}${exportBtn}` : open;
+    if (canDelete) {
       footer = ask
-        ? html`<p class="fld-help" role="alert">${tr("mcu-panel.panel.delete-name-this-action-cannot-be-undone", { name: f.name })}</p>
+        ? html`<p class="fld-help" role="alert">${f.stored
+            ? tr("mcu-panel.panel.delete-name-this-action-cannot-be-undone", { name: f.name })
+            : tr("mcu-panel.panel.delete-file-question", { file: path })}</p>
+            ${fileBox
+              ? html`<label class="choice" data-a="del-file"><input type="checkbox" .checked=${!!this._themeDeleteFile}
+                  @change=${(e) => (this._themeDeleteFile = e.target.checked)} />${tr("mcu-panel.panel.also-remove-file", { file: path })}</label>`
+              : ""}
             <button type="button" class="btn btn-secondary" @click=${() => (this._themeDeleteAsk = "")}>${tr("mcu-panel.panel.cancel")}</button>
-            <button type="button" class="btn btn-danger" data-a="del" @click=${() => this._deleteTheme(f.name)}>${glyph("delete", 18)}${tr("mcu-panel.panel.delete")}</button>`
-        : html`${open}
-            <button type="button" class="btn btn-secondary" data-a="export" @click=${() => this._exportTheme(f.name)}>${tr("mcu-panel.panel.export")}</button>
-            <button type="button" class="btn btn-danger" data-a="del" @click=${() => (this._themeDeleteAsk = f.name)}>${glyph("delete", 18)}${tr("mcu-panel.panel.delete")}</button>`;
+            <button type="button" class="btn btn-danger" data-a="del" @click=${() => this._deleteTheme(f.name, !f.stored || (fileBox && !!this._themeDeleteFile))}>${glyph("delete", 18)}${tr("mcu-panel.panel.delete")}</button>`
+        : html`${open}${exportBtn}
+            <button type="button" class="btn btn-danger" data-a="del" @click=${() => { this._themeDeleteFile = false; this._themeDeleteAsk = f.name; }}>${glyph("delete", 18)}${tr("mcu-panel.panel.delete")}</button>`;
     }
+    const where = f.stored && (f.folder === "none" || !f.folder)
+      ? this._themeFolderLabel(f)
+      : html`${this._themeFolderLabel(f)}<br /><bdi>${path}</bdi>`;
     return {
       name: f.name,
       type: tr("mcu-panel.panel.theme"),
@@ -1743,7 +1780,7 @@ class MagicCardUtilsPanel extends LitElement {
           title: tr("mcu-panel.panel.theme"),
           summary: modes,
           fields: [{ kind: "field", label: tr("mcu-panel.panel.name"), value: f.name }],
-          body: html`${row(tr("mcu-panel.panel.modes"), modes)}${row(tr("mcu-panel.panel.variables"), count)}${row(tr("mcu-panel.panel.file"), `/config/${f.file}`)}${f.editable
+          body: html`${row(tr("mcu-panel.panel.modes"), modes)}${row(tr("mcu-panel.panel.variables"), count)}${row(tr("mcu-panel.panel.themes-folder"), where)}${f.editable
             ? ""
             : html`<div class="notice info" role="note">${glyph("info", 20)}<div class="body"><p>${tr("mcu-panel.panel.this-theme-is-read-only-copy-it-to-edit")}</p></div></div>`}`,
         },
@@ -1752,10 +1789,14 @@ class MagicCardUtilsPanel extends LitElement {
     };
   }
 
-  async _deleteTheme(name) {
+  /** Deletes the saved theme and, with `file`, the themes folder file Magic Card wrote (theme-files 2.0.0). */
+  async _deleteTheme(name, file = false) {
     try {
-      await this.hass.callWS({ type: CMD_THEMES_DELETE, name });
+      const msg = { type: CMD_THEMES_DELETE, name };
+      if (file) msg.file = true;
+      await this.hass.callWS(msg);
       this._themeDeleteAsk = "";
+      this._themeDeleteFile = false;
       if (this._selectedTheme === name) {
         this._selectedTheme = null;
         this._syncTabQuery("themes");
@@ -1764,6 +1805,7 @@ class MagicCardUtilsPanel extends LitElement {
     } catch (err) {
       console.error("[magic_card_utils] delete theme failed", err);
       this._themeDeleteAsk = "";
+      this._themeDeleteFile = false;
       this._themeListError = tr("mcu-panel.panel.the-theme-could-not-be-deleted");
     }
   }
@@ -1822,6 +1864,9 @@ class MagicCardUtilsPanel extends LitElement {
             </div>
           </div>`
         : ""}
+      ${this._themeWrites === false
+        ? html`<div class="notice info" role="note" data-a="theme-files-off">${glyph("info", 20)}<div class="body"><p>${tr("mcu-panel.panel.theme-files-off")}</p></div></div>`
+        : ""}
       <div class="bar">
         <button type="button" class="btn btn-primary" data-a="new" @click=${(e) => this._startThemeEditor(e.currentTarget)}>
           <ha-icon icon="mdi:open-in-new"></ha-icon>${tr("mcu-panel.panel.new-theme")}
@@ -1843,10 +1888,10 @@ class MagicCardUtilsPanel extends LitElement {
         : shown.length
         ? html`<div class="rows" role="list">${shown.map((t) => {
             const sub = [
-              `/config/${t.file}`,
+              t.stored ? "" : `/config/${t.file}`,
               tr("mcu-panel.panel.n-variables", { n: t.var_count || 0 }),
               t.has_modes ? tr("mcu-panel.panel.light-and-dark") : "",
-              t.editable ? "" : tr("mcu-panel.panel.read-only"),
+              this._themeFolderLabel(t),
             ].filter(Boolean).join(" · ");
             return html`<div class="row" role="listitem" data-id="${t.name}">
               <button type="button" class="name" aria-current="${this._selectedTheme === t.name ? "true" : "false"}"

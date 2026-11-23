@@ -86,11 +86,12 @@ const settings = await hass.callWS({ type: "magic_card_utils/get_settings" });
 ```
 
 -   `google_fonts` is `true` only when the **Load Google Fonts** switch is on (Settings → Devices & services → Magic Card Utils → Configure).
+-   `version` is the installed Magic Card Utils version, for example `"2026.11.5-beta.1"`. It is left out when Home Assistant cannot report one.
 -   `theme_fonts` maps a theme name to the catalogue families its font variables name, light and dark modes together. A theme without Google fonts is left out, and so is Roboto, which Home Assistant ships.
 
 The script that Magic Card Utils adds to every Home Assistant page calls this command once and shares the answer in the browser, so a card does not need to call it:
 
--   `window.magicCardUtils.settings` is `{ googleFonts: true }` or `{ googleFonts: false }`. It is missing until the answer arrives, and a failed call counts as off.
+-   `window.magicCardUtils.settings` is `{ googleFonts, lookGallery }`, plus `version` when the answer carries one. It is missing until the answer arrives, and a failed call counts as off.
 -   The script then fires a `mcu-settings` event on `window` with the same object in `detail`.
 
 ```js
@@ -123,7 +124,7 @@ Branch on `code`; the `message` wording can change. Codes used by the integratio
 | `invalid_format` | `save_animation` | The animation breaks a rule (with an `errors` list), or the library is full (without one) |
 | `not_loaded` | Animation commands | The animation library hasn't finished loading |
 | `save_failed` | `save_animation`, `delete_animation` | Writing to storage failed |
-| `name_taken`, `not_editable`, `conflict`, `themes_not_included`, `read_failed` | Theme commands | A theme file can't be written or read. See [Themes](themes.md#errors) for each code. `invalid_format` on the theme commands also carries an `errors` list. |
+| `name_taken`, `not_editable`, `conflict`, `themes_not_included`, `theme_files_off`, `read_failed` | Theme commands | A theme can't be saved, published, deleted or read. See [Themes](themes.md#errors) for each code. `invalid_format` on the theme commands also carries an `errors` list. |
 
 Home Assistant's own codes, like `invalid_format` for a missing or wrong payload field and `unauthorized`, can appear too.
 
@@ -131,4 +132,4 @@ Home Assistant's own codes, like `invalid_format` for a missing or wrong payload
 
 - [Templates](templates.md): `get_templates`, `subscribe_templates`, `save_template` with renaming, `delete_template`, the template object and linking.
 - [Animations](animations.md): `get_animations`, `subscribe_animations`, `save_animation`, `delete_animation`, the change events and the validation errors.
-- [Themes](themes.md): `themes_list`, `themes_get`, `themes_save` and `themes_delete` for the theme files in `/config/themes`, their results, read-only reasons and errors.
+- [Themes](themes.md): `themes_list`, `themes_get`, `themes_save` and `themes_delete` for the saved themes and the files in `/config/themes`, their results, read-only reasons and errors.

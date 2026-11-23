@@ -8,7 +8,7 @@ The list of themes stays inside the tab. Opening a theme fills the whole screen,
 
 -   Magic Card 2026.10.06 or newer, with `magic-card-theme-editor.js` in the same folder as `magic-card.js`. The Marketplace and HACS install it there. If the file or the element is missing, the tab shows a message and a **Try again** button.
 -   An admin user. The panel and its commands are for admins only.
--   The include lines in `configuration.yaml` before you can save. The tab shows them when they are missing, and the editor's own page explains them.
+-   The include lines in `configuration.yaml` before you can save a theme to the themes folder. The tab shows them when they are missing, and the editor's own page explains them.
 
 ## Loading
 
@@ -20,9 +20,17 @@ If Home Assistant rebuilds the panel, for example when you navigate away and com
 
 Open one theme directly with `?theme=<name>` on the panel URL, for example `/magic-card-utils?theme=warm-night`. The tab opens that theme. A name that does not follow the theme name rules is ignored. Leaving the Themes tab removes `theme=` from the URL.
 
-## Files
+## Where themes are kept
 
-The Themes tab reads and writes only files in `/config/themes`. It never writes `configuration.yaml`. Files it cannot safely rewrite, for example files in a subfolder or files that use YAML aliases, are listed as read only with a reason. See [Files and limits](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/themes/files.md) in the Magic Card docs.
+The editor always saves a theme in Magic Card Utils. Home Assistant only applies a theme once it is a file in `/config/themes`, so the editor can also save it there. That needs **Allow themes to be saved in the themes folder** under Settings > Devices & services > Magic Card Utils > Configure, which is off by default and shows a disclaimer when you turn it on. While it is off, the tab says so, and you can still create, edit and delete themes in Magic Card Utils.
+
+Each row says where the theme stands: **Not in the themes folder**, **In the themes folder**, **Themes folder copy is older** (changed since it was last saved there), **Another file in the themes folder uses this name**, or **Only in the themes folder** for a file Magic Card wrote that is not saved in Magic Card Utils yet. Opening and saving such a file imports it under the same name.
+
+The tab never changes, replaces or deletes a theme file Magic Card did not write, and it never writes `configuration.yaml`. Magic Card's own files start with `# Written by the Magic Card theme editor.`. Other files are listed as **Read only**: copy one and save it under a new name to edit it. See [Files and limits](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/themes/files.md) in the Magic Card docs.
+
+## Deleting a theme
+
+**Delete** in the details panel removes the theme from Magic Card Utils. When the theme is also in the themes folder and the option is on, a checkbox asks whether to remove that file too; it is off each time you delete. A theme that is only a file Magic Card wrote is deleted as a file, and only while the option is on. Home Assistant stops applying a theme once its file is gone.
 
 ## Importing a theme file
 

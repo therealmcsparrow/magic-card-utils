@@ -3,6 +3,10 @@
     "text": "A template named ‘{name}’ already exists.",
     "hash": "bd93b912"
   },
+  "mcu-panel.panel.also-remove-file": {
+    "text": "Also remove {file} from the themes folder",
+    "hash": "775ab119"
+  },
   "mcu-panel.panel.animation": {
     "text": "Animation",
     "hash": "1dd10f24"
@@ -127,6 +131,10 @@
     "text": "Delete failed",
     "hash": "8727e2ba"
   },
+  "mcu-panel.panel.delete-file-question": {
+    "text": "Delete {file}? Home Assistant no longer applies this theme. This action cannot be undone.",
+    "hash": "f33f0168"
+  },
   "mcu-panel.panel.delete-name": {
     "text": "Delete {name}",
     "hash": "3cf8146e"
@@ -246,10 +254,6 @@
   "mcu-panel.panel.failed-to-render-preview": {
     "text": "Failed to render preview.",
     "hash": "aeade066"
-  },
-  "mcu-panel.panel.file": {
-    "text": "File",
-    "hash": "50009ce1"
   },
   "mcu-panel.panel.font-host-contact": {
     "text": "To draw the fonts, your browser asks {hosts} for them. Each request shows those sites your IP address, the time, the fonts you ask for and the address of your Home Assistant (a DuckDNS name, a Nabu Casa address or a local network address), plus your browser's type and language. Your cards and settings are not sent.",
@@ -723,9 +727,37 @@
     "text": "Theme",
     "hash": "efb52e71"
   },
+  "mcu-panel.panel.theme-files-off": {
+    "text": "Themes are saved in Magic Card Utils. Home Assistant applies a theme only once it is in the themes folder, and saving there is off. An administrator can turn on Allow themes to be saved in the themes folder in Settings > Devices & services > Magic Card Utils > Configure.",
+    "hash": "44d5449c"
+  },
+  "mcu-panel.panel.theme-folder-current": {
+    "text": "In the themes folder",
+    "hash": "c7223d1a"
+  },
+  "mcu-panel.panel.theme-folder-foreign": {
+    "text": "Another file in the themes folder uses this name",
+    "hash": "93340bea"
+  },
+  "mcu-panel.panel.theme-folder-none": {
+    "text": "Not in the themes folder",
+    "hash": "b018f160"
+  },
+  "mcu-panel.panel.theme-folder-only": {
+    "text": "Only in the themes folder",
+    "hash": "1301009b"
+  },
+  "mcu-panel.panel.theme-folder-outdated": {
+    "text": "Themes folder copy is older",
+    "hash": "75196545"
+  },
   "mcu-panel.panel.themes": {
     "text": "Themes",
     "hash": "43ae3265"
+  },
+  "mcu-panel.panel.themes-folder": {
+    "text": "Themes folder",
+    "hash": "fbbbad6c"
   },
   "mcu-panel.panel.this-magic-card-utils-version-doesn-t": {
     "text": "This Magic Card Utils version doesn't match the theme editor in Magic Card. Update both to their latest versions.",

@@ -11,11 +11,13 @@ import voluptuous as vol
 
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
+from homeassistant.loader import IntegrationNotFound, async_get_integration
 
 from .const import DOMAIN
 
 CONF_GOOGLE_FONTS = "google_fonts"
 CONF_LOOK_GALLERY = "look_gallery"
+CONF_THEME_FILES = "theme_files"
 CMD_GET_SETTINGS = f"{DOMAIN}/get_settings"
 
 _CATALOGUE_PATH = Path(__file__).parent / "google_fonts.json"
@@ -58,6 +60,14 @@ def look_gallery_enabled(hass: HomeAssistant) -> bool:
     """True when the look gallery switch is on in the options of the integration's config entry."""
     for entry in hass.config_entries.async_entries(DOMAIN):
         if entry.options.get(CONF_LOOK_GALLERY, False) is True:
+            return True
+    return False
+
+
+def theme_files_enabled(hass: HomeAssistant) -> bool:
+    """True when "Allow themes to be saved in the themes folder" is on: the theme editor may write and delete its own files there."""
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.options.get(CONF_THEME_FILES, False) is True:
             return True
     return False
 
@@ -118,11 +128,15 @@ async def ws_get_settings(hass: HomeAssistant, connection: websocket_api.ActiveC
     enabled = google_fonts_enabled(hass)
     if enabled:
         await async_load_catalogue(hass)
-    connection.send_result(
-        msg["id"],
-        {
-            "google_fonts": enabled,
-            "look_gallery": look_gallery_enabled(hass),
-            "theme_fonts": theme_google_fonts(hass) if enabled else {},
-        },
-    )
+    result: dict[str, Any] = {
+        "google_fonts": enabled,
+        "look_gallery": look_gallery_enabled(hass),
+        "theme_fonts": theme_google_fonts(hass) if enabled else {},
+    }
+    try:
+        version = (await async_get_integration(hass, DOMAIN)).version
+    except IntegrationNotFound:
+        version = None
+    if version is not None:
+        result["version"] = str(version)
+    connection.send_result(msg["id"], result)

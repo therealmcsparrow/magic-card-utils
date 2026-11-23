@@ -1,9 +1,10 @@
-"""Theme file I/O, validation and YAML (theme-files 1.0.0).
+"""Theme file I/O, validation and YAML (theme-files 2.0.0).
 
 Plain functions on a config directory, no Home Assistant state, so they are unit-testable with a
 temp folder. Everything here is blocking: call it from the executor. Nothing outside
-``<config>/themes`` is written or deleted, and files that are symlinks are never read, written or
-removed.
+``<config>/themes`` is written or deleted, files that are symlinks are never read, written or
+removed, and an existing file is only replaced or deleted when it starts with WRITTEN_HEADER (a
+file the editor wrote itself).
 """
 
 from __future__ import annotations
@@ -210,7 +211,16 @@ def _jsonable(value: Any) -> Any:
     return str(value)
 
 
-def _count_vars(theme: dict) -> int:
+def is_own_text(text: str) -> bool:
+    """True when the file text starts with WRITTEN_HEADER: a file this editor wrote itself.
+
+    A byte order mark and Windows line endings (an editor on another machine) do not count against it.
+    """
+    first = text.lstrip("\ufeff").split("\n", 1)[0].rstrip("\r")
+    return first == WRITTEN_HEADER.rstrip("\n")
+
+
+def count_vars(theme: dict) -> int:
     count = sum(1 for k in theme if k != MODES_KEY)
     modes = theme.get(MODES_KEY)
     if isinstance(modes, dict):
@@ -247,7 +257,8 @@ def _inspect(config_dir: Path, path: Path, base: Path) -> dict[str, Any]:
     try:
         if path.stat().st_size > MAX_FILE_BYTES:
             return result("too_large")
-        data = yaml.load(path.read_text(encoding="utf-8"), Loader=_NoAliasLoader)  # noqa: S506 - SafeLoader subclass
+        text = path.read_text(encoding="utf-8")
+        data = yaml.load(text, Loader=_NoAliasLoader)  # noqa: S506 - SafeLoader subclass
     except yaml.constructor.ConstructorError as err:
         if "could not determine a constructor for the tag" in (err.problem or ""):
             return result("yaml_tags")
@@ -273,7 +284,7 @@ def _inspect(config_dir: Path, path: Path, base: Path) -> dict[str, Any]:
         theme = {}
         return result("parse_error")
     entry["has_modes"] = MODES_KEY in theme
-    entry["var_count"] = _count_vars(theme)
+    entry["var_count"] = count_vars(theme)
 
     if path.parent != base:
         return result("subfolder")
@@ -283,6 +294,8 @@ def _inspect(config_dir: Path, path: Path, base: Path) -> dict[str, Any]:
         return result("name_mismatch")
     if validate_name(stem):
         return result("invalid_name")
+    if not is_own_text(text):
+        return result("not_own")
     return result(None)
 
 
@@ -305,6 +318,19 @@ def scan_themes(config_dir: str | Path) -> dict[str, Any]:
     """``{files: [ThemeFileEntry], truncated}`` for every *.yaml under the themes folder."""
     records, truncated = _walk(config_dir)
     return {"files": [r["entry"] for r in records], "truncated": truncated}
+
+
+def scan_records(config_dir: str | Path) -> list[dict[str, Any]]:
+    """Every *.yaml under the themes folder as ``{entry, theme}`` (the parsed theme, {} when unreadable)."""
+    return _walk(config_dir)[0]
+
+
+def folder_record(config_dir: str | Path, name: str) -> dict[str, Any] | None:
+    """``{entry, theme}`` for ``themes/<name>.yaml`` at the top level, or None when there is no such file."""
+    path = theme_path(config_dir, name)
+    if not os.path.lexists(path):
+        return None
+    return _inspect(Path(config_dir), path, themes_dir(config_dir))
 
 
 def read_theme(config_dir: str | Path, name: str) -> dict[str, Any]:

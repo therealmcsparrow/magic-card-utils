@@ -1,36 +1,63 @@
-"""Contract: theme-files 1.0.0 (Architect-owned).
+"""Contract: theme-files 2.0.0 (Architect-owned).
 
 WebSocket commands for the theme editor (Magic Card Utils panel "Themes" tab, element from
 magic-card's dist/magic-card-theme-editor.js; TypeScript mirror: magic-card
-src/contracts/theme-editor.ts). Implementation: themes.py (commands), theme_files.py (file I/O,
-validation, YAML), include_scan.py (configuration.yaml include detection).
+src/contracts/theme-editor.ts). Implementation: themes.py (commands and the theme store),
+theme_files.py (file I/O, validation, YAML), include_scan.py (configuration.yaml include detection).
 
 Every command is admin only (@websocket_api.require_admin) and async (@async_response); file I/O
 runs in the executor. Nothing outside ``hass.config.path(THEMES_DIR)`` is ever written or deleted,
 and configuration.yaml is only read.
 
+Where themes live (2.0.0): the editor's themes are kept in the integration's own storage,
+Store(hass, STORAGE_VERSION, STORAGE_KEY_THEMES) -> {"themes": {name: {"theme": ThemeDoc, "updated": float}}}.
+Every save goes there. Home Assistant applies only themes from the themes folder, so a save can also
+publish the theme: write THEMES_DIR/<name>.yaml (``publish: true``). Publishing and removing a file need
+the "Allow themes to be saved in the themes folder" option of the config entry (settings
+CONF_THEME_FILES, settings.theme_files_enabled, off by default); storage saves do not.
+
 Commands (``type``: request -> result):
-- magic_card_utils/themes_list  {} -> {include, files, loaded}
-- magic_card_utils/themes_get   {name} -> {name, file, editable, reason?, mtime, theme}
-- magic_card_utils/themes_save  {name, theme, overwrite?=False, base_mtime?} -> {name, file, mtime, loaded}
-- magic_card_utils/themes_delete {name} -> {}
+- magic_card_utils/themes_list  {} -> {include, files, loaded, writes_enabled, storage: true}
+- magic_card_utils/themes_get   {name} -> {name, file, editable, reason?, stored, folder, mtime, theme}
+- magic_card_utils/themes_save  {name, theme, overwrite?=False, base_mtime?, publish?=False}
+                                -> {name, file, mtime, loaded, stored: true, published, folder}
+- magic_card_utils/themes_delete {name, file?=False} -> {stored: bool, file: bool}
 
-Save order: name rule -> theme validation -> include state must be "ok" (else themes_not_included)
--> existing file: overwrite required (else name_taken), must be editable (else not_editable),
-base_mtime must match when given (else conflict) -> name loaded by HA from another file
-(else name_taken) -> atomic write -> frontend.reload_themes (blocking) -> loaded = name in HA themes.
+List entries: one per stored theme (editable, stored, mtime = the stored ``updated``, ``folder`` says
+how themes/<name>.yaml relates to it), then one per theme file that is not a stored theme's own file.
+A folder file the editor wrote (starts with WRITTEN_HEADER) is editable with stored False: the first
+save imports it into storage under the same name and keeps it linked to the file. Any other file is
+read-only with a ReadOnlyReason; the editor copies it to a new name instead (an import).
 
-Delete: editable file only (else not_editable / not_found) -> unlink -> frontend.reload_themes.
+Folder state (``folder``): "none" no themes/<name>.yaml; "current" the editor's file holds the same
+theme; "outdated" the editor's file holds an older version; "foreign" a file the editor did not
+write (or cannot read) has that name.
 
-Editable file: THEMES_DIR/<name>.yaml at the top level (not a subfolder, not a symlink), size <=
-MAX_FILE_BYTES, parses with yaml.safe_load (HA tags like !secret make it read-only), and holds
-exactly one top-level key equal to the file stem whose value is a mapping. Every other *.yaml file
-under THEMES_DIR is listed read-only with a ReadOnlyReason; themes_get still returns its theme when
-it parsed.
+Save order: name rule -> theme validation -> name rules (a foreign file with that name, or a name HA
+loaded from somewhere else: name_taken; a stored theme or an own folder file: overwrite required, else
+name_taken) -> base_mtime must match the stored ``updated`` (or the own file's mtime when the theme is
+not stored yet) when given (else conflict) -> when publishing: writes option on (else theme_files_off),
+include state "ok" (else themes_not_included), themes/<name>.yaml absent or the editor's own (else
+not_editable) -> atomic file write when publishing -> storage save -> frontend.reload_themes after a
+file write -> loaded = name in HA themes.
+
+Delete order: name rule -> with ``file``: writes option on (else theme_files_off), themes/<name>.yaml
+must exist (else not_found) and be the editor's own (else not_editable) -> nothing stored and no file
+asked for: not_found -> unlink -> remove from storage -> frontend.reload_themes after an unlink.
+Every check runs before anything is changed.
+
+Editable file (one the editor may replace or delete): THEMES_DIR/<name>.yaml at the top level (not a
+subfolder, not a symlink), size <= MAX_FILE_BYTES, parses with yaml.safe_load (HA tags like !secret
+make it read-only), holds exactly one top-level key equal to the file stem whose value is a mapping,
+and starts with WRITTEN_HEADER, so the editor only ever changes or deletes files it wrote itself.
 
 File format written: ``{name: theme}`` through yaml.safe_dump(sort_keys=False, allow_unicode=True,
 default_flow_style=False), preceded by WRITTEN_HEADER. Key order and unknown keys are kept; comments
-are not (the editor says so on the first save of an existing file).
+are not.
+
+2.0.0 breaking changes from 1.1.0: themes_save without ``publish`` no longer writes a file; themes_delete
+removes the stored theme and only removes the file with ``file: true``; the "writes_off" reason is gone
+(the option no longer locks themes).
 """
 
 from __future__ import annotations
@@ -38,9 +65,14 @@ from __future__ import annotations
 import re
 from typing import Literal, NotRequired, TypedDict
 
-THEME_FILES_CONTRACT_VERSION = "1.0.0"
+THEME_FILES_CONTRACT_VERSION = "2.0.0"
 
 THEMES_DIR = "themes"
+
+STORAGE_KEY_THEMES = "magic_card_utils.themes"
+STORAGE_VERSION = 1
+MAX_STORED_THEMES = 500
+MAX_STORE_BYTES = 16 * 1024 * 1024  # serialised size of all stored themes together
 
 CMD_LIST = "magic_card_utils/themes_list"
 CMD_GET = "magic_card_utils/themes_get"
@@ -81,7 +113,11 @@ ReadOnlyReason = Literal[
     "parse_error",
     "too_large",
     "symlink",
+    "not_own",  # 1.1.0: the file does not start with WRITTEN_HEADER (not written by this editor)
 ]
+
+# 2.0.0: how themes/<name>.yaml relates to a theme (see the module docstring).
+FolderState = Literal["none", "current", "outdated", "foreign"]
 
 ERR_INVALID_FORMAT = "invalid_format"  # with error["errors"] = [{path, message}]
 ERR_NOT_FOUND = "not_found"
@@ -92,6 +128,7 @@ ERR_THEMES_NOT_INCLUDED = "themes_not_included"
 ERR_TOO_LARGE = "too_large"
 ERR_SAVE_FAILED = "save_failed"
 ERR_READ_FAILED = "read_failed"
+ERR_THEME_FILES_OFF = "theme_files_off"  # the themes-folder option is off (publish, file delete)
 # Non-admin callers get HA's own "unauthorized" from require_admin.
 
 
@@ -103,18 +140,22 @@ class IncludeStatus(TypedDict):
 
 class ThemeFileEntry(TypedDict):
     name: str
-    file: str  # relative to /config, forward slashes
+    file: str  # relative to /config, forward slashes; for a stored theme, where it publishes to
     editable: bool
     reason: NotRequired[ReadOnlyReason]
     has_modes: bool
     var_count: int
-    mtime: float
+    mtime: float  # stored theme: its ``updated``; folder file: the file's mtime
+    stored: bool  # 2.0.0
+    folder: FolderState  # 2.0.0
 
 
 class ThemeListResult(TypedDict):
     include: IncludeStatus
     files: list[ThemeFileEntry]
     loaded: list[str]
+    writes_enabled: bool  # 1.1.0: the themes-folder option
+    storage: bool  # 2.0.0: always True; themes are kept in the integration's storage
 
 
 class ThemeGetResult(TypedDict):
@@ -122,6 +163,8 @@ class ThemeGetResult(TypedDict):
     file: str
     editable: bool
     reason: NotRequired[ReadOnlyReason]
+    stored: bool  # 2.0.0
+    folder: FolderState  # 2.0.0
     mtime: float
     theme: dict
 
@@ -131,3 +174,11 @@ class ThemeSaveResult(TypedDict):
     file: str
     mtime: float
     loaded: bool
+    stored: bool  # 2.0.0: always True
+    published: bool  # 2.0.0: themes/<name>.yaml was written
+    folder: FolderState  # 2.0.0
+
+
+class ThemeDeleteResult(TypedDict):
+    stored: bool  # the stored theme was removed
+    file: bool  # themes/<name>.yaml was removed

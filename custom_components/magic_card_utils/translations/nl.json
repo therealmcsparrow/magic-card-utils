@@ -19,22 +19,26 @@
         "title": "Magic Card Utils-opties",
         "data": {
           "google_fonts": "Google Fonts laden",
-          "look_gallery": "Lookgalerij"
+          "look_gallery": "Lookgalerij",
+          "theme_files": "Thema's in de themamap laten opslaan"
         },
         "data_description": {
           "google_fonts": "Als dit aan staat, vraagt de browser van iedereen die een dashboard bekijkt lettertypen op bij Google, dat hun IP-adres ziet. Geldt voor de hele installatie na het herladen van de pagina.",
-          "look_gallery": "Laat de kaarteditor looks laden van therealmcsparrow.github.io. Verandert Google Fonts laden niet. Standaard uit. Na een wijziging moet je opnieuw laden."
+          "look_gallery": "Laat de kaarteditor looks laden van therealmcsparrow.github.io. Verandert Google Fonts laden niet. Standaard uit. Na een wijziging moet je opnieuw laden.",
+          "theme_files": "De thema-editor bewaart zijn thema's altijd in Magic Card Utils. Als dit aan staat, kan hij ze ook opslaan in /config/themes, waar Home Assistant ze laadt, en de bestanden verwijderen die hij daar schreef. Themabestanden die Magic Card niet schreef, worden nooit gewijzigd, vervangen of verwijderd. Standaard uit."
         }
       },
       "init_advice": {
         "title": "Magic Card Utils-opties",
         "data": {
           "google_fonts": "Google Fonts laden",
-          "look_gallery": "Lookgalerij"
+          "look_gallery": "Lookgalerij",
+          "theme_files": "Thema's in de themamap laten opslaan"
         },
         "data_description": {
           "google_fonts": "Als dit aan staat, vraagt de browser van iedereen die een dashboard bekijkt lettertypen op bij Google, dat hun IP-adres ziet. Geldt voor de hele installatie na het herladen van de pagina.",
-          "look_gallery": "Laat de kaarteditor looks laden van therealmcsparrow.github.io. Verandert Google Fonts laden niet. Standaard uit. Na een wijziging moet je opnieuw laden."
+          "look_gallery": "Laat de kaarteditor looks laden van therealmcsparrow.github.io. Verandert Google Fonts laden niet. Standaard uit. Na een wijziging moet je opnieuw laden.",
+          "theme_files": "De thema-editor bewaart zijn thema's altijd in Magic Card Utils. Als dit aan staat, kan hij ze ook opslaan in /config/themes, waar Home Assistant ze laadt, en de bestanden verwijderen die hij daar schreef. Themabestanden die Magic Card niet schreef, worden nooit gewijzigd, vervangen of verwijderd. Standaard uit."
         },
         "description": "Veel looks gebruiken Google-lettertypen. Zet Google Fonts laden aan om ze zoals bedoeld te zien; je browser neemt dan contact op met fonts.googleapis.com en fonts.gstatic.com (Google). Zonder tonen kaarten een standaardlettertype."
       },
@@ -52,6 +56,11 @@
         "title": "De lookgalerij aanzetten voor iedereen?",
         "submit": "Aanzetten",
         "description": "Deze schakelaar geldt voor iedereen die deze Home Assistant gebruikt. Bevestigen zet alleen de lookgalerij aan. **Google Fonts laden** verandert niet. Laad na het aanzetten elk geopend dashboard opnieuw. In een browser ververs je de pagina. In de Home Assistant-app op een iPad of iPhone trek je het scherm omlaag om te verversen, of sluit je de app en open je hem opnieuw.\n\nJe kunt de galerij altijd weer uitzetten met dezelfde schakelaar. Dan stoppen de verzoeken naar `therealmcsparrow.github.io`. Verzoeken naar Google Fonts hangen alleen af van Google Fonts laden; zet die schakelaar uit om ze te stoppen. Kaarten met een look houden hun stijlinstellingen in beide gevallen.\n\nVeel looks gebruiken Google-lettertypen. Zet Google Fonts laden aan om ze zoals bedoeld te zien; je browser neemt dan contact op met fonts.googleapis.com en fonts.gstatic.com (Google). Zonder tonen kaarten een standaardlettertype."
+      },
+      "theme_files_confirm": {
+        "title": "Thema's in de themamap laten opslaan?",
+        "submit": "Toestaan",
+        "description": "De thema-editor van Magic Card bewaart zijn thema's altijd in Magic Card Utils. Home Assistant past een thema pas toe als het in `/config/themes` staat. Met **Thema's in de themamap laten opslaan** aan kunnen beheerders een thema ook daar opslaan en bestanden verwijderen die de editor schreef.\n\nWat de editor doet:\n- Elk thema wordt eerst in Magic Card Utils opgeslagen. Opslaan in de themamap is een aparte stap die je elke keer zelf kiest.\n- Hij vervangt of verwijdert alleen bestanden die hij zelf schreef. Die beginnen met de regel `# Written by the Magic Card theme editor.`\n- Themabestanden die je zelf schreef, of die uit HACS of een ander hulpmiddel komen, worden nooit gewijzigd, vervangen of verwijderd. Om er een te bewerken importeert de editor een kopie onder een nieuwe naam.\n- Hij schrijft alleen in `/config/themes`, nooit in `configuration.yaml`.\n- Nadat hij een bestand schrijft of verwijdert, laadt hij de thema's opnieuw, zodat elk dashboard de wijziging ziet.\n\n**Disclaimer.** Je zet dit aan op eigen risico. De editor herschrijft zijn eigen bestanden helemaal: commentaar en opmaak die je er zelf in zet, blijven niet bewaard, en een bestand dat hij verwijdert kan Magic Card niet terugzetten. Een kapot thema kan dashboards slecht leesbaar maken. Maak een back-up van je configuratie (Instellingen > Systeem > Back-ups) voordat je erop vertrouwt. Magic Card Utils wordt geleverd zoals het is, zonder garantie, onder zijn licentie.\n\nJe kunt dit op elk moment met dezelfde schakelaar uitzetten. Bestanden die al in de themamap staan blijven staan, en je thema's blijven in Magic Card Utils."
       }
     }
   }
