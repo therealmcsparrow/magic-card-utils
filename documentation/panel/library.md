@@ -19,7 +19,7 @@ The Library, Icons and Shapes tabs need Magic Card 2026.10.11-beta.1 or newer. S
 | Icons | The SVG editor (New icon) | Any card's icon, and Home Assistant's icon picker |
 | Shapes | The shape editor (New shape) | Cards that draw a shape |
 | Animations | The animation studio (Animations tab) | Any card's animation |
-| Theme presets | The theme editor (Themes tab) | Your themes |
+| Theme presets | The theme editor (Themes tab), which comes with Magic Card Utils | Your themes |
 
 ## The Library tab
 

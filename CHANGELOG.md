@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+Update Magic Card Utils and Magic Card together. The theme editor and the forum shot now come with Magic Card Utils.
+
+### Changed
+- **Theme editor and forum shot come with Magic Card Utils.** Their files are in `custom_components/magic_card_utils/www/`, next to the panel, and the Themes and Forum shot tabs load them from there. They no longer need a particular Magic Card version, and nothing is copied into the Magic Card folder. A manual install gets them by unpacking the whole zip into `custom_components/magic_card_utils`.
+- **Load failures.** When one of these files cannot load, the tab says "The theme editor (*file*) could not be loaded from Magic Card Utils" or "The forum shot (*file*) could not be loaded from Magic Card Utils", with no version number. A forum shot from another release than the panel shows "The forum shot doesn't match this Magic Card Utils panel". See [Troubleshooting](documentation/troubleshooting/README.md#messages-in-the-panel).
+
+### Added
+- The release SBOM lists the licences of the packages and fonts inside these files, and `www/VENDORED.md` says where the files come from. The MIT text for `@types/trusted-types` and the Space Mono licence are included.
+
 ## [2026.11.05] - 2026-11-23
 
 It needs Magic Card 2026.11.05 or newer. Install this release first, then update Magic Card. It also includes the changes listed under 2026.11.5-beta.1.

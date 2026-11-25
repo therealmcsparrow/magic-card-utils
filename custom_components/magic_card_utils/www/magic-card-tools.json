@@ -1,0 +1,28 @@
+{
+  "version": "2026.11.06",
+  "files": {
+    "magic-card-forum-shot.js": "f89c37db5e1daf7a66e55d26f368b6095cfb6e06c48b7080afaa7d79a1e85326",
+    "magic-card-google-fonts.3e6079b7.js": "3cf762b8bb2734bce58d2d2085ac10e13b45ca1adab5fe275f7e6a6bfd728cab",
+    "magic-card-i18n-icons.0a644a70.js": "744050fe2770063d68b94d329e47a4c13295d62ac21a79e41754097265826a3c",
+    "magic-card-i18n-labels.a9cf01c0.js": "6d68c36c1140b3cedb008a81deebcef76b657e25b21f7b9abe31ae3153ff3736",
+    "magic-card-icon-library.50386931.js": "b4576a8786dd28d3ed648e8fdf4247a06dff046ca843d869f6dee61d733c50aa",
+    "magic-card-studio-fonts.4b5c0d06.js": "ed8257186e6e3a68e8608573c0565f7050b4c0981650b84a50bb4f1c2b1091c8",
+    "magic-card-theme-editor.js": "61eff5d46027fb155d09cc7c488575dd4dec0723c4def15b61c008dd248399b5",
+    "magic-card-theme-presets.b7d7ab91.js": "a7f728af7aeb7ef32b3ca03149c5b24b03646debdaa4b085f73419989a25f5c5"
+  },
+  "bundled": {
+    "packages": {
+      "@lit-labs/ssr-dom-shim": "1.6.0",
+      "@lit/reactive-element": "2.1.2",
+      "@mdi/js": "7.4.47",
+      "@types/trusted-types": "2.0.7",
+      "lit": "3.3.3",
+      "lit-element": "4.2.2",
+      "lit-html": "3.3.3"
+    },
+    "fonts": [
+      "Space Grotesk",
+      "Space Mono"
+    ]
+  }
+}

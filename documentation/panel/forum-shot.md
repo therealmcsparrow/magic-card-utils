@@ -9,7 +9,7 @@ The picture is made in your browser, and Magic Card does not keep a copy. Your c
 ## What you need
 
 -   A Magic Card on one of your dashboards.
--   The Magic Card that matches this version of the integration. See [Magic Card compatibility](../compatibility/README.md). When the card is older, the panel says which version you need.
+-   Magic Card installed as a dashboard resource. The forum shot itself comes with Magic Card Utils, in `custom_components/magic_card_utils/www/`, so no particular Magic Card version is needed. See [Magic Card compatibility](../compatibility/README.md).
 -   An administrator account to list the cards on every dashboard. Other users see the default dashboard only, and the area says so.
 
 ## Make a picture
@@ -57,6 +57,8 @@ The only requests to other servers are the font requests for a card with web fon
 | --- | --- |
 | No Magic Cards were found on your dashboards. | Add a Magic Card to a dashboard, then choose Try again or reload the page. |
 | Your dashboards could not be read. Check that they are not YAML dashboards, then try again. | A dashboard that you manage in YAML cannot be read. Use a dashboard you edit in the interface. |
+| The forum shot (*file*) could not be loaded from Magic Card Utils. Reload the page and try again. | Reload the page. If it stays, hard refresh the browser, then update Magic Card Utils and restart Home Assistant. |
+| The forum shot doesn't match this Magic Card Utils panel. Reload the page; if that does not help, update Magic Card Utils. | The forum shot file and the panel come from different releases. Reload the page. If it stays, update Magic Card Utils, restart Home Assistant and hard refresh the browser. |
 | The Magic Card is not loaded in this browser tab. Reload the page and try again. | Reload the page. If it stays, check that the Magic Card resource is installed. |
 | The picture would be too large. Choose light or dark only, or turn off the three looks. | Choose Light only or Dark only, or clear the box for the three looks. |
 | A font could not be loaded, so no picture was made. Check your connection and try again. | Try once more. No picture is saved when a font fails. If it fails again, the card's font stylesheet may list fonts on a site the tab does not show. Use a stylesheet whose fonts sit on a site the tab shows, or remove it from the card's CSS. |

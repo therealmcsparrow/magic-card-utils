@@ -13,7 +13,8 @@ Home Assistant doesn't load dashboard resources on custom panels, so the panel l
 | Part | Loaded from |
 | --- | --- |
 | Card and editor | Your dashboard resource whose URL ends in `/magic-card.js`. With the Marketplace that's `/local/community/magic-card/magic-card.js`, with HACS `/hacsfiles/magic-card/magic-card.js`. |
-| Theme editor | `magic-card-theme-editor.js` in the same folder as `magic-card.js`, with the same query string. Loaded when you open the Themes tab. |
+| Theme editor | `magic-card-theme-editor.js` in `custom_components/magic_card_utils/www/`, next to the panel. It is part of Magic Card Utils, not of Magic Card. Loaded when you open the Themes tab. |
+| Forum shot | `magic-card-forum-shot.js`, in the same folder as the theme editor. Loaded when you open the Forum shot tab. |
 | Editor | Created with the card's own `getConfigElement()`, the same way a dashboard does. This keeps working when Magic Card loads its editor on demand. |
 | Animation studio | `magic-card-animation-studio.js` in the same folder as `magic-card.js`, with the same query string. Its drawing tools load `magic-card-path-canvas.<hash>.js` and `magic-card-path-core.<hash>.js` from that folder too. |
 
@@ -47,7 +48,7 @@ A breaking change to the contract raises `apiVersion`; Magic Card Utils then rai
 | Templates tab: table, template view, preview, editor | Any version |
 | Open in studio | A version with the studio |
 | Animations tab | 2026.10.01 or newer, with `magic-card-animation-studio.js` next to `magic-card.js` |
-| Themes tab | 2026.10.06 or newer, with `magic-card-theme-editor.js` next to `magic-card.js` |
+| Themes tab and Forum shot tab | Any version. Both come with Magic Card Utils, so update Magic Card Utils and Magic Card together. |
 | Library, Icons and Shapes tabs, and icons in Home Assistant's icon picker | 2026.10.11-beta.1 or newer |
 | Shared templates on cards for non-admin users | 2026.10.11-beta.2 or newer, together with Magic Card Utils 2026.10.11 or newer |
 | Images tab, and library images in image modules and background layers | 2026.11.04 or newer |

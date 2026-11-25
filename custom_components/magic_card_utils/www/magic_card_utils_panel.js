@@ -125,14 +125,10 @@ const THEME_EDITOR_FILE = "magic-card-theme-editor.js";
 const THEME_EDITOR_TAG = "magic-card-theme-editor";
 const THEME_NAME_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 const THEME_QUERY_KEY = "theme";
-// Forum shot (contract forum-shot 1.0.0 in Magic Card): a lazy entry that sits next to magic-card.js.
+// Forum shot (contract forum-shot 1.0.0): a lazy entry that sits next to this panel module.
 const FORUM_SHOT_FILE = "magic-card-forum-shot.js";
 const FORUM_SHOT_TAG = "magic-card-forum-shot";
 const FORUM_SHOT_MAJOR = 1;
-// The oldest Magic Card (window.MagicCard.version) that ships the forum shot entry.
-const MIN_MAGIC_CARD_FOR_FORUM_SHOT = "2026.10.12-beta.13";
-// The only places a Magic Card file is served from; the forum shot is loaded from the same folder as magic-card.js.
-const FORUM_SHOT_BASES = ["/local/", "/hacsfiles/"];
 const CMD_THEMES_LIST = "magic_card_utils/themes_list";
 const CMD_THEMES_GET = "magic_card_utils/themes_get";
 const CMD_THEMES_SAVE = "magic_card_utils/themes_save";
@@ -162,7 +158,6 @@ const msgNoCardImages = () => tr("mcu-panel.panel.install-magic-card-to-draw-ima
 const msgUpdateImages = () => tr("mcu-panel.panel.drawing-images-here-needs-magic-card", { version: MIN_MAGIC_CARD_FOR_IMAGES });
 const msgAdminOnlyImages = () => tr("mcu-panel.panel.only-administrators-can-create-or-change");
 const msgAdminOnly = () => tr("mcu-panel.panel.only-administrators-can-create-or-change-2");
-const msgUpdateForumShot = () => tr("mcu-panel.panel.the-forum-shot-needs-magic-card-or", { version: MIN_MAGIC_CARD_FOR_FORUM_SHOT });
 const MAX_TEMPLATE_IMPORT_BYTES = 5 * 1024 * 1024;
 const msgEditorLoad = () => tr("mcu-panel.panel.the-editor-files-could-not-be-loaded");
 /**
@@ -312,18 +307,26 @@ function _siblingUrl(cardUrl, file) {
 }
 
 /**
- * The forum shot entry's URL: the sibling of magic-card.js, kept only when it is an http(s) address on the
- * Home Assistant origin under /local/ or /hacsfiles/. Anything else is null and nothing is imported.
+ * The URL of a tool entry file that sits next to this panel module. Only the panel's own `v` and `t` query
+ * values are carried over, so a new panel version fetches the new entry. Anything that is not an http(s)
+ * address on the page's origin gives null and nothing is imported.
  */
-function _forumShotUrl(cardUrl) {
-  const sibling = _siblingUrl(cardUrl, FORUM_SHOT_FILE);
-  if (!sibling) return null;
+function _toolEntryUrl(file, panelUrl = import.meta.url, pageHref = window.location.href) {
   try {
-    const base = window.location.href;
-    const u = new URL(sibling, base);
-    if (u.origin !== new URL(base).origin || (u.protocol !== "https:" && u.protocol !== "http:")) return null;
-    if (!FORUM_SHOT_BASES.some((b) => u.pathname.startsWith(b))) return null;
-    return u.href;
+    if (typeof file !== "string" || typeof panelUrl !== "string") return null;
+    const page = new URL(pageHref);
+    const panel = new URL(panelUrl, page);
+    const entry = new URL(file, panel);
+    for (const u of [panel, entry]) {
+      if (u.origin !== page.origin || (u.protocol !== "https:" && u.protocol !== "http:")) return null;
+    }
+    entry.search = "";
+    entry.hash = "";
+    for (const key of ["v", "t"]) {
+      const value = panel.searchParams.get(key);
+      if (value !== null) entry.searchParams.set(key, value);
+    }
+    return entry.href;
   } catch (_err) {
     return null;
   }
@@ -1613,12 +1616,12 @@ class MagicCardUtilsPanel extends LitElement {
     if (!customElements.get(THEME_EDITOR_TAG)) {
       if (!this._themeLoad) {
         this._themeLoad = (async () => {
-          const url = _siblingUrl(this._magicCardUrl, THEME_EDITOR_FILE);
+          const url = _toolEntryUrl(THEME_EDITOR_FILE);
           if (!url) return;
           try {
             await import(url);
-          } catch (err) {
-            console.warn("[magic_card_utils] theme editor not loaded from", url, err);
+          } catch (_err) {
+            console.warn("[magic_card_utils] theme editor not loaded");
           }
         })();
       }
@@ -1630,7 +1633,7 @@ class MagicCardUtilsPanel extends LitElement {
       return {
         ok: false,
         message:
-          tr("mcu-panel.panel.the-theme-editor-could-not-be-loaded-it", { file: THEME_EDITOR_FILE, version: "2026.10.06" }),
+          tr("mcu-panel.panel.the-theme-editor-could-not-be-loaded-from", { file: THEME_EDITOR_FILE }),
       };
     }
     const major = parseInt(String(ctor.contractVersion || "").split(".")[0], 10);
@@ -1932,18 +1935,16 @@ class MagicCardUtilsPanel extends LitElement {
   // ---- Forum shot tab -------------------------------------------------------
 
   /**
-   * Load Magic Card, check its version, then import the forum shot entry from the folder magic-card.js came
-   * from. One attempt per page load: a failure is shown and not retried. Resolves to `{ ok: true }` or `{ ok: false, message }`.
+   * Load Magic Card, then import the forum shot entry from this panel's own folder.
+   * One attempt per page load: a failure is shown and not retried. Resolves to `{ ok: true }` or `{ ok: false, message }`.
    */
   async _ensureForumShot() {
     const card = await this._ensureMagicCard();
     if (!card.ok) return card;
-    const cmp = _compareCalVer(window.MagicCard && window.MagicCard.version, MIN_MAGIC_CARD_FOR_FORUM_SHOT);
-    if (cmp === null || cmp < 0) return { ok: false, message: msgUpdateForumShot() };
     if (!customElements.get(FORUM_SHOT_TAG)) {
       if (!this._forumLoad) {
         this._forumLoad = (async () => {
-          const url = _forumShotUrl(this._magicCardUrl);
+          const url = _toolEntryUrl(FORUM_SHOT_FILE);
           if (!url) return;
           try {
             await import(url);
@@ -1958,11 +1959,11 @@ class MagicCardUtilsPanel extends LitElement {
     if (!ctor) {
       return {
         ok: false,
-        message: tr("mcu-panel.panel.the-forum-shot-could-not-be-loaded-it", { file: FORUM_SHOT_FILE, version: MIN_MAGIC_CARD_FOR_FORUM_SHOT }),
+        message: tr("mcu-panel.panel.the-forum-shot-could-not-be-loaded-from", { file: FORUM_SHOT_FILE }),
       };
     }
     const major = parseInt(String(ctor.contractVersion || "").split(".")[0], 10);
-    if (major !== FORUM_SHOT_MAJOR) return { ok: false, message: msgUpdateForumShot() };
+    if (major !== FORUM_SHOT_MAJOR) return { ok: false, message: tr("mcu-panel.panel.the-forum-shot-doesn-t-match-this-panel") };
     return { ok: true };
   }
 
@@ -3627,8 +3628,7 @@ export const _testing = {
   MIN_MAGIC_CARD_FOR_EDITORS,
   EDITORS_MIN_CONTRACT_REVISION,
   MIN_MAGIC_CARD_FOR_IMAGES,
-  MIN_MAGIC_CARD_FOR_FORUM_SHOT,
-  forumShotUrl: _forumShotUrl,
+  toolEntryUrl: _toolEntryUrl,
   IMAGES_MIN_CONTRACT_REVISION,
   TABS,
 };

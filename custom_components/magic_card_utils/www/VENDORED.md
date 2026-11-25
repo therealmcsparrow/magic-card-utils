@@ -124,3 +124,48 @@ Fontsource packages, so they are Modified Versions under the SIL Open Font Licen
 section 3): converted to WOFF2 and reduced to a subset of the characters. They keep their original family
 names, keep the copyright notice and licence, are distributed under the same licence and are never sold on
 their own. The licence covers the fonts only, not Magic Card Utils.
+
+# Generated: Magic Card theme editor and forum shot
+
+`magic-card-theme-editor.js`, `magic-card-forum-shot.js` and the hashed chunks next to them
+(`magic-card-google-fonts.*.js`, `magic-card-i18n-icons.*.js`, `magic-card-i18n-labels.*.js`,
+`magic-card-icon-library.*.js`, `magic-card-studio-fonts.*.js`, `magic-card-theme-presets.*.js`) are built from the
+Magic Card repository by `tools/export-utils-tools.mjs`. They are generated, never edited by hand. Magic Card is
+open source and these files are its own code; the third-party parts bundled into them are listed below.
+
+| Field | Value |
+| --- | --- |
+| Magic Card version | `2026.11.06` (`magic-card-tools.json`, `version`) |
+| Magic Card commit | `43d58a5627b13eddfe0504b51518c1f6c71d27a2`, recorded in `.magic-card-ref` |
+| SHA-256 | one per file in `magic-card-tools.json`, `files` |
+| Bundled components | `magic-card-tools.json`, `bundled` (the export writes it, so it is the list to check) |
+
+Regenerate with `node tools/export-utils-tools.mjs <this repo>/custom_components/magic_card_utils/www` from the
+Magic Card repo at the commit in `.magic-card-ref`. `--check` exits 1 when the files differ from a fresh export.
+After regenerating, update the commit and version rows and check every package and font in `bundled` against the
+table below. A package that is not in the table needs a licence text file here before release; the release
+workflow reads the mapping in `.github/workflows/release.yml`.
+
+| Bundled component | Version | Licence | Licence text |
+| --- | --- | --- | --- |
+| `lit` | 3.3.3 | BSD-3-Clause | `LICENSE-lit.txt` |
+| `lit-html` | 3.3.3 | BSD-3-Clause | `LICENSE-lit.txt` |
+| `lit-element` | 4.2.2 | BSD-3-Clause | `LICENSE-lit.txt` |
+| `@lit/reactive-element` | 2.1.2 | BSD-3-Clause | `LICENSE-lit.txt` |
+| `@lit-labs/ssr-dom-shim` | 1.6.0 | BSD-3-Clause | `LICENSE-lit.txt` |
+| `@mdi/js` | 7.4.47 | Apache-2.0 | `LICENSE-mdi.txt` |
+| `@types/trusted-types` | 2.0.7 | MIT | `LICENSE-trusted-types.txt` |
+| Space Grotesk (font) | n/a | OFL-1.1 | `fonts/OFL.txt` |
+| Space Mono (font) | n/a | OFL-1.1 | `fonts/OFL.txt` |
+
+The two fonts are embedded as WOFF2 data in `magic-card-studio-fonts.*.js` under the names `MC Space Grotesk` and
+`MC Space Mono`. Copyright lines (also in `fonts/OFL.txt` and in the chunk itself):
+
+- Space Grotesk: Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk)
+- Space Mono: Copyright 2016 The Space Mono Project Authors (https://github.com/googlefonts/spacemono)
+
+Neither font declares a Reserved Font Name. The embedded files are Modified Versions under the SIL Open Font
+License 1.1 (converted to WOFF2 and subset), keep their family names, notice and licence, and are never sold on
+their own. The licence covers the fonts only.
+
+Draft. Have a qualified lawyer review before publishing.

@@ -969,22 +969,18 @@
     "note": "Notice in the Icons, Shapes and Images tabs when the editor files from Magic Card fail to load.",
     "max": 135
   },
-  "mcu-panel.panel.the-forum-shot-could-not-be-loaded-it": {
-    "text": "The forum shot could not be loaded. It ships with Magic Card as {file}: update Magic Card to {version} or newer.",
-    "note": "Notice in the Forum shot tab when the forum shot file is missing or will not load. {file} is the name of that file, {version} the lowest Magic Card version that has it.",
+  "mcu-panel.panel.the-forum-shot-could-not-be-loaded-from": {
+    "text": "The forum shot ({file}) could not be loaded from Magic Card Utils. Reload the page and try again.",
+    "note": "Notice in the Forum shot tab when the forum shot file will not load. {file} is the name of that file.",
     "max": 185,
     "vars": {
-      "file": "The value that replaces file in the text.",
-      "version": "The value that replaces version in the text."
+      "file": "The value that replaces file in the text."
     }
   },
-  "mcu-panel.panel.the-forum-shot-needs-magic-card-or": {
-    "text": "The forum shot needs Magic Card {version} or newer. Update Magic Card.",
-    "note": "Notice in the Forum shot tab when the installed Magic Card is too old or does not work with this panel. {version} is the lowest Magic Card version that has the forum shot.",
-    "max": 100,
-    "vars": {
-      "version": "The value that replaces version in the text."
-    }
+  "mcu-panel.panel.the-forum-shot-doesn-t-match-this-panel": {
+    "text": "The forum shot doesn't match this Magic Card Utils panel. Reload the page; if that does not help, update Magic Card Utils.",
+    "note": "Notice in the Forum shot tab when the forum shot and this panel are from versions that do not work together.",
+    "max": 185
   },
   "mcu-panel.panel.the-magic-card-editor-could-not-be": {
     "text": "The Magic Card editor could not be loaded.",
@@ -1006,13 +1002,12 @@
     "note": "Error above the theme list when exporting a theme fails.",
     "max": 50
   },
-  "mcu-panel.panel.the-theme-editor-could-not-be-loaded-it": {
-    "text": "The theme editor could not be loaded. It ships with Magic Card as {file}: update Magic Card to {version} or newer.",
-    "note": "Notice in the Themes tab when the theme editor file is missing. {file} is the name of that file, {version} the lowest Magic Card version that has it.",
+  "mcu-panel.panel.the-theme-editor-could-not-be-loaded-from": {
+    "text": "The theme editor ({file}) could not be loaded from Magic Card Utils. Reload the page and try again.",
+    "note": "Notice in the Themes tab when the theme editor file will not load. {file} is the name of that file.",
     "max": 185,
     "vars": {
-      "file": "The value that replaces file in the text.",
-      "version": "The value that replaces version in the text."
+      "file": "The value that replaces file in the text."
     }
   },
   "mcu-panel.panel.the-theme-list-could-not-be-loaded": {

@@ -2,7 +2,7 @@
 
 Four WebSocket commands manage the themes of the Themes tab in the panel. Any custom card can call them too, but all four are for admin users only.
 
-Magic Card Utils keeps every theme the editor saves in its own storage, `.storage/magic_card_utils.themes`. Home Assistant applies a theme only once it is a file in `/config/themes`, so a save can also write the theme there. That second step is called publishing. It needs the **Allow themes to be saved in the themes folder** option, and it only ever writes, replaces or deletes files Magic Card wrote itself. This is contract theme-files 2.0.0.
+Magic Card Utils keeps every theme the editor saves in its own storage, `.storage/magic_card_utils.themes`. Home Assistant applies a theme only once it is a file in `/config/themes`, so a save can also write the theme there. That second step is called publishing. It needs the **Allow themes to be saved in the themes folder** option, and it only ever writes, replaces or deletes files Magic Card wrote itself. This is contract theme-files 2.0.0. The theme editor that calls these commands comes with Magic Card Utils, in `custom_components/magic_card_utils/www/`.
 
 Commands and results:
 

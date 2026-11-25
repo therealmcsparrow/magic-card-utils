@@ -33,4 +33,4 @@ This folder documents the Magic Card Utils integration: installing it, the sideb
 - Building your own card on top of the integration: start with [WebSocket API](api/README.md).
 - Something doesn't work: check [Troubleshooting](troubleshooting/README.md).
 
-The Magic Card editor, studio, animation studio and theme editor themselves are part of Magic Card. Their documentation lives in the [Magic Card repository](https://github.com/therealmcsparrow/magic-card/tree/main/documentation), including the [themes](https://github.com/therealmcsparrow/magic-card/tree/main/documentation/themes) pages.
+The Magic Card editor, studio and animation studio are part of Magic Card. The theme editor and the forum shot come with Magic Card Utils, so update both together. The theme editor's own pages (fields, presets, modes) live in the [Magic Card repository](https://github.com/therealmcsparrow/magic-card/tree/main/documentation), under [themes](https://github.com/therealmcsparrow/magic-card/tree/main/documentation/themes).
