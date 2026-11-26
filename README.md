@@ -22,12 +22,12 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 - **Animation library:** keep the custom animations from the Magic Card animation studio in one place, for every card and every user.
 - **Icon and shape library:** draw icons and shapes without a card, in the Library, Icons and Shapes tabs. Saved icons appear in Home Assistant's icon picker after a reload, and Magic Card draws them in full colour. Home Assistant's own cards show them as one-colour silhouettes.
 - **Image library:** draw images in Magic Card's image editor, keep them in the Images tab and show them in image modules and background layers. Saved images are included in Home Assistant backups, and every user can see them. See [Images](documentation/panel/images.md) and the [Images section](#images) below.
-- **Forum shot:** turn one of your Magic Cards into a picture to post in a forum, in light, dark or both. The picture is made in your browser. For a card with web fonts, your browser asks the font sites shown on the tab for them. See [Forum shot](documentation/panel/forum-shot.md).
+- **Forum shot:** turn one of your Magic Cards into a picture to post in a forum, in light, dark or both. The forum shot comes with Magic Card Utils, so it does not depend on the Magic Card version. The picture is made in your browser. For a card with web fonts, your browser asks the font sites shown on the tab for them. See [Forum shot](documentation/panel/forum-shot.md).
 - **Look gallery:** an optional switch that lets the Magic Card editor browse looks that other people shared. Off by default. Turn it on under Settings → Devices & services → Magic Card Utils → Configure → **Look gallery**, confirm the two screens, then reload the page. Turning the gallery on does not change Load Google Fonts; Utils suggests turning it on. See [Look gallery](documentation/look-gallery.md).
 - **Google Fonts:** an optional switch that gives every Magic Card font picker the full Google Fonts catalogue. Off by default. Turn it on under Settings → Devices & services → Magic Card Utils → Configure → **Load Google Fonts**, then reload the page. See [Google Fonts](documentation/google-fonts/README.md).
 - **Theme presets:** keep your own theme presets in the shared library, and import or export them as files.
 - **Import and export:** move icons, shapes, animations and theme presets between Home Assistant installations. Imports are size-limited and checked before anything is saved. See [Library](documentation/panel/library.md).
-- **Theme editor:** create and edit Home Assistant themes in a Themes tab, with a live preview and a Try on dashboard button. Themes are saved in Magic Card Utils. Once you turn on **Allow themes to be saved in the themes folder**, the editor can also save them to `/config/themes`, where Home Assistant applies them, and it only changes or deletes files it wrote itself.
+- **Theme editor:** create and edit Home Assistant themes in a Themes tab. The editor comes with Magic Card Utils, so update Magic Card Utils and Magic Card together. It has a live preview and a Try on dashboard button. Themes are saved in Magic Card Utils. Once you turn on **Allow themes to be saved in the themes folder**, the editor can also save them to `/config/themes`, where Home Assistant applies them, and it only changes or deletes files it wrote itself.
 - **Languages:** English (UK), English (US) and Dutch, following your Home Assistant profile language.
 - **Templates for every user:** non-admin users see shared templates on cards too. Only admins can change them.
 - **WebSocket API:** other custom cards can store and link their own templates and use the animation library.
@@ -38,12 +38,11 @@ Magic Card Utils is the Home Assistant integration behind [Magic Card](https://g
 - The integration icon and logo show in Home Assistant from **2026.3**. They also show in the Marketplace list on Home Assistant 2026.11 and newer. Older versions and the older HACS list show a placeholder.
 - [Magic Card](https://github.com/therealmcsparrow/magic-card), installed through the Marketplace or HACS (or added as a dashboard resource of type JavaScript module). The panel uses the installed Magic Card; Magic Card Utils doesn't ship its own copy.
 - Magic Card **2026.10.01** or newer for the Animations tab.
-- Magic Card **2026.10.06** or newer for the Themes tab.
 - Magic Card **2026.10.11-beta.1** or newer for the Library, Icons and Shapes tabs and for icons in Home Assistant's icon picker.
 - Magic Card **2026.10.11-beta.2** or newer for template cards that non-admin users can see.
 - Magic Card **2026.11.04** or newer for the Images tab and for library images on cards.
 
-Magic Card 2026.11.04 meets all of these.
+Magic Card 2026.11.04 meets all of these. The Themes tab and the Forum shot tab need no particular Magic Card version, because their files are part of Magic Card Utils.
 
 ## Check a genuine release
 
@@ -79,6 +78,8 @@ Magic Card Utils isn't in the Marketplace catalogue, so you add it by its link.
 3. Unpack the zip into that folder, so that `custom_components/magic_card_utils/manifest.json` exists.
 4. Restart Home Assistant.
 
+The theme editor and the forum shot are in the same zip. They end up in `custom_components/magic_card_utils/www/`, next to the panel, and you copy nothing into the Magic Card folder. Keep every file in that folder from the same release. After an update, restart Home Assistant and hard refresh the browser.
+
 ## Configuration
 
 1. Go to **Settings → Devices & Services**.
@@ -90,7 +91,7 @@ The **Magic Card Templates** panel then appears in the sidebar of admin users. I
 - **Templates:** every template with its card type, linked cards and last update, and buttons to open it in the studio, edit it (YAML with a live preview, then the Magic Card editor), duplicate it or delete it. Above the list you can search, export, add and import templates.
 - **Library:** your saved icons, shapes, animations and theme presets, with New icon, New shape, Edit, Rename, Delete, Export and Import.
 - **Animations:** the Magic Card animation studio, with the shared animation library.
-- **Themes:** the Magic Card theme editor. It lists the themes saved in Magic Card Utils and the theme files in `/config/themes`, and creates, edits, saves and deletes themes. Saving to the themes folder is off until an administrator turns on **Allow themes to be saved in the themes folder** under Configure, which shows a disclaimer first. The editor changes or deletes only files it wrote itself; other files are read only and can be copied under a new name. Saving to the themes folder also needs the include lines in `configuration.yaml`, which the tab shows when they are missing. The [Magic Card theme documentation](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/themes/README.md) covers the editor itself.
+- **Themes:** the theme editor, which comes with Magic Card Utils. It lists the themes saved in Magic Card Utils and the theme files in `/config/themes`, and creates, edits, saves and deletes themes. Saving to the themes folder is off until an administrator turns on **Allow themes to be saved in the themes folder** under Configure, which shows a disclaimer first. The editor changes or deletes only files it wrote itself; other files are read only and can be copied under a new name. Saving to the themes folder also needs the include lines in `configuration.yaml`, which the tab shows when they are missing. The [Magic Card theme documentation](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/themes/README.md) covers the editor itself.
 - **Icons:** your saved icons, with New icon, Edit, Rename, Delete and Export.
 - **Shapes:** your saved shapes, each with a thumbnail and its point count, and with New shape, Edit, Rename, Delete and Export.
 - **Images:** your library images, with New image, Duplicate, Rename, Delete and Export all images. Every user can see them; only admins change them.

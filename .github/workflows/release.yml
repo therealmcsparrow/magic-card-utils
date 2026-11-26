@@ -63,7 +63,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json, os, glob, hashlib, uuid, datetime
+          import json, os, re, glob, hashlib, uuid, datetime
           tag = os.environ["TAG"]
           lit = os.environ["LIT_VERSION"]
           www = "custom_components/magic_card_utils/www"
@@ -121,6 +121,89 @@ jobs:
               else:
                   print(f"::warning::{font_file} not found; SBOM lists {package} anyway")
               font_comps.append(font_comp)
+          # The theme editor and forum shot files are built by the Magic Card export tool.
+          # Each file is hashed from the shipped bytes; a hash that differs from magic-card-tools.json fails the job.
+          tools_path = f"{www}/magic-card-tools.json"
+          tools_cap = 1048576
+          if os.path.getsize(tools_path) > tools_cap:
+              print(f"::error::{tools_path} is larger than {tools_cap} bytes; refusing to parse it")
+              raise SystemExit(1)
+          tools = json.load(open(tools_path, encoding="utf-8"))
+          tool_comps = []
+          owned = re.compile(r"magic-card-[a-z0-9-]+(\.[0-9a-f]{8})?\.js")
+          for name, recorded in sorted(tools["files"].items()):
+              if not owned.fullmatch(name):
+                  print(f"::error::{tools_path} lists {name}, which is not a magic-card-*.js file name")
+                  raise SystemExit(1)
+              path = f"{www}/{name}"
+              digest = hashlib.sha256(open(path, "rb").read()).hexdigest()
+              if digest != recorded:
+                  print(f"::error::{path} does not match its hash in {tools_path}")
+                  raise SystemExit(1)
+              tool_comps.append({
+                  "type": "file",
+                  "bom-ref": f"file:{path}",
+                  "purl": f"pkg:github/{os.environ['GH_REPO']}@{tag}#{path}",
+                  "name": name,
+                  "version": tag,
+                  "hashes": [{"alg": "SHA-256", "content": digest}],
+                  "properties": [{"name": "vendored-in", "value": path}],
+              })
+          # Licence of each bundled package, with the licence text in this repository.
+          licences = {
+              "lit": ("BSD-3-Clause", f"{www}/LICENSE-lit.txt"),
+              "lit-html": ("BSD-3-Clause", f"{www}/LICENSE-lit.txt"),
+              "lit-element": ("BSD-3-Clause", f"{www}/LICENSE-lit.txt"),
+              "@lit/reactive-element": ("BSD-3-Clause", f"{www}/LICENSE-lit.txt"),
+              "@lit-labs/ssr-dom-shim": ("BSD-3-Clause", f"{www}/LICENSE-lit.txt"),
+              "@mdi/js": ("Apache-2.0", f"{www}/LICENSE-mdi.txt"),
+              "@types/trusted-types": ("MIT", f"{www}/LICENSE-trusted-types.txt"),
+          }
+          vendored = {c["purl"]: c for c in [lit_comp, mdi_comp]}
+          bundled_comps = []
+          for package, version in sorted(tools["bundled"]["packages"].items()):
+              if not re.fullmatch(r"(@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*", package) or not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?", version):
+                  print(f"::error::{tools_path} lists bundled package {package}@{version}, which is not a valid npm name and semver version")
+                  raise SystemExit(1)
+              purl = "pkg:npm/" + package.replace("@", "%40", 1) + "@" + version
+              if purl in vendored:
+                  vendored[purl]["properties"].append({"name": "vendored-in", "value": tools_path})
+                  continue
+              if package not in licences:
+                  print(f"::error::bundled package {package} has no licence text mapped in release.yml; add its licence text to {www} and map it")
+                  raise SystemExit(1)
+              spdx, text = licences[package]
+              if not os.path.isfile(text):
+                  print(f"::error::licence text {text} for {package} is missing")
+                  raise SystemExit(1)
+              bundled_comps.append({
+                  "type": "library",
+                  "bom-ref": purl,
+                  "name": package,
+                  "version": version,
+                  "purl": purl,
+                  "licenses": [{"license": {"id": spdx}}],
+                  "properties": [{"name": "vendored-in", "value": tools_path}, {"name": "licence-text", "value": text}],
+              })
+          # Fonts bundled inside the studio-fonts chunk (recorded in magic-card-tools.json), all under the SIL OFL.
+          ofl_text = f"{www}/fonts/OFL.txt"
+          bundled_fonts = tools["bundled"].get("fonts", [])
+          if bundled_fonts and not os.path.isfile(ofl_text):
+              print(f"::error::licence text {ofl_text} for the bundled fonts is missing")
+              raise SystemExit(1)
+          for family in bundled_fonts:
+              slug = re.sub(r"[^a-z0-9]+", "-", family.lower()).strip("-")
+              ref = f"pkg:generic/font-{slug}"
+              if any(c["bom-ref"] == ref for c in font_comps):
+                  continue
+              font_comps.append({
+                  "type": "data",
+                  "bom-ref": ref,
+                  "name": family,
+                  "purl": ref,
+                  "licenses": [{"license": {"id": "OFL-1.1"}}],
+                  "properties": [{"name": "vendored-in", "value": tools_path}, {"name": "licence-text", "value": ofl_text}],
+              })
           app = {
               "type": "application",
               "bom-ref": f"pkg:github/{os.environ['GH_REPO']}@{tag}",
@@ -131,7 +214,7 @@ jobs:
           }
           bom = {
               "bomFormat": "CycloneDX",
-              "specVersion": "1.5",
+              "specVersion": "1.6",
               "serialNumber": f"urn:uuid:{uuid.uuid4()}",
               "version": 1,
               "metadata": {
@@ -139,13 +222,13 @@ jobs:
                   "component": app,
                   "tools": {"components": [{"type": "application", "name": "release.yml inline generator"}]},
               },
-              "components": [lit_comp, mdi_comp] + font_comps,
+              "components": [lit_comp, mdi_comp] + font_comps + bundled_comps + tool_comps,
               "dependencies": [
-                  {"ref": app["bom-ref"], "dependsOn": [lit_comp["bom-ref"], mdi_comp["bom-ref"]] + [c["bom-ref"] for c in font_comps]},
+                  {"ref": app["bom-ref"], "dependsOn": [lit_comp["bom-ref"], mdi_comp["bom-ref"]] + [c["bom-ref"] for c in font_comps + bundled_comps + tool_comps]},
                   {"ref": lit_comp["bom-ref"], "dependsOn": []},
                   {"ref": mdi_comp["bom-ref"], "dependsOn": []},
               ]
-              + [{"ref": c["bom-ref"], "dependsOn": []} for c in font_comps],
+              + [{"ref": c["bom-ref"], "dependsOn": []} for c in font_comps + bundled_comps + tool_comps],
           }
           json.dump(bom, open("magic_card_utils.sbom.cdx.json", "w"), indent=2)
           PY

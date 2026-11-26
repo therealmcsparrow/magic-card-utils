@@ -1,18 +1,18 @@
 # Themes
 
-The Themes tab is the Magic Card theme editor, shown in the Magic Card Templates panel. You create, edit, save and delete Home Assistant themes here. The editor itself, with its fields, presets, modes and Try on dashboard, is documented in the [Magic Card theme pages](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/themes/README.md). This page covers the panel side.
+The Themes tab is the theme editor, which comes with Magic Card Utils and is shown in the Magic Card Templates panel. You create, edit, save and delete Home Assistant themes here. The editor itself, with its fields, presets, modes and Try on dashboard, is documented in the [Magic Card theme pages](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/themes/README.md). This page covers the panel side.
 
 The list of themes stays inside the tab. Opening a theme fills the whole screen, like the icon, shape and image editors. During Try on dashboard the editor returns to the tab, so the sidebar stays reachable.
 
 ## Requirements
 
--   Magic Card 2026.10.06 or newer, with `magic-card-theme-editor.js` in the same folder as `magic-card.js`. The Marketplace and HACS install it there. If the file or the element is missing, the tab shows a message and a **Try again** button.
+-   The editor file `magic-card-theme-editor.js` in `custom_components/magic_card_utils/www/`. It is part of Magic Card Utils, so the Marketplace, HACS and the manual install put it there, and no Magic Card version is needed. If the file fails to load, the tab shows "The theme editor (*file*) could not be loaded from Magic Card Utils. Reload the page and try again." and a **Try again** button.
 -   An admin user. The panel and its commands are for admins only.
 -   The include lines in `configuration.yaml` before you can save a theme to the themes folder. The tab shows them when they are missing, and the editor's own page explains them.
 
 ## Loading
 
-The tab loads the editor the first time you open it. The panel opens on Templates, so opening the panel does not load the editor. The editor's files come from the same folder as your Magic Card resource, with the same query string.
+The tab loads the editor the first time you open it. The panel opens on Templates, so opening the panel does not load the editor. The editor's files come from the folder that holds the panel, so they always match the panel you have installed.
 
 If Home Assistant rebuilds the panel, for example when you navigate away and come back, the editor keeps its draft and any running Try on dashboard trial.
 

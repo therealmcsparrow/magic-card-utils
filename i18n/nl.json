@@ -691,13 +691,13 @@
     "text": "De editorbestanden konden niet uit Magic Card worden geladen. Laad de pagina opnieuw en probeer het nog eens.",
     "hash": "dd90f518"
   },
-  "mcu-panel.panel.the-forum-shot-could-not-be-loaded-it": {
-    "text": "Het forumplaatje kon niet worden geladen. Het wordt met Magic Card meegeleverd als {file}: werk Magic Card bij naar {version} of nieuwer.",
-    "hash": "510fe6ba"
+  "mcu-panel.panel.the-forum-shot-could-not-be-loaded-from": {
+    "text": "Het forumplaatje ({file}) kon niet uit Magic Card Utils worden geladen. Laad de pagina opnieuw en probeer het nog eens.",
+    "hash": "8a69b290"
   },
-  "mcu-panel.panel.the-forum-shot-needs-magic-card-or": {
-    "text": "Voor het forumplaatje is Magic Card {version} of nieuwer nodig. Werk Magic Card bij.",
-    "hash": "2db60bfd"
+  "mcu-panel.panel.the-forum-shot-doesn-t-match-this-panel": {
+    "text": "Het forumplaatje past niet bij dit Magic Card Utils-paneel. Laad de pagina opnieuw; helpt dat niet, werk dan Magic Card Utils bij.",
+    "hash": "0f6af518"
   },
   "mcu-panel.panel.the-magic-card-editor-could-not-be": {
     "text": "De Magic Card-editor kon niet worden geladen.",
@@ -715,9 +715,9 @@
     "text": "Het thema kon niet worden geëxporteerd.",
     "hash": "db0b645c"
   },
-  "mcu-panel.panel.the-theme-editor-could-not-be-loaded-it": {
-    "text": "De theme-editor kon niet worden geladen. Hij wordt met Magic Card meegeleverd als {file}: werk Magic Card bij naar {version} of nieuwer.",
-    "hash": "beaf6a42"
+  "mcu-panel.panel.the-theme-editor-could-not-be-loaded-from": {
+    "text": "De theme-editor ({file}) kon niet uit Magic Card Utils worden geladen. Laad de pagina opnieuw en probeer het nog eens.",
+    "hash": "084d208e"
   },
   "mcu-panel.panel.the-theme-list-could-not-be-loaded": {
     "text": "De themalijst kon niet worden geladen.",

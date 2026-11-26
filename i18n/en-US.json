@@ -691,13 +691,13 @@
     "text": "The editor files could not be loaded from Magic Card. Reload the page and try again.",
     "hash": "dd90f518"
   },
-  "mcu-panel.panel.the-forum-shot-could-not-be-loaded-it": {
-    "text": "The forum shot could not be loaded. It ships with Magic Card as {file}: update Magic Card to {version} or newer.",
-    "hash": "510fe6ba"
+  "mcu-panel.panel.the-forum-shot-could-not-be-loaded-from": {
+    "text": "The forum shot ({file}) could not be loaded from Magic Card Utils. Reload the page and try again.",
+    "hash": "8a69b290"
   },
-  "mcu-panel.panel.the-forum-shot-needs-magic-card-or": {
-    "text": "The forum shot needs Magic Card {version} or newer. Update Magic Card.",
-    "hash": "2db60bfd"
+  "mcu-panel.panel.the-forum-shot-doesn-t-match-this-panel": {
+    "text": "The forum shot doesn't match this Magic Card Utils panel. Reload the page; if that does not help, update Magic Card Utils.",
+    "hash": "0f6af518"
   },
   "mcu-panel.panel.the-magic-card-editor-could-not-be": {
     "text": "The Magic Card editor could not be loaded.",
@@ -715,9 +715,9 @@
     "text": "The theme could not be exported.",
     "hash": "db0b645c"
   },
-  "mcu-panel.panel.the-theme-editor-could-not-be-loaded-it": {
-    "text": "The theme editor could not be loaded. It ships with Magic Card as {file}: update Magic Card to {version} or newer.",
-    "hash": "beaf6a42"
+  "mcu-panel.panel.the-theme-editor-could-not-be-loaded-from": {
+    "text": "The theme editor ({file}) could not be loaded from Magic Card Utils. Reload the page and try again.",
+    "hash": "084d208e"
   },
   "mcu-panel.panel.the-theme-list-could-not-be-loaded": {
     "text": "The theme list could not be loaded.",

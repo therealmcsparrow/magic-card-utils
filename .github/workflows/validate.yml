@@ -82,3 +82,5 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Check generated panel i18n files
         run: node magic-card/tools/i18n-export.mjs custom_components/magic_card_utils/www --mcu . --check
+      - name: Check the theme editor and forum shot files
+        run: node magic-card/tools/export-utils-tools.mjs custom_components/magic_card_utils/www --check

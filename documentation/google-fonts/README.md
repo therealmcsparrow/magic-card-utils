@@ -22,7 +22,7 @@ With the switch on:
 
 With the switch off, the Google tab is hidden. A card that names a Google font shows the fallback font at the end of its stack, and the card editor shows a short note under that font field.
 
-This needs Magic Card 2026.11.04 or newer.
+The font pickers in the card editor and Studio need Magic Card 2026.11.04 or newer. The theme editor and the forum shot come with Magic Card Utils and load their fonts the same way, so they need no card version.
 
 ## Existing cards
 

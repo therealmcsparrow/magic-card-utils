@@ -3,3 +3,5 @@ custom_components/magic_card_utils/www/lit-core.min.js text eol=lf
 custom_components/magic_card_utils/www/mc-i18n.js text eol=lf
 custom_components/magic_card_utils/www/mc-i18n-panel.js text eol=lf
 i18n/*.json text eol=lf
+custom_components/magic_card_utils/www/magic-card-*.js -text
+custom_components/magic_card_utils/www/magic-card-tools.json -text

@@ -42,7 +42,7 @@ Switch on Modified only to show just the inspector fields that differ from their
 
 ## Empty Animations and Themes
 
-When the Animations or Themes tab has nothing yet, it offers one button, Open animation studio or Open theme editor, which opens the studio at its list. Import and New are there. See [Animations](animations.md) and [Themes](themes.md).
+When the Animations or Themes tab has nothing yet, it offers one button, Open animation studio or Open theme editor, which opens the studio at its list. Import and New are there. See [Animations](animations.md) and [Themes](themes.md). The Themes and Forum shot tabs load their files from Magic Card Utils itself.
 
 ## Narrow screens
 
