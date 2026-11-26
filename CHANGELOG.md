@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-Update Magic Card Utils and Magic Card together. The theme editor and the forum shot now come with Magic Card Utils.
+## [2026.11.06] - 2026-11-26
+
+It pairs with Magic Card 2026.11.07. Install this release first, then update Magic Card. The theme editor and the forum shot now come with Magic Card Utils.
 
 ### Changed
 - **Theme editor and forum shot come with Magic Card Utils.** Their files are in `custom_components/magic_card_utils/www/`, next to the panel, and the Themes and Forum shot tabs load them from there. They no longer need a particular Magic Card version, and nothing is copied into the Magic Card folder. A manual install gets them by unpacking the whole zip into `custom_components/magic_card_utils`.
@@ -389,7 +391,8 @@ First stable release.
 - Templates side panel with YAML view and preview, plus rename, duplicate and delete actions.
 - Config flow with an option to show or hide the side panel.
 
-[Unreleased]: https://github.com/therealmcsparrow/magic-card-utils/compare/2026.11.05...HEAD
+[Unreleased]: https://github.com/therealmcsparrow/magic-card-utils/compare/2026.11.06...HEAD
+[2026.11.06]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.11.06
 [2026.11.05]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.11.05
 [2026.11.04]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.11.04
 [2026.11.03]: https://github.com/therealmcsparrow/magic-card-utils/releases/tag/2026.11.03
