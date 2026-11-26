@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2026.11.08] - 2026-11-26
+
+It pairs with Magic Card 2026.11.09. Install this release first, then update Magic Card.
+
+### Fixed
+- A theme without light and dark modes follows Home Assistant's dark mode setting in the theme editor preview, its labels and hints, also when the setting changes while the editor is open.
+
+### Changed
+- The test setup has a root `pytest.ini` (asyncio auto mode, tests folder), so `pytest` runs the same way from the repository root.
+
 ## [2026.11.07] - 2026-11-26
 
 It pairs with Magic Card 2026.11.08. Install this release first, then update Magic Card.
