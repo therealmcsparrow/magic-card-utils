@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2026.11.07] - 2026-11-26
+
+It pairs with Magic Card 2026.11.08. Install this release first, then update Magic Card.
+
+### Changed
+- **Theme editor.** **Save to themes folder** is now a button in the editor's top bar, in place of the Wall tablet preview. While saving to the themes folder is off, or another file uses the theme's name, it stays visible, greyed out, and says why. The Light and Dark switch changes the whole preview, including the sample cards, and a theme without light and dark modes is shown in light.
+
+### Fixed
+- The outline under the pointer no longer moves the theme editor canvas, and the top bar wraps on narrow windows so the variables and more buttons stay on screen.
+
 ## [2026.11.06] - 2026-11-26
 
 It pairs with Magic Card 2026.11.07. Install this release first, then update Magic Card. The theme editor and the forum shot now come with Magic Card Utils.
