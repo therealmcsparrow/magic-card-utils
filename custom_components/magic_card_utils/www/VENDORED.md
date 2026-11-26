@@ -43,7 +43,7 @@ panel needs no other Magic Card file to load.
 | --- | --- |
 | File | `mc-ui-kit.js` |
 | Magic Card version | `2026.11.07` (`MC_UI_KIT_VERSION`) |
-| Magic Card commit | `RELEASE7` (tag `v2026.11.07`), exported from a clean `git archive` of that commit |
+| Magic Card commit | `21a7995` (tag `v2026.11.07`), exported from a clean `git archive` of that commit |
 | SHA-256 | `77fdebdd3cc36fed16f80b7e31b651afb0364bfc30b0001359bcd87ef83962d8` |
 | Icons | `@mdi/js` 7.4.47, Apache-2.0 (https://github.com/Templarian/MaterialDesign-JS), licence text in `LICENSE-mdi.txt` |
 | Imports | `lit-core.min.js` (`css`, `html`) |
@@ -136,7 +136,7 @@ open source and these files are its own code; the third-party parts bundled into
 | Field | Value |
 | --- | --- |
 | Magic Card version | `2026.11.07` (`magic-card-tools.json`, `version`) |
-| Magic Card commit | `RELEASE40`, recorded in `.magic-card-ref` |
+| Magic Card commit | `21a7995c2a79c2a277bc501723a03bbd21098f5d`, recorded in `.magic-card-ref` |
 | SHA-256 | one per file in `magic-card-tools.json`, `files` |
 | Bundled components | `magic-card-tools.json`, `bundled` (the export writes it, so it is the list to check) |
 
