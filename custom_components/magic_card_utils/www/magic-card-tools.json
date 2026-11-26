@@ -1,13 +1,13 @@
 {
-  "version": "2026.11.06",
+  "version": "2026.11.07",
   "files": {
-    "magic-card-forum-shot.js": "f89c37db5e1daf7a66e55d26f368b6095cfb6e06c48b7080afaa7d79a1e85326",
+    "magic-card-forum-shot.js": "a4641c5a8ad627fd48ad2dc15189d32536a42043a7ffa0af0b5f250f3f7fcae7",
     "magic-card-google-fonts.3e6079b7.js": "3cf762b8bb2734bce58d2d2085ac10e13b45ca1adab5fe275f7e6a6bfd728cab",
     "magic-card-i18n-icons.0a644a70.js": "744050fe2770063d68b94d329e47a4c13295d62ac21a79e41754097265826a3c",
     "magic-card-i18n-labels.a9cf01c0.js": "6d68c36c1140b3cedb008a81deebcef76b657e25b21f7b9abe31ae3153ff3736",
     "magic-card-icon-library.50386931.js": "b4576a8786dd28d3ed648e8fdf4247a06dff046ca843d869f6dee61d733c50aa",
     "magic-card-studio-fonts.4b5c0d06.js": "ed8257186e6e3a68e8608573c0565f7050b4c0981650b84a50bb4f1c2b1091c8",
-    "magic-card-theme-editor.js": "a4c43e1e2b7c9e249e4e85d3d3dc2ba407a8a8f398a234baed6fea5f026ad372",
+    "magic-card-theme-editor.js": "e12b0577fb983a1c4c78290a91d8fcf48ac1a32ddf990414aae707ccc5541899",
     "magic-card-theme-presets.b7d7ab91.js": "a7f728af7aeb7ef32b3ca03149c5b24b03646debdaa4b085f73419989a25f5c5"
   },
   "bundled": {

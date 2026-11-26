@@ -42,9 +42,9 @@ panel needs no other Magic Card file to load.
 | Field | Value |
 | --- | --- |
 | File | `mc-ui-kit.js` |
-| Magic Card version | `2026.11.05` (`MC_UI_KIT_VERSION`) |
-| Magic Card commit | `c297ca1` (tag `v2026.11.05`), exported from a clean `git archive` of that commit |
-| SHA-256 | `9c558c74bfa4db4a4644f1b5ff7066fdf58ab42b26728ad1525730c78f4f455f` |
+| Magic Card version | `2026.11.07` (`MC_UI_KIT_VERSION`) |
+| Magic Card commit | `21a7995` (tag `v2026.11.07`), exported from a clean `git archive` of that commit |
+| SHA-256 | `77fdebdd3cc36fed16f80b7e31b651afb0364bfc30b0001359bcd87ef83962d8` |
 | Icons | `@mdi/js` 7.4.47, Apache-2.0 (https://github.com/Templarian/MaterialDesign-JS), licence text in `LICENSE-mdi.txt` |
 | Imports | `lit-core.min.js` (`css`, `html`) |
 
@@ -80,9 +80,9 @@ The panel imports `t`, `tx` and `locale` from `mc-i18n-panel.js`, already bound 
 | Field | Value |
 | --- | --- |
 | Files | `mc-i18n.js`, `mc-i18n-panel.js` |
-| Magic Card commit | the Magic Card main commit written in `.magic-card-ref` (2026.11.05), for both files |
+| Magic Card commit | the Magic Card main commit written in `.magic-card-ref` (2026.11.07), for both files |
 | SHA-256 `mc-i18n.js` | `aefa56ac90aed1d114571fe8db490c90365dcc072e0db57ecabd7e058f0f92a5` |
-| SHA-256 `mc-i18n-panel.js` | `4ac5c9440b147ff163781fdb88800b5d65c35bdb34d6f4e1e1f98de7a685c061` |
+| SHA-256 `mc-i18n-panel.js` | `5fcb2bc39cfadaf2cce6b3663982af4afb598044aba96966291cb8d750393609` |
 | Sources in this repo | `magic_card_utils_panel.js` (the `tr()` calls), `i18n/en-GB.json` (English, notes and length limits), `i18n/nl.json` (written by hand, with the hash of the English it was made from), `i18n/en-US.json` (generated) |
 
 The exporter reads the panel source and runs the drift checks: every message is a literal, has an en-US and a nl
@@ -135,8 +135,8 @@ open source and these files are its own code; the third-party parts bundled into
 
 | Field | Value |
 | --- | --- |
-| Magic Card version | `2026.11.06` (`magic-card-tools.json`, `version`) |
-| Magic Card commit | `43d58a5627b13eddfe0504b51518c1f6c71d27a2`, recorded in `.magic-card-ref` |
+| Magic Card version | `2026.11.07` (`magic-card-tools.json`, `version`) |
+| Magic Card commit | `21a7995c2a79c2a277bc501723a03bbd21098f5d`, recorded in `.magic-card-ref` |
 | SHA-256 | one per file in `magic-card-tools.json`, `files` |
 | Bundled components | `magic-card-tools.json`, `bundled` (the export writes it, so it is the list to check) |
 
