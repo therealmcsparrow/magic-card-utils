@@ -1,4 +1,4 @@
-"""Contract: theme-files 2.0.0 (Architect-owned).
+"""Contract: theme-files 2.1.0 (Architect-owned).
 
 WebSocket commands for the theme editor (Magic Card Utils panel "Themes" tab, element from
 magic-card's dist/magic-card-theme-editor.js; TypeScript mirror: magic-card
@@ -58,6 +58,14 @@ are not.
 2.0.0 breaking changes from 1.1.0: themes_save without ``publish`` no longer writes a file; themes_delete
 removes the stored theme and only removes the file with ``file: true``; the "writes_off" reason is gone
 (the option no longer locks themes).
+
+2.1.0 (additive): the editor remembers the SHA-256 of the exact UTF-8 text of every file it publishes,
+per theme name, in the same storage (``{"themes": ..., "hashes": {name: hex}}``). Replacing or deleting
+a file, which must still start with WRITTEN_HEADER, also needs the file's bytes to hash to that value;
+a different hash, or no stored hash (a file written by an earlier release), is refused with
+``edited_by_hand`` and the file is left alone. The check runs before the base_mtime ``conflict``
+check. A storage-only save is never affected. The way forward is to save the theme under a new name,
+which creates a fully managed file. The hash is dropped when the theme is deleted.
 """
 
 from __future__ import annotations
@@ -65,7 +73,7 @@ from __future__ import annotations
 import re
 from typing import Literal, NotRequired, TypedDict
 
-THEME_FILES_CONTRACT_VERSION = "2.0.0"
+THEME_FILES_CONTRACT_VERSION = "2.1.0"
 
 THEMES_DIR = "themes"
 
@@ -129,6 +137,7 @@ ERR_TOO_LARGE = "too_large"
 ERR_SAVE_FAILED = "save_failed"
 ERR_READ_FAILED = "read_failed"
 ERR_THEME_FILES_OFF = "theme_files_off"  # the themes-folder option is off (publish, file delete)
+ERR_EDITED_BY_HAND = "edited_by_hand"  # 2.1.0: the file is not byte for byte what the editor last wrote
 # Non-admin callers get HA's own "unauthorized" from require_admin.
 
 
