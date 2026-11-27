@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- **Theme editor.** A theme file in `/config/themes` that you edited by hand is no longer replaced or deleted. The editor stores a fingerprint (SHA-256) of the text it last wrote for each theme and compares the file with it first, on top of the existing modified-time check. A file that differs, or one written by an earlier release (no fingerprint yet), is refused with the new `edited_by_hand` error and left untouched. The editor shows a banner with a **Save under a new name** button, and the panel's delete message says the editor cannot confirm the file is unchanged, because it may have been edited by hand or written by an earlier version. The new file is fully managed. Saving to Magic Card Utils only still works. Deleting a theme drops its fingerprint. The theme-files contract is now 2.1.0. See [Files edited by hand](documentation/panel/themes.md#files-edited-by-hand).
+
 ### Fixed
+- Saving a theme under a new name now works for a theme that already exists. It is saved as a new theme, with no link to the old file.
 - The languages page now says the theme tools in the panel ship with Magic Card Utils, not with Magic Card.
 
 ## [2026.11.08] - 2026-11-26

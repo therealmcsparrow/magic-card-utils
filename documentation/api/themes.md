@@ -2,7 +2,7 @@
 
 Four WebSocket commands manage the themes of the Themes tab in the panel. Any custom card can call them too, but all four are for admin users only.
 
-Magic Card Utils keeps every theme the editor saves in its own storage, `.storage/magic_card_utils.themes`. Home Assistant applies a theme only once it is a file in `/config/themes`, so a save can also write the theme there. That second step is called publishing. It needs the **Allow themes to be saved in the themes folder** option, and it only ever writes, replaces or deletes files Magic Card wrote itself. This is contract theme-files 2.0.0. The theme editor that calls these commands comes with Magic Card Utils, in `custom_components/magic_card_utils/www/`.
+Magic Card Utils keeps every theme the editor saves in its own storage, `.storage/magic_card_utils.themes`. Home Assistant applies a theme only once it is a file in `/config/themes`, so a save can also write the theme there. That second step is called publishing. It needs the **Allow themes to be saved in the themes folder** option, and it only ever writes, replaces or deletes files Magic Card wrote itself. This is contract theme-files 2.1.0. The theme editor that calls these commands comes with Magic Card Utils, in `custom_components/magic_card_utils/www/`.
 
 Commands and results:
 
@@ -41,7 +41,7 @@ const saved = await hass.callWS({
 -   `files`: one entry per saved theme, then one per `.yaml` file in `/config/themes` that is not the file of a saved theme. Each entry has `name`, `file` (relative to `/config`), `editable`, `reason` when it is read only, `stored`, `folder`, `has_modes`, `var_count` and `mtime`. For a saved theme, `file` is where it is or would be published, and `mtime` is the time of its last save.
 -   `loaded`: the theme names Home Assistant has loaded right now.
 -   `writes_enabled`: whether the **Allow themes to be saved in the themes folder** option is on.
--   `storage`: always `true` from theme-files 2.0.0 on. A client can use it to tell this contract from 1.x.
+-   `storage`: always `true` from theme-files 2.0.0 on. A client can use it to tell this contract from 1.x. Contract 2.1.0 adds only the `edited_by_hand` error and changes no result shape.
 
 `state` is `ok` when the include is in place, or when a theme from a file in `/config/themes` is already loaded. Nested includes and packages count.
 
@@ -65,6 +65,14 @@ While it is off, themes are still saved, listed, read and deleted in Magic Card 
 ## Read-only files
 
 A file in `/config/themes` is Magic Card's own when its first line is `# Written by the Magic Card theme editor.`, which every publish writes. Any other file is never changed, replaced or deleted. To edit one, copy it in the editor and save it under a new name.
+
+### Files edited by hand
+
+The header alone does not make a file safe to replace. Each time the editor writes a file, it stores the SHA-256 of the exact text it wrote, per theme name, as `hashes` in `.storage/magic_card_utils.themes`, next to `themes`. Before it replaces or deletes a file that carries the header, it hashes the file and compares the result with the stored hash. If they differ, someone edited the file after the editor wrote it. If no hash is stored, the editor has no record of what it last wrote. That is the case for every file written before theme-files 2.1.0. In both cases the command returns `edited_by_hand` and leaves the file untouched.
+
+This check runs before the `base_mtime` check, which still applies to files that pass it. It applies to `themes_save` with `publish: true` when `themes/<name>.yaml` is a file the editor wrote, and to `themes_delete` with `file: true`. A save without `publish` never touches the file and is not affected. Deleting a saved theme removes its hash. A file left behind is then no longer managed, and later saves treat it like any file with the header and no record.
+
+To get past `edited_by_hand`, save the theme under a new name. The new file is written by the editor, its hash is stored, and from then on it is fully managed. The original file stays where it is.
 
 `editable` is `false` for a file Magic Card may not rewrite. `reason` is one of:
 
@@ -93,7 +101,7 @@ Saved themes are always editable. `themes_get` returns the saved copy when there
     -   A name Home Assistant loads from another file returns `name_taken`.
     -   A file Magic Card wrote needs `overwrite: true`. The save imports it, and `base_mtime` is checked against the file's mtime.
 4.  For a saved name, `overwrite: true` is needed, and `base_mtime` is checked against the time of the last save.
-5.  A `base_mtime` that does not match returns `conflict`.
+5.  A `base_mtime` that does not match returns `conflict`. When the save publishes over a file the editor wrote, the hand-edit check (see [Files edited by hand](#files-edited-by-hand)) runs first and returns `edited_by_hand`.
 6.  With `publish: true`:
     -   The option is on. Otherwise `theme_files_off`.
     -   The include state is `ok`. Otherwise `themes_not_included`.
@@ -131,12 +139,19 @@ try {
 | `name_taken` | `themes_save` | The theme is saved or Magic Card's file exists and `overwrite` is not set, a file Magic Card did not write has that name, or the name is loaded from another file. |
 | `not_editable` | `themes_save`, `themes_delete` | Publishing over, or deleting, a file Magic Card did not write. See the reasons above. |
 | `theme_files_off` | `themes_save`, `themes_delete` | `publish: true` or `file: true` while the option is off. Nothing is written or deleted. |
+| `edited_by_hand` | `themes_save`, `themes_delete` | The file `themes/<name>.yaml` has the editor's header, but its content differs from the text the editor last wrote, or no hash is stored for it. Nothing is written or deleted. Save the theme under a new name. |
 | `conflict` | `themes_save` | `base_mtime` does not match. Nothing is written. |
 | `themes_not_included` | `themes_save` | `publish: true` while the include state is not `ok`. Nothing is written. |
 | `too_large` | `themes_save` | The theme is larger than the file limit, or Magic Card Utils already keeps 500 themes. |
 | `save_failed` | `themes_save`, `themes_delete` | Writing the file or the storage failed. The message does not include the path. |
 | `read_failed` | `themes_list`, `themes_get` | The themes could not be read. The message does not include the path. |
 | `unauthorized` | All four | The caller is not an admin. Home Assistant's own code. |
+
+## Changes in theme-files 2.1.0
+
+-   New error code `edited_by_hand` on `themes_save` and `themes_delete`.
+-   The storage file gains `hashes`, a map from theme name to the SHA-256 of the file text the editor last wrote.
+-   Files written before this version have no hash and are refused until the theme is saved under a new name.
 
 ## Changes from theme-files 1.x
 
@@ -146,7 +161,7 @@ try {
 
 ## Who can call what
 
-All four commands are admin only. Non-admin users get Home Assistant's `unauthorized` error, and nothing is written.
+All four commands are admin only. Non-admin users get Home Assistant's `unauthorized` error, and nothing is written. File reads, writes and deletes run in Home Assistant's executor, not in the event loop.
 
 ## Related
 

@@ -13,6 +13,7 @@ import asyncio
 import copy
 import json
 import logging
+import re
 import time
 from typing import Any
 
@@ -52,6 +53,7 @@ _LOGGER = logging.getLogger(__name__)
 
 # HA frontend's DATA_THEMES key (homeassistant.components.frontend); one place to change on a rename.
 FRONTEND_THEMES_KEY = "frontend_themes"
+_HASH_RE = re.compile(r"[0-9a-f]{64}")
 DATA_THEMES = f"{DOMAIN}_themes"
 
 THEME_FILES_OFF_MESSAGE = (
@@ -86,6 +88,7 @@ class ThemeStore:
     def __init__(self, hass: HomeAssistant) -> None:
         self.store: Store = Store(hass, STORAGE_VERSION, STORAGE_KEY_THEMES)
         self.themes: dict[str, dict[str, Any]] = {}
+        self.hashes: dict[str, str] = {}  # theme name -> SHA-256 of the file text last published
         self.lock = asyncio.Lock()
 
     async def async_load(self) -> None:
@@ -109,25 +112,43 @@ class ThemeStore:
                     break
                 themes[name] = {"theme": theme, "updated": float(updated)}
         self.themes = await self.store.hass.async_add_executor_job(_fit_file_limit, themes)
+        saved_hashes = data.get("hashes") if isinstance(data, dict) else None
+        self.hashes = {}
+        if isinstance(saved_hashes, dict):
+            for name, digest in saved_hashes.items():
+                if not tf.validate_name(name) and isinstance(digest, str) and _HASH_RE.fullmatch(digest):
+                    self.hashes[name] = digest
 
-    async def async_put(self, name: str, theme: dict) -> float:
-        """Store ``theme`` under ``name``; returns its new ``updated`` (always later than the last one)."""
+    def _payload(self, themes: dict[str, dict[str, Any]], hashes: dict[str, str]) -> dict[str, Any]:
+        return {"themes": themes, "hashes": hashes}
+
+    async def async_put(self, name: str, theme: dict, file_hash: str | None = None) -> float:
+        """Store ``theme`` under ``name``; returns its new ``updated`` (always later than the last one).
+
+        ``file_hash`` is the hash of a file just published; it replaces the one kept for ``name``.
+        """
         previous = self.themes.get(name)
         updated = time.time()
         if previous and updated <= previous["updated"]:
             updated = previous["updated"] + 0.001
         themes = {**self.themes, name: {"theme": copy.deepcopy(theme), "updated": updated}}
-        await self.store.async_save({"themes": themes})
+        hashes = {**self.hashes, name: file_hash} if file_hash else self.hashes
+        await self.store.async_save(self._payload(themes, hashes))
         self.themes = themes
+        self.hashes = hashes
         return updated
 
     async def async_remove(self, name: str) -> bool:
-        if name not in self.themes:
+        """Remove the stored theme and its file hash; True when a stored theme was removed."""
+        had_theme = name in self.themes
+        if not had_theme and name not in self.hashes:
             return False
         themes = {k: v for k, v in self.themes.items() if k != name}
-        await self.store.async_save({"themes": themes})
+        hashes = {k: v for k, v in self.hashes.items() if k != name}
+        await self.store.async_save(self._payload(themes, hashes))
         self.themes = themes
-        return True
+        self.hashes = hashes
+        return had_theme
 
 
 def _theme_store(hass: HomeAssistant) -> ThemeStore:
@@ -313,6 +334,7 @@ def _save_job(
     loaded: list[str],
     stored_updated: float | None,
     stored: dict[str, dict[str, Any]],
+    stored_hash: str | None = None,
 ) -> dict[str, Any]:
     """Contract save order up to and including the file write; the store is saved by the caller."""
     tf.validate_save_request(name, theme)
@@ -340,6 +362,8 @@ def _save_job(
         if not overwrite:
             raise tf.ThemeFileError(ERR_NAME_TAKEN, f"A theme named {name} already exists.")
         current = stored_updated
+    if publish and writes and own_file:
+        tf.check_unedited(config_dir, name, stored_hash)  # before the mtime check
     if base_mtime is not None and current is not None and abs(current - base_mtime) > tf.MTIME_TOLERANCE:
         raise tf.ThemeFileError(ERR_CONFLICT, "The theme changed since you opened it.")
 
@@ -360,8 +384,8 @@ def _save_job(
         )
     if record is None and name in loaded:
         raise tf.ThemeFileError(ERR_NAME_TAKEN, f"A theme named {name} is already loaded from another file.")
-    written = tf.write_theme(config_dir, name, theme, overwrite=True)
-    return {"published": True, "file": written["file"], "folder": "current"}
+    written = tf.write_theme(config_dir, name, theme, overwrite=True, stored_hash=stored_hash)
+    return {"published": True, "file": written["file"], "folder": "current", "hash": written["hash"]}
 
 
 @websocket_api.websocket_command(
@@ -399,6 +423,7 @@ async def ws_themes_save(
                 loaded_theme_names(hass),
                 item["updated"] if item else None,
                 store.themes,
+                store.hashes.get(name) if isinstance(name, str) else None,
             )
         except tf.ThemeFileError as err:
             _send_error(connection, msg["id"], err)
@@ -408,7 +433,7 @@ async def ws_themes_save(
             connection.send_error(msg["id"], ERR_SAVE_FAILED, "The theme could not be saved")
             return
         try:
-            updated = await store.async_put(name, msg["theme"])
+            updated = await store.async_put(name, msg["theme"], saved.get("hash"))
         except Exception:  # noqa: BLE001
             _LOGGER.exception("Storing theme %r failed", name)
             connection.send_error(msg["id"], ERR_SAVE_FAILED, "The theme could not be saved")
@@ -459,7 +484,9 @@ async def ws_themes_delete(
             if msg["file"]:
                 if not theme_files_enabled(hass):
                     raise _writes_off_error()
-                await hass.async_add_executor_job(tf.delete_theme, hass.config.config_dir, name)
+                await hass.async_add_executor_job(
+                    tf.delete_theme, hass.config.config_dir, name, store.hashes.get(name)
+                )
             elif not is_stored:
                 raise tf.ThemeFileError(ERR_NOT_FOUND, "Theme not found.")
         except tf.ThemeFileError as err:

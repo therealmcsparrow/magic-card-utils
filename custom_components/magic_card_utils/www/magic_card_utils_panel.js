@@ -1809,7 +1809,10 @@ class MagicCardUtilsPanel extends LitElement {
       console.error("[magic_card_utils] delete theme failed", err);
       this._themeDeleteAsk = "";
       this._themeDeleteFile = false;
-      this._themeListError = tr("mcu-panel.panel.the-theme-could-not-be-deleted");
+      this._themeListError =
+        err && err.code === "edited_by_hand"
+          ? tr("mcu-panel.panel.the-theme-file-was-edited-by-hand")
+          : tr("mcu-panel.panel.the-theme-could-not-be-deleted");
     }
   }
 

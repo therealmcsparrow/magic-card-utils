@@ -10,6 +10,7 @@ file the editor wrote itself).
 from __future__ import annotations
 
 import datetime
+import hashlib
 import logging
 import math
 import os
@@ -21,6 +22,7 @@ import yaml
 from homeassistant.util.file import WriteError, write_utf8_file_atomic
 
 from .themes_contract import (
+    ERR_EDITED_BY_HAND,
     ERR_INVALID_FORMAT,
     ERR_NAME_TAKEN,
     ERR_NOT_EDITABLE,
@@ -375,10 +377,45 @@ def dump_theme(name: str, theme: dict) -> str:
     return text
 
 
+def text_hash(text: str) -> str:
+    """SHA-256 (lowercase hex) of ``text`` as UTF-8: the exact bytes the editor writes to a file."""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _require_unedited(path: Path, name: str, stored_hash: str | None, action: str) -> None:
+    """Refuse (edited_by_hand) unless the file's bytes hash to ``stored_hash``."""
+    try:
+        current = hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError as err:
+        _LOGGER.warning("Could not read theme file %s: %r", name, err)
+        raise ThemeFileError(ERR_READ_FAILED, "Could not read the theme file.") from err
+    if stored_hash and current == stored_hash:
+        return
+    if stored_hash:
+        why = f"themes/{name}.yaml was edited by hand after the editor wrote it, so it is not {action}."
+    else:
+        why = (
+            f"themes/{name}.yaml may have been edited by hand: the editor has no record of the file it last "
+            f"wrote, so it is not {action}."
+        )
+    raise ThemeFileError(ERR_EDITED_BY_HAND, why + " Save the theme under a new name instead.")
+
+
+def check_unedited(config_dir: str | Path, name: str, stored_hash: str | None) -> None:
+    """edited_by_hand unless ``themes/<name>.yaml`` hashes to ``stored_hash``; no-op when it is absent."""
+    path = theme_path(config_dir, name)
+    if os.path.lexists(path):
+        _require_unedited(path, name, stored_hash, "replaced")
+
+
 def check_existing(
-    config_dir: str | Path, name: str, overwrite: bool, base_mtime: float | None
+    config_dir: str | Path,
+    name: str,
+    overwrite: bool,
+    base_mtime: float | None,
+    stored_hash: str | None = None,
 ) -> None:
-    """Rules for an existing file: name_taken, not_editable, conflict. No-op when absent."""
+    """Rules for an existing file: name_taken, not_editable, edited_by_hand, conflict. No-op when absent."""
     path = theme_path(config_dir, name)
     if not os.path.lexists(path):
         return
@@ -387,6 +424,7 @@ def check_existing(
     entry = _inspect(Path(config_dir), path, themes_dir(config_dir))["entry"]
     if not entry["editable"]:
         raise ThemeFileError(ERR_NOT_EDITABLE, "This theme file cannot be edited here.")
+    _require_unedited(path, name, stored_hash, "replaced")
     if base_mtime is not None and abs(entry["mtime"] - base_mtime) > MTIME_TOLERANCE:
         raise ThemeFileError(ERR_CONFLICT, "The file changed since you opened it.")
 
@@ -397,10 +435,11 @@ def write_theme(
     theme: dict,
     overwrite: bool = False,
     base_mtime: float | None = None,
+    stored_hash: str | None = None,
 ) -> dict[str, Any]:
-    """Validate and atomically write ``themes/<name>.yaml``. Returns {name, file, mtime}."""
+    """Validate and atomically write ``themes/<name>.yaml``. Returns {name, file, mtime, hash}."""
     validate_save_request(name, theme)
-    check_existing(config_dir, name, overwrite, base_mtime)
+    check_existing(config_dir, name, overwrite, base_mtime, stored_hash)
     text = dump_theme(name, theme)
     path = theme_path(config_dir, name)
     try:
@@ -410,17 +449,18 @@ def write_theme(
     except (OSError, WriteError) as err:
         _LOGGER.warning("Could not write theme file %s: %r", name, err)
         raise ThemeFileError(ERR_SAVE_FAILED, "Could not write the theme file.") from err
-    return {"name": name, "file": _rel(config_dir, path), "mtime": mtime}
+    return {"name": name, "file": _rel(config_dir, path), "mtime": mtime, "hash": text_hash(text)}
 
 
-def delete_theme(config_dir: str | Path, name: str) -> None:
-    """Delete an editable theme file."""
+def delete_theme(config_dir: str | Path, name: str, stored_hash: str | None = None) -> None:
+    """Delete an editable theme file the editor wrote and nobody has edited since."""
     path = theme_path(config_dir, name)
     if not os.path.lexists(path):
         raise ThemeFileError(ERR_NOT_FOUND, "Theme not found.")
     entry = _inspect(Path(config_dir), path, themes_dir(config_dir))["entry"]
     if not entry["editable"]:
         raise ThemeFileError(ERR_NOT_EDITABLE, "This theme file cannot be deleted here.")
+    _require_unedited(path, name, stored_hash, "deleted")
     try:
         path.unlink()
     except OSError as err:

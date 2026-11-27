@@ -1010,6 +1010,11 @@
       "file": "The value that replaces file in the text."
     }
   },
+  "mcu-panel.panel.the-theme-file-was-edited-by-hand": {
+    "text": "The editor cannot confirm that the theme file is unchanged since it last wrote it: it may have been edited by hand, or written by an earlier version. Nothing was changed. Open the theme and save it under a new name.",
+    "note": "Error above the theme list when deleting a theme is refused because its file in the themes folder has no stored record or differs from the one the editor wrote (edited by hand, or written by an earlier version). Keep the phrases by hand and new name.",
+    "max": 260
+  },
   "mcu-panel.panel.the-theme-list-could-not-be-loaded": {
     "text": "The theme list could not be loaded.",
     "note": "Error above the theme list when the list of theme files cannot be read.",
