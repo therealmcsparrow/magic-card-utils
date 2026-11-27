@@ -720,8 +720,8 @@
     "hash": "084d208e"
   },
   "mcu-panel.panel.the-theme-file-was-edited-by-hand": {
-    "text": "The theme file was edited by hand, so it was not changed. Open the theme and save it under a new name.",
-    "hash": "3f1c35ad"
+    "text": "The editor cannot confirm that the theme file is unchanged since it last wrote it: it may have been edited by hand, or written by an earlier version. Nothing was changed. Open the theme and save it under a new name.",
+    "hash": "8127f388"
   },
   "mcu-panel.panel.the-theme-list-could-not-be-loaded": {
     "text": "The theme list could not be loaded.",

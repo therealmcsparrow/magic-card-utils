@@ -720,8 +720,8 @@
     "hash": "084d208e"
   },
   "mcu-panel.panel.the-theme-file-was-edited-by-hand": {
-    "text": "Het themabestand is met de hand aangepast en daarom niet gewijzigd. Open het thema en sla het op onder een nieuwe naam.",
-    "hash": "3f1c35ad"
+    "text": "De editor kan niet bevestigen dat het themabestand ongewijzigd is sinds hij het voor het laatst schreef: het kan met de hand zijn aangepast of door een eerdere versie zijn geschreven. Er is niets gewijzigd. Open het thema en sla het op onder een nieuwe naam.",
+    "hash": "8127f388"
   },
   "mcu-panel.panel.the-theme-list-could-not-be-loaded": {
     "text": "De themalijst kon niet worden geladen.",
