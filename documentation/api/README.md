@@ -124,7 +124,7 @@ Branch on `code`; the `message` wording can change. Codes used by the integratio
 | `invalid_format` | `save_animation` | The animation breaks a rule (with an `errors` list), or the library is full (without one) |
 | `not_loaded` | Animation commands | The animation library hasn't finished loading |
 | `save_failed` | `save_animation`, `delete_animation` | Writing to storage failed |
-| `name_taken`, `not_editable`, `conflict`, `themes_not_included`, `theme_files_off`, `read_failed` | Theme commands | A theme can't be saved, published, deleted or read. See [Themes](themes.md#errors) for each code. `invalid_format` on the theme commands also carries an `errors` list. |
+| `name_taken`, `not_editable`, `edited_by_hand`, `conflict`, `themes_not_included`, `theme_files_off`, `read_failed` | Theme commands | A theme can't be saved, published, deleted or read. See [Themes](themes.md#errors) for each code. `invalid_format` on the theme commands also carries an `errors` list. |
 
 Home Assistant's own codes, like `invalid_format` for a missing or wrong payload field and `unauthorized`, can appear too.
 

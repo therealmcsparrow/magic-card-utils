@@ -8,6 +8,7 @@ The integration keeps its data in Home Assistant's own storage folder, `config/.
 | `magic_card_utils.animations` | The animation library, keyed by animation id |
 | `magic_card_utils.icons` | The icon library, keyed by icon id |
 | `magic_card_utils.shapes` | The shape library, keyed by shape id |
+| `magic_card_utils.themes` | The themes saved in the theme editor, plus a fingerprint (SHA-256) of the text last written to each theme file in `/config/themes` |
 | `magic_card_utils.theme_presets` | The theme presets, keyed by id |
 
 All of these are JSON files managed by Home Assistant. Don't edit them while Home Assistant is running; it would overwrite your changes.

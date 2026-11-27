@@ -26,7 +26,15 @@ The editor always saves a theme in Magic Card Utils. Home Assistant only applies
 
 Each row says where the theme stands: **Not in the themes folder**, **In the themes folder**, **Themes folder copy is older** (changed since it was last saved there), **Another file in the themes folder uses this name**, or **Only in the themes folder** for a file Magic Card wrote that is not saved in Magic Card Utils yet. Opening and saving such a file imports it under the same name.
 
-The tab never changes, replaces or deletes a theme file Magic Card did not write, and it never writes `configuration.yaml`. Magic Card's own files start with `# Written by the Magic Card theme editor.`. Other files are listed as **Read only**: copy one and save it under a new name to edit it. See [Files and limits](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/themes/files.md) in the Magic Card docs.
+The tab never changes, replaces or deletes a theme file Magic Card did not write or one you edited by hand since (see [Files edited by hand](#files-edited-by-hand)), and it never writes `configuration.yaml`. Magic Card's own files start with `# Written by the Magic Card theme editor.`. Other files are listed as **Read only**: copy one and save it under a new name to edit it. See [Files and limits](https://github.com/therealmcsparrow/magic-card/blob/main/documentation/themes/files.md) in the Magic Card docs.
+
+## Files edited by hand
+
+The editor remembers a fingerprint of the exact text it last wrote for each theme. Before it replaces or deletes a file in the themes folder, it compares the file with that fingerprint. If you changed the file yourself, or the editor wrote it before this check existed, the editor leaves it alone. Saving to the themes folder then shows "The file for *name* was edited by hand outside the editor, so nothing was overwritten. Save the theme under a new name." with a **Save under a new name** button. Deleting shows "The theme file was edited by hand, so it was not changed. Open the theme and save it under a new name."
+
+To go on, open the theme, click **Save under a new name** and pick a name. The new file is written by the editor and fully managed from then on. Your original file stays in the folder; delete it yourself if you no longer need it. Saving to Magic Card Utils only, without the themes folder, always works, because it never touches the file.
+
+Files written by an earlier release have no fingerprint, so they are refused the same way until you save the theme under a new name.
 
 ## Deleting a theme
 
