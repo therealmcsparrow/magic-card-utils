@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- The languages page now says the theme tools in the panel ship with Magic Card Utils, not with Magic Card.
+
 ## [2026.11.08] - 2026-11-26
 
 It pairs with Magic Card 2026.11.09. Install this release first, then update Magic Card.
