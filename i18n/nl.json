@@ -719,6 +719,10 @@
     "text": "De theme-editor ({file}) kon niet uit Magic Card Utils worden geladen. Laad de pagina opnieuw en probeer het nog eens.",
     "hash": "084d208e"
   },
+  "mcu-panel.panel.the-theme-file-was-edited-by-hand": {
+    "text": "Het themabestand is met de hand aangepast en daarom niet gewijzigd. Open het thema en sla het op onder een nieuwe naam.",
+    "hash": "3f1c35ad"
+  },
   "mcu-panel.panel.the-theme-list-could-not-be-loaded": {
     "text": "De themalijst kon niet worden geladen.",
     "hash": "16fecb1e"
