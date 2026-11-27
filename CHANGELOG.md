@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- The `dark_logo` brand images are removed because they were identical to `logo`, which Home Assistant already uses in dark mode when there is no dark logo. Hassfest flagged the duplicates, and that blocked the HACS default listing.
+
 ## [2026.11.09] - 2026-11-27
 
 Pairs with Magic Card 2026.11.10; install this first.
